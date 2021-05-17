@@ -1,4 +1,6 @@
-﻿using UnityEditor;
+﻿using System.Collections.Generic;
+using UnityEditor;
+using UnityEditorInternal;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDKBase;
@@ -8,6 +10,58 @@ namespace YagihataItems.RadialInventorySystemV3
     [CustomEditor(typeof(RISSettings))]
     public class RISSettingsEditor : Editor
     {
+        private ReorderableList propGroupsReorderableList;
+
+        void OnEnable()
+        {
+            var settings = target as RISSettings;
+            var groups = settings.Groups;
+            propGroupsReorderableList = new ReorderableList(groups, typeof(PropGroup))
+            {
+                drawHeaderCallback = rect =>
+                {
+                    EditorGUI.LabelField(rect, $"{"PropGroups"}: {groups.Count}", EditorStyles.boldLabel);
+                    var position =
+                        new Rect(
+                            rect.width - (EditorGUI.indentLevel) * 15f,
+                            rect.y,
+                            20f,
+                            13f
+                        );
+                    if (GUI.Button(position, ReorderableListStyle.AddContent, ReorderableListStyle.AddStyle))
+                    {
+                        Undo.RecordObject(settings, $"Add new PropGroup.");
+                        groups.Add(new PropGroup());
+                        EditorUtility.SetDirty(settings);
+                    }
+                },
+                drawElementCallback = (rect, index, isActive, isFocused) =>
+                {
+                    if (groups.Count <= index)
+                        return;
+
+                    GUI.Label(rect, groups[index].GroupName);
+                    rect.x = rect.x + rect.width - 20f;
+                    rect.width = 20f;
+                    if (GUI.Button(rect, ReorderableListStyle.SubContent, ReorderableListStyle.SubStyle))
+                    {
+                        Undo.RecordObject(settings, $"Remove PropGroup - \"{groups[index].GroupName}\".");
+                        groups.RemoveAt(index);
+                        EditorUtility.SetDirty(settings);
+                    }
+                },
+
+                drawFooterCallback = rect => { },
+                footerHeight = 0f,
+                elementHeightCallback = index =>
+                {
+                    if (groups.Count <= index)
+                        return 0;
+
+                    return EditorGUIUtility.singleLineHeight;
+                }
+            };
+        }
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -27,6 +81,12 @@ namespace YagihataItems.RadialInventorySystemV3
             var folderID = settings.FolderID;
             settings.FolderID = EditorGUILayout.TextField("Folder ID", settings.FolderID);
             if (settings.FolderID != folderID)
+                EditorUtility.SetDirty(settings);
+
+            var listHash = settings.Groups.GetHashCode();
+            var listProp = serializedObject.FindProperty("Groups");
+            propGroupsReorderableList.DoLayoutList();
+            if (settings.Groups.GetHashCode() != listHash)
                 EditorUtility.SetDirty(settings);
 
             serializedObject.ApplyModifiedProperties();

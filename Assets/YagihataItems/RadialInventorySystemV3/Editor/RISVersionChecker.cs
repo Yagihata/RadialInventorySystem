@@ -16,7 +16,7 @@ namespace YagihataItems.RadialInventorySystemV3
         public static string GetNewerVersion()
         {
 
-            TextAsset newVersionTxt = AssetDatabase.LoadAssetAtPath<TextAsset>(RISV3.workFolderPath + "newerVersion.txt");
+            TextAsset newVersionTxt = AssetDatabase.LoadAssetAtPath<TextAsset>(RISV3.WorkFolderPath + "newerVersion.txt");
             if (newVersionTxt != null)
                 return newVersionTxt.text.Trim();
             else
@@ -25,7 +25,7 @@ namespace YagihataItems.RadialInventorySystemV3
         [InitializeOnLoadMethod]
         static void EditorInitialize()
         {
-            if(!File.Exists(TMP_FILE_PATH) || !File.Exists(RISV3.workFolderPath + "newerVersion.txt"))
+            if(!File.Exists(TMP_FILE_PATH) || !File.Exists(RISV3.WorkFolderPath + "newerVersion.txt"))
             {
                 File.Create(TMP_FILE_PATH);
                 CheckNewerVersion();
@@ -37,10 +37,10 @@ namespace YagihataItems.RadialInventorySystemV3
             {
                 try
                 {
-                    string text = wc.DownloadString(RISV3.versionUrl);
+                    string text = wc.DownloadString(RISV3.VersionUrl);
                     var newerVersion = text.Trim();
                     Debug.Log(newerVersion);
-                    File.WriteAllText(RISV3.workFolderPath + "newerVersion.txt", newerVersion);
+                    File.WriteAllText(RISV3.WorkFolderPath + "newerVersion.txt", newerVersion);
                 }
                 catch (WebException exc)
                 {
