@@ -1,0 +1,3 @@
+[submodule "Assets/YagihataItems/YagiUtils"]
+	path = Assets/YagihataItems/YagiUtils
+	url = https://github.com/Yagihata/YagiUtils
