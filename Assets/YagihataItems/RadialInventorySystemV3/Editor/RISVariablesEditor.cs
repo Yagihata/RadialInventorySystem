@@ -89,6 +89,11 @@ namespace YagihataItems.RadialInventorySystemV3
             if (settings.Groups.GetHashCode() != listHash)
                 EditorUtility.SetDirty(settings);
 
+            var menuMode = settings.MenuMode;
+            settings.MenuMode = (RISV3.RISMode)EditorGUILayout.EnumPopup("Menu Mode", settings.MenuMode);
+            if (settings.MenuMode != menuMode)
+                EditorUtility.SetDirty(settings);
+
             serializedObject.ApplyModifiedProperties();
         }
     }

@@ -13,17 +13,21 @@ namespace YagihataItems.RadialInventorySystemV3
         [SerializeField]
         public GameObject TargetObject = null;
         [SerializeField]
-        public string TargetObjectPath = "";
-        [SerializeField]
         public bool IsDefaultEnabled = false;
         [SerializeField]
         public bool LocalOnly = false;
         [SerializeField]
         public Texture2D PropIcon = null;
         [SerializeField]
-        public AnimationClip CustomAnim = null;
+        public AnimationClip EnableAnimation = null;
+        [SerializeField]
+        public AnimationClip DisableAnimation = null;
         [SerializeField]
         public string PropName = "";
+        [SerializeField]
+        public List<GameObject> TargetObjects = new List<GameObject>();
+        [SerializeField]
+        public RISV3.PropGroup PropGroupType = RISV3.PropGroup.None;
         public Prop(GameObject gameObject)
         {
             TargetObject = gameObject;
@@ -48,10 +52,12 @@ namespace YagihataItems.RadialInventorySystemV3
             var obj = new Prop(TargetObject);
             obj.IsDefaultEnabled = this.IsDefaultEnabled;
             obj.PropIcon = this.PropIcon;
-            obj.TargetObjectPath = this.TargetObjectPath;
             obj.LocalOnly = this.LocalOnly;
-            obj.CustomAnim = this.CustomAnim;
+            obj.EnableAnimation = this.EnableAnimation;
+            obj.DisableAnimation = this.DisableAnimation;
             obj.PropName = this.PropName;
+            obj.TargetObjects.AddRange(this.TargetObjects);
+            obj.PropGroupType = this.PropGroupType;
             return obj;
         }
 
@@ -62,27 +68,31 @@ namespace YagihataItems.RadialInventorySystemV3
                    name == prop.name &&
                    hideFlags == prop.hideFlags &&
                    EqualityComparer<GameObject>.Default.Equals(TargetObject, prop.TargetObject) &&
-                   TargetObjectPath == prop.TargetObjectPath &&
                    IsDefaultEnabled == prop.IsDefaultEnabled &&
                    LocalOnly == prop.LocalOnly &&
                    EqualityComparer<Texture2D>.Default.Equals(PropIcon, prop.PropIcon) &&
-                   EqualityComparer<AnimationClip>.Default.Equals(CustomAnim, prop.CustomAnim) &&
-                   PropName == prop.PropName;
+                   EqualityComparer<AnimationClip>.Default.Equals(EnableAnimation, prop.EnableAnimation) &&
+                   EqualityComparer<AnimationClip>.Default.Equals(DisableAnimation, prop.DisableAnimation) &&
+                   PropName == prop.PropName &&
+                   EqualityComparer<List<GameObject>>.Default.Equals(TargetObjects, prop.TargetObjects) &&
+                   PropGroupType == prop.PropGroupType;
         }
 
         public override int GetHashCode()
         {
-            int hashCode = 57088559;
+            int hashCode = -1096752834;
             hashCode = hashCode * -1521134295 + base.GetHashCode();
             hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(name);
             hashCode = hashCode * -1521134295 + hideFlags.GetHashCode();
             hashCode = hashCode * -1521134295 + EqualityComparer<GameObject>.Default.GetHashCode(TargetObject);
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(TargetObjectPath);
             hashCode = hashCode * -1521134295 + IsDefaultEnabled.GetHashCode();
             hashCode = hashCode * -1521134295 + LocalOnly.GetHashCode();
             hashCode = hashCode * -1521134295 + EqualityComparer<Texture2D>.Default.GetHashCode(PropIcon);
-            hashCode = hashCode * -1521134295 + EqualityComparer<AnimationClip>.Default.GetHashCode(CustomAnim);
+            hashCode = hashCode * -1521134295 + EqualityComparer<AnimationClip>.Default.GetHashCode(EnableAnimation);
+            hashCode = hashCode * -1521134295 + EqualityComparer<AnimationClip>.Default.GetHashCode(DisableAnimation);
             hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(PropName);
+            hashCode = hashCode * -1521134295 + EqualityComparer<List<GameObject>>.Default.GetHashCode(TargetObjects);
+            hashCode = hashCode * -1521134295 + PropGroupType.GetHashCode();
             return hashCode;
         }
     }
