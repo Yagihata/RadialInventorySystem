@@ -41,6 +41,7 @@ namespace YagihataItems.RadialInventorySystemV3
                     var newerVersion = text.Trim();
                     Debug.Log(newerVersion);
                     File.WriteAllText(RISV3.WorkFolderPath + "newerVersion.txt", newerVersion);
+                    AssetDatabase.Refresh();
                 }
                 catch (WebException exc)
                 {

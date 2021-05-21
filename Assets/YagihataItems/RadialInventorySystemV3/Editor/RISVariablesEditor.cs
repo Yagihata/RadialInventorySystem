@@ -21,34 +21,12 @@ namespace YagihataItems.RadialInventorySystemV3
                 drawHeaderCallback = rect =>
                 {
                     EditorGUI.LabelField(rect, $"{"PropGroups"}: {groups.Count}", EditorStyles.boldLabel);
-                    var position =
-                        new Rect(
-                            rect.width - (EditorGUI.indentLevel) * 15f,
-                            rect.y,
-                            20f,
-                            13f
-                        );
-                    if (GUI.Button(position, ReorderableListStyle.AddContent, ReorderableListStyle.AddStyle))
-                    {
-                        Undo.RecordObject(settings, $"Add new PropGroup.");
-                        groups.Add(new PropGroup());
-                        EditorUtility.SetDirty(settings);
-                    }
                 },
                 drawElementCallback = (rect, index, isActive, isFocused) =>
                 {
                     if (groups.Count <= index)
                         return;
-
                     GUI.Label(rect, groups[index].GroupName);
-                    rect.x = rect.x + rect.width - 20f;
-                    rect.width = 20f;
-                    if (GUI.Button(rect, ReorderableListStyle.SubContent, ReorderableListStyle.SubStyle))
-                    {
-                        Undo.RecordObject(settings, $"Remove PropGroup - \"{groups[index].GroupName}\".");
-                        groups.RemoveAt(index);
-                        EditorUtility.SetDirty(settings);
-                    }
                 },
 
                 drawFooterCallback = rect => { },
@@ -57,7 +35,6 @@ namespace YagihataItems.RadialInventorySystemV3
                 {
                     if (groups.Count <= index)
                         return 0;
-
                     return EditorGUIUtility.singleLineHeight;
                 }
             };
@@ -92,6 +69,11 @@ namespace YagihataItems.RadialInventorySystemV3
             var menuMode = settings.MenuMode;
             settings.MenuMode = (RISV3.RISMode)EditorGUILayout.EnumPopup("Menu Mode", settings.MenuMode);
             if (settings.MenuMode != menuMode)
+                EditorUtility.SetDirty(settings);
+
+            var applyEnabled = settings.ApplyEnabled;
+            settings.ApplyEnabled = EditorGUILayout.Toggle("Apply Enabled", settings.ApplyEnabled);
+            if (settings.ApplyEnabled != applyEnabled)
                 EditorUtility.SetDirty(settings);
 
             serializedObject.ApplyModifiedProperties();

@@ -31,7 +31,11 @@ namespace YagihataItems.RadialInventorySystemV3
         private ReorderableList propsReorderableList;
         private ReorderableList gameObjectsReorderableList = null;
         private ReorderableList gameObjectsDummyReorderableList = null;
-        [MenuItem("RadialInventory/RISV3 Editor")]
+        private bool showingVerticalScroll;
+        private Rect tabScopeRect = new Rect();
+        private Texture2D redTexture = null;
+        private Texture2D blueTexture = null;
+        [MenuItem("Radial Inventory/RISV3 Editor")]
         private static void Create()
         {
             GetWindow<RISMainWindow>("RISV3 Editor");
@@ -44,32 +48,39 @@ namespace YagihataItems.RadialInventorySystemV3
                 {
                     scrollPosition = scrollScope.scrollPosition;
                     if (headerTexture == null)
-                        headerTexture = AssetDatabase.LoadAssetAtPath<UnityEngine.Texture2D>(RISV3.WorkFolderPath + "Textures/MenuHeader.png");
-
+                        headerTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(RISV3.WorkFolderPath + "Textures/ris_logo.png");
                     var newerVersion = RISVersionChecker.GetNewerVersion();
-                    var showingVerticalScroll = false;
+                    var showingVerticalScrollOld = showingVerticalScroll;
                     if (verticalScope.rect.height != 0)
-                        showingVerticalScroll = verticalScope.rect.height > position.size.y;
+                        showingVerticalScroll = verticalScope.rect.height >= position.size.y;
                     var height = position.size.x / headerTexture.width * headerTexture.height;
                     if (height > headerTexture.height)
                         height = headerTexture.height;
                     var width = position.size.x - (showingVerticalScroll ? 22 : 8);
                     GUILayout.Space(2);
-                    EditorGUILayoutExtra.HeaderWithVersionInfo(headerTexture, width == beforeWidth ? width: beforeWidth, height, newerVersion, RISV3.CurrentVersion, "ris");
-                    beforeWidth = width;
+                    EditorGUILayoutExtra.HeaderWithVersionInfo(headerTexture, width == beforeWidth ? width: beforeWidth, height, newerVersion, RISV3.CurrentVersion, "ris", RISMessageStrings.Strings.str_NewVersion, RISV3.DownloadUrl);
+                    
                     EditorGUILayoutExtra.Space();
                     var avatarDescriptors = FindObjectsOfType(typeof(VRCAvatarDescriptor));
                     indexedList.list = avatarDescriptors.Select(n => n.name).ToArray();
-                    indexedList.index = EditorGUILayoutExtra.IndexedStringList("対象アバター", indexedList);
-                    if (indexedList.index >= 0 && indexedList.index < avatarDescriptors.Length)
+                    indexedList.index = EditorGUILayoutExtra.IndexedStringList(RISMessageStrings.Strings.str_TargetAvatar, indexedList, RISMessageStrings.Strings.str_Unselected);
+                    if (avatarDescriptors.Count() > 0 && indexedList.index >= 0 && indexedList.index < avatarDescriptors.Length)
                         avatarRoot = avatarDescriptors[indexedList.index] as VRCAvatarDescriptor;
                     else
+                    {
                         avatarRoot = null;
+                        settings = null;
+                        variables = null;
+                        InitializeGroupList();
+                        InitializePropList(null);
+                        InitializeGameObjectsList(true);
+                    }
                     var rootIsNull = avatarRoot == null;
                     if (rootIsNull)
                     {
                         avatarRootBefore = null;
                     }
+                    int memoryAdded = 0;
                     using (new EditorGUI.DisabledGroupScope(rootIsNull))
                     {
                         if (!rootIsNull && avatarRoot != avatarRootBefore)
@@ -90,67 +101,130 @@ namespace YagihataItems.RadialInventorySystemV3
                                 GUILayout.Space(5);
                                 if(variables != null)
                                     variables.MenuMode = (RISV3.RISMode)GUILayout.Toolbar((int)variables.MenuMode, TabStyle.GetTabToggles<RISV3.RISMode>(), TabStyle.TabButtonStyle, TabStyle.TabButtonSize);
+                                else
+                                    GUILayout.Toolbar((int)RISV3.RISMode.Simple, TabStyle.GetTabToggles<RISV3.RISMode>(), TabStyle.TabButtonStyle, TabStyle.TabButtonSize);
                                 GUILayout.FlexibleSpace();
                             }
-                            var skin = GUI.skin.box;
+                            var skin = new GUIStyle(GUI.skin.box);
                             skin.margin.top = 0;
-                            using (new EditorGUILayout.VerticalScope(skin))
+                            using (var scope = new EditorGUILayout.VerticalScope(skin))
                             {
-                                DrawTab();
+                                tabScopeRect = scope.rect;
+                                DrawTab(showingVerticalScroll && showingVerticalScrollOld);
                             }
+                            int memoryNow = 0;
+                            int memoryUseFromScript = 0;
+
+                            if (avatarRoot != null && variables != null)
+                            {
+                                var expressionParameter = avatarRoot.GetExpressionParameters(RISV3.AutoGeneratedFolderPath + variables.FolderID + "/", false);
+                                if(expressionParameter != null)
+                                {
+                                    var paramsTemp = new List<VRCExpressionParameters.Parameter>();
+                                    foreach(var groupIndex in Enumerable.Range(0, variables.Groups.Count))
+                                    {
+                                        var group = variables.Groups[groupIndex];
+                                        if(variables.MenuMode == RISV3.RISMode.Simple && group.ExclusiveMode == 1)
+                                            paramsTemp.Add(new VRCExpressionParameters.Parameter() { name = $"RISV3-G{groupIndex}RESET", valueType = VRCExpressionParameters.ValueType.Bool });
+                                        foreach (var propIndex in Enumerable.Range(0, group.Props.Count))
+                                            paramsTemp.Add(new VRCExpressionParameters.Parameter() { name = $"RISV3-G{groupIndex}P{propIndex}", valueType = VRCExpressionParameters.ValueType.Bool });
+                                    }
+                                    var arr = paramsTemp.ToArray();
+                                    memoryNow = expressionParameter.CalculateMemoryCount(arr, variables.OptimizeParams, "RISV3", true);
+                                    memoryAdded = expressionParameter.CalculateMemoryCount(arr, variables.OptimizeParams, "RISV3");
+                                    memoryUseFromScript = paramsTemp.Sum(n => VRCExpressionParameters.TypeCost(n.valueType));
+                                }
+                            }
+                            EditorGUILayoutExtra.CostViewer(memoryNow, memoryAdded, memoryUseFromScript, RISMessageStrings.Strings.str_UsedMemory, RISMessageStrings.Strings.str_RemainMemory);
                         }
 
                         EditorGUILayoutExtra.SeparatorWithSpace();
+                        var errors = RISErrorChecker.CheckErrors(variables);
+                        var memoryOver = false;
                         if (variables != null)
                         {
-                            variables.WriteDefaults = EditorGUILayout.Toggle("Write Defaults", variables.WriteDefaults);
+                            variables.WriteDefaults = EditorGUILayout.Toggle(RISMessageStrings.Strings.str_WriteDefaults, variables.WriteDefaults);
                             UnityEditor.Animations.AnimatorController fxLayer = null;
                             if (!rootIsNull) fxLayer = avatarRoot.GetFXLayer(RISV3.AutoGeneratedFolderPath + variables.FolderID + "/", false);
-                            if (fxLayer != null && !fxLayer.ValidateWriteDefaults(variables.WriteDefaults))
-                            {
-                                EditorGUILayout.HelpBox("WriteDefaultsがFXレイヤー内で統一されていません。\n" +
-                                    "このままでも動作はしますが、表情切り替えにバグが発生する場合があります。\n" +
-                                    "WriteDefaultsのチェックを切り替えてもエラーメッセージが消えない場合は使用している他のアバターギミックなどを確認してみてください。", MessageType.Warning);
-                            }
-                            variables.OptimizeParams = EditorGUILayout.Toggle("パラメータの最適化", variables.OptimizeParams);
-                            if (!variables.OptimizeParams)
-                            {
-                                EditorGUILayout.HelpBox("パラメータの最適化が無効になっています。\n" +
-                                    "空パラメータや重複パラメータを自動で削除したい場合は\n" +
-                                    "パラメータの最適化を行ってください。", MessageType.Info);
-                            }
+                            variables.OptimizeParams = EditorGUILayout.Toggle(RISMessageStrings.Strings.str_OptimizeParameter, variables.OptimizeParams);
+                            variables.ApplyEnabled = EditorGUILayout.Toggle(RISMessageStrings.Strings.str_ShowDefault, variables.ApplyEnabled);
+                            EditorGUILayoutExtra.Space();
+                            var showFXWarning = fxLayer != null && !fxLayer.ValidateWriteDefaults(variables.WriteDefaults);
+                            var showParamInfo = !variables.OptimizeParams;
+                            memoryOver = memoryAdded > VRCExpressionParameters.MAX_PARAMETER_COST;
+                            if (showFXWarning || showParamInfo || errors.Any() || memoryOver)
+                                using (new EditorGUILayout.VerticalScope(GUI.skin.box))
+                                {
+                                    if(memoryOver)
+                                    {
+                                        EditorGUILayout.HelpBox(string.Format(RISMessageStrings.Strings.str_ErrorCostOver, VRCExpressionParameters.MAX_PARAMETER_COST), MessageType.Error);
+                                    }
+                                    foreach (var error in errors)
+                                    {
+                                        EditorGUILayout.HelpBox(error, MessageType.Error);
+                                    }
+                                    if (showFXWarning)
+                                    {
+                                        EditorGUILayout.HelpBox(RISMessageStrings.Strings.str_WarnWriteDefaults, MessageType.Warning);
+                                    }
+                                    if (showParamInfo)
+                                    {
+                                        EditorGUILayout.HelpBox(RISMessageStrings.Strings.str_InfoOptimizeParameter, MessageType.Info);
+                                    }
+                                }
                         }
                         else
                         {
-                            EditorGUILayout.Toggle("Write Defaults", false);
-                            EditorGUILayout.Toggle("パラメータの最適化", true);
+                            EditorGUILayout.Toggle(RISMessageStrings.Strings.str_WriteDefaults, false);
+                            EditorGUILayout.Toggle(RISMessageStrings.Strings.str_OptimizeParameter, true);
+                            EditorGUILayout.Toggle(RISMessageStrings.Strings.str_ShowDefault, true);
                         }
+
                         EditorGUILayoutExtra.SeparatorWithSpace();
-                        if (GUILayout.Button("適用する"))
+                        using(new EditorGUILayout.HorizontalScope())
                         {
-                            SaveSettings();
-                            //MakeMenu();
-                            //ApplyToAvatar();
-                        }
-                        if (GUILayout.Button("適用を解除する"))
-                        {
-                            SaveSettings();
-                            //RemoveAutoGenerated();
+                            using (new EditorGUI.DisabledGroupScope(errors.Any() || memoryOver))
+                            {
+                                if (GUILayout.Button(RISMessageStrings.Strings.str_Apply, new GUIStyle("ButtonLeft")))
+                                {
+                                    SaveSettings();
+                                    RISGimmickBuilder.ApplyToAvatar(variables);
+                                }
+                            }
+                            if (GUILayout.Button(RISMessageStrings.Strings.str_Remove, new GUIStyle("ButtonRight")))
+                            {
+                                SaveSettings();
+                                RISGimmickBuilder.RemoveFromAvatar(variables);
+                            }
                         }
                     }
                     EditorGUILayoutExtra.SeparatorWithSpace();
                     using (new EditorGUILayout.VerticalScope(GUI.skin.box))
                     {
-                        EditorGUILayout.HelpBox("Radial Inventory Systemをダウンロードしてくださり、誠にありがとうございます！\n" +
-                        "使用法がわからない場合は、下記リンクより説明書をご覧になった上で使ってみてください。\n" +
-                        "もしバグや機能追加の要望などありましたら、TwitterのDMで教えていただけますと幸いです。", MessageType.None);
-                        //EditorGUILayoutExtra.LinkLabel("AniPIN – Avatar Lock System 説明書", Color.blue, new Vector2(), 0, RISV3.manualUrl);
-                        using(new EditorGUILayout.HorizontalScope())
+                        EditorGUILayout.HelpBox(RISMessageStrings.Strings.str_RISMessage, MessageType.None);
+                        using (new EditorGUILayout.HorizontalScope())
                         {
-                            EditorGUILayoutExtra.LinkLabel("Twitter : @Yagihata4x", Color.blue, new Vector2(), 0, RISV3.TwitterUrl);
+                            EditorGUILayoutExtra.LinkLabel(RISMessageStrings.Strings.str_ManualLink, Color.blue, new Vector2(), 0, RISV3.ManualUrl);
+                            GUILayout.FlexibleSpace();
+                        }
+                        using (new EditorGUILayout.HorizontalScope())
+                        {
+                            EditorGUILayoutExtra.LinkLabel(RISMessageStrings.Strings.str_TwitterLink, Color.blue, new Vector2(), 0, RISV3.TwitterUrl);
                             GUILayout.FlexibleSpace();
                         }
                     }
+                    var donators = RISDonatorListUpdater.GetDonators();
+                    if(!string.IsNullOrWhiteSpace(donators))
+                    {
+                        GUILayout.Space(10);
+                        using (new EditorGUILayout.VerticalScope(GUI.skin.box))
+                        {
+                            EditorGUILayout.LabelField(RISMessageStrings.Strings.str_Donator, new GUIStyle("ProjectBrowserHeaderBgTop"), GUILayout.ExpandWidth(true));
+                            EditorGUILayout.LabelField(donators, RISV3.DonatorLabelStyle, GUILayout.ExpandWidth(true));
+                        }
+                    }
+                    beforeWidth = width;
+                    GUILayout.FlexibleSpace();
                 }
             }
         }
@@ -169,7 +243,7 @@ namespace YagihataItems.RadialInventorySystemV3
             Debug.Assert(variables != null);
             EditorExtSettingsTool.SaveSettings<RISSettings>(avatarRoot, RISV3.SettingsName, variables);
         }
-        private void DrawTab()
+        private void DrawTab(bool showingVerticalScroll)
         {
             if (propGroupsReorderableList == null)
                 InitializeGroupList();
@@ -177,7 +251,6 @@ namespace YagihataItems.RadialInventorySystemV3
                 InitializePropList(null);
             if (gameObjectsDummyReorderableList == null)
                 InitializeGameObjectsList(true);
-            var height = propGroupsReorderableList.GetHeight();
             var cellWidth = position.width / 3f - 15f;
             using (new EditorGUILayout.HorizontalScope())
             {
@@ -187,10 +260,11 @@ namespace YagihataItems.RadialInventorySystemV3
                     using (var scope = new EditorGUILayout.HorizontalScope())
                     {
                         var scopeWidth = cellWidth - 40;
-                        using (new EditorGUILayout.HorizontalScope(GUILayout.Height(height), GUILayout.Width(scopeWidth)))
+                        var propGroupsHeight = propGroupsReorderableList.GetHeight();
+                        using (new EditorGUILayout.HorizontalScope(GUILayout.Height(propGroupsHeight), GUILayout.Width(scopeWidth)))
                         {
                             var oldSelectedIndex = propGroupsReorderableList.index;
-                            propGroupsReorderableList.DoList(new Rect(scope.rect.x, scope.rect.y, scopeWidth, height));
+                            propGroupsReorderableList.DoList(new Rect(scope.rect.x, scope.rect.y, scopeWidth, propGroupsHeight));
                             if(variables != null)
                                 variables.Groups = (List<PropGroup>)propGroupsReorderableList.list;
                             selectedGroupChangeFlag = oldSelectedIndex != propGroupsReorderableList.index;
@@ -210,19 +284,23 @@ namespace YagihataItems.RadialInventorySystemV3
                     using (new EditorGUILayout.VerticalScope(GUILayout.Width(cellWidth + 20)))
                     {
                         EditorGUIUtility.labelWidth = 80;
-                        var prefixText = advanceMode ? "メニュー" : "グループ";
-                        EditorGUILayout.LabelField(prefixText + "設定", new GUIStyle("ProjectBrowserHeaderBgTop"), GUILayout.ExpandWidth(true));
+                        var prefixText = advanceMode ? RISMessageStrings.Strings.str_Menu : RISMessageStrings.Strings.str_Group;
+                        EditorGUILayout.LabelField(prefixText + RISMessageStrings.Strings.str_Settings, new GUIStyle("ProjectBrowserHeaderBgTop"), GUILayout.ExpandWidth(true));
                         GUILayout.Space(3);
                         if (groupIsSelected)
                         {
-                            variables.Groups[groupIndex].GroupName = EditorGUILayout.TextField(prefixText + "名", variables.Groups[groupIndex].GroupName);
+                            variables.Groups[groupIndex].GroupName = EditorGUILayout.TextField(prefixText + RISMessageStrings.Strings.str_Name, variables.Groups[groupIndex].GroupName);
                             variables.Groups[groupIndex].GroupIcon = 
-                                (Texture2D)EditorGUILayout.ObjectField("アイコン", variables.Groups[groupIndex].GroupIcon, typeof(Texture2D), false, GUILayout.Height(EditorGUIUtility.singleLineHeight));
+                                (Texture2D)EditorGUILayout.ObjectField(RISMessageStrings.Strings.str_Icon, variables.Groups[groupIndex].GroupIcon, typeof(Texture2D), false, GUILayout.Height(EditorGUIUtility.singleLineHeight));
                             if (variables.MenuMode == RISV3.RISMode.Simple)
-                                variables.Groups[groupIndex].ExclusiveMode = EditorGUILayout.Toggle("排他モード", variables.Groups[groupIndex].ExclusiveMode);
+                            {
+                                //variables.Groups[groupIndex].ExclusiveMode = EditorGUILayout.Toggle("排他モード", variables.Groups[groupIndex].ExclusiveMode);
+                                variables.Groups[groupIndex].ExclusiveMode = EditorGUILayout.Popup(RISMessageStrings.Strings.str_Exclusive + RISMessageStrings.Strings.str_Mode, variables.Groups[groupIndex].ExclusiveMode, RISMessageStrings.ExclusiveType);
+                            }
                             else
-                                EditorGUILayoutExtra.Space();
-                            if(selectedGroupChangeFlag)
+                                variables.Groups[groupIndex].BaseMenu = 
+                                    (VRCExpressionsMenu)EditorGUILayout.ObjectField(RISMessageStrings.Strings.str_Base + RISMessageStrings.Strings.str_Menu, variables.Groups[groupIndex].BaseMenu, typeof(VRCExpressionsMenu), false, GUILayout.Height(EditorGUIUtility.singleLineHeight));
+                            if (selectedGroupChangeFlag)
                                 InitializePropList(variables.Groups[groupIndex]);
                             using (var scope = new EditorGUILayout.HorizontalScope())
                             {
@@ -242,12 +320,12 @@ namespace YagihataItems.RadialInventorySystemV3
                         }
                         else
                         {
-                            EditorGUILayout.TextField("グループ名", "");
-                            EditorGUILayout.ObjectField("アイコン", null, typeof(Texture2D), false, GUILayout.Height(EditorGUIUtility.singleLineHeight));
+                            EditorGUILayout.TextField(RISMessageStrings.Strings.str_Group + RISMessageStrings.Strings.str_Name, "");
+                            EditorGUILayout.ObjectField(RISMessageStrings.Strings.str_Icon, null, typeof(Texture2D), false, GUILayout.Height(EditorGUIUtility.singleLineHeight));
                             if ((variables != null && variables.MenuMode == RISV3.RISMode.Simple) || variables == null)
-                                EditorGUILayout.Toggle("排他モード", false);
+                                EditorGUILayout.Popup(RISMessageStrings.Strings.str_Exclusive + RISMessageStrings.Strings.str_Mode, 0, RISMessageStrings.ExclusiveType);
                             else
-                                EditorGUILayoutExtra.Space();
+                                EditorGUILayout.ObjectField(RISMessageStrings.Strings.str_Base + RISMessageStrings.Strings.str_Menu, null, typeof(VRCExpressionsMenu), false, GUILayout.Height(EditorGUIUtility.singleLineHeight));
                             if (selectedGroupChangeFlag)
                                 InitializePropList(null);
                             using (var scope = new EditorGUILayout.HorizontalScope())
@@ -266,15 +344,15 @@ namespace YagihataItems.RadialInventorySystemV3
                 GUILayout.Box("", GUILayout.ExpandHeight(true), GUILayout.Width(1));
                 using (new EditorGUI.DisabledGroupScope(targetProp == null))
                 {
-                    using (new EditorGUILayout.VerticalScope(GUILayout.Width(cellWidth + 15)))
+                    using (new EditorGUILayout.VerticalScope(GUILayout.Width(cellWidth + 30 - (showingVerticalScroll ? 14 : 0))))
                     {
                         GUIStyle headerStyle = new GUIStyle("HeaderLabel");
                         headerStyle.margin = new RectOffset(5, 5, 20, 20);
-                        EditorGUILayout.LabelField("プロップ設定", new GUIStyle("ProjectBrowserHeaderBgTop"), GUILayout.ExpandWidth(true));
+                        EditorGUILayout.LabelField(RISMessageStrings.Strings.str_Prop+ RISMessageStrings.Strings.str_Settings, new GUIStyle("ProjectBrowserHeaderBgTop"), GUILayout.ExpandWidth(true));
                         GUILayout.Space(3);
                         if (!advanceMode)
                         {
-                            EditorGUILayout.LabelField("プロップ名");
+                            EditorGUILayout.LabelField(RISMessageStrings.Strings.str_Prop+ RISMessageStrings.Strings.str_Name);
                             using (new EditorGUILayout.HorizontalScope())
                             {
                                 GUILayout.Space(20);
@@ -285,7 +363,7 @@ namespace YagihataItems.RadialInventorySystemV3
 
 
                             }
-                            EditorGUILayout.LabelField("アイコン");
+                            EditorGUILayout.LabelField(RISMessageStrings.Strings.str_Icon);
                             using (new EditorGUILayout.HorizontalScope())
                             {
                                 GUILayout.Space(20);
@@ -296,32 +374,47 @@ namespace YagihataItems.RadialInventorySystemV3
 
 
                             }
-                            EditorGUILayout.LabelField("オブジェクト");
+                            EditorGUILayout.LabelField(RISMessageStrings.Strings.str_Object);
                             using (new EditorGUILayout.HorizontalScope())
                             {
                                 GUILayout.Space(20);
                                 if (targetProp != null)
-                                    targetProp.TargetObject = (GameObject)EditorGUILayout.ObjectField(targetProp.TargetObject, typeof(GameObject), true);
+                                {
+                                    var targetObject = targetProp.TargetObject;
+                                    if (targetObject != null && !targetObject.IsChildOf(variables.AvatarRoot.gameObject))
+                                        targetObject = null;
+                                    targetProp.TargetObject = (GameObject)EditorGUILayout.ObjectField(targetObject, typeof(GameObject), true);
+                                }
                                 else
                                     EditorGUILayout.ObjectField(null, typeof(GameObject), true);
                             }
-                            EditorGUILayout.LabelField("デフォルトで表示");
+                            GUILayout.Space(5);
                             using (new EditorGUILayout.HorizontalScope())
                             {
-                                GUILayout.Space(20);
+                                EditorGUILayout.LabelField(RISMessageStrings.Strings.str_ShowDefault);
+                                GUILayout.FlexibleSpace();
                                 if (targetProp != null)
-                                    targetProp.IsDefaultEnabled = EditorGUILayout.Toggle(targetProp.IsDefaultEnabled);
+                                    targetProp.IsDefaultEnabled = EditorGUILayout.Toggle(targetProp.IsDefaultEnabled, GUILayout.Width(20));
                                 else
-                                    EditorGUILayout.Toggle(false);
+                                    EditorGUILayout.Toggle(false, GUILayout.Width(20));
                             }
-                            EditorGUILayout.LabelField("切り替えのローカル化");
                             using (new EditorGUILayout.HorizontalScope())
                             {
-                                GUILayout.Space(20);
+                                EditorGUILayout.LabelField(RISMessageStrings.Strings.str_LocalOnly);
+                                GUILayout.FlexibleSpace();
                                 if (targetProp != null)
-                                    targetProp.LocalOnly = EditorGUILayout.Toggle(targetProp.LocalOnly);
+                                    targetProp.LocalOnly = EditorGUILayout.Toggle(targetProp.LocalOnly, GUILayout.Width(20));
                                 else
-                                    EditorGUILayout.Toggle(false);
+                                    EditorGUILayout.Toggle(false, GUILayout.Width(20));
+                            }
+                            using (new EditorGUILayout.HorizontalScope())
+                            {
+                                EditorGUILayout.LabelField(RISMessageStrings.Strings.str_SaveParam);
+                                GUILayout.FlexibleSpace();
+                                if (targetProp != null)
+                                    targetProp.SaveParameter = EditorGUILayout.Toggle(targetProp.SaveParameter, GUILayout.Width(20));
+                                else
+                                    EditorGUILayout.Toggle(true, GUILayout.Width(20));
                             }
                         }
                         else
@@ -329,16 +422,23 @@ namespace YagihataItems.RadialInventorySystemV3
                             EditorGUIUtility.labelWidth = 80;
                             if (targetProp != null)
                             {
-                                targetProp.PropName = EditorGUILayout.TextField("プロップ名", targetProp.PropName);
+                                targetProp.PropName = EditorGUILayout.TextField(RISMessageStrings.Strings.str_Prop + RISMessageStrings.Strings.str_Name, targetProp.PropName);
                                 targetProp.PropIcon =
-                                    (Texture2D)EditorGUILayout.ObjectField("アイコン", targetProp.PropIcon, typeof(Texture2D), false, GUILayout.Height(EditorGUIUtility.singleLineHeight));
-                                targetProp.PropGroupType = (RISV3.PropGroup)EditorGUILayout.EnumPopup("排他グループ", targetProp.PropGroupType);
-                                targetProp.IsDefaultEnabled = EditorGUILayout.Toggle("初期状態", targetProp.IsDefaultEnabled);
-                                targetProp.LocalOnly = EditorGUILayout.Toggle("ローカル動作", targetProp.LocalOnly);
+                                    (Texture2D)EditorGUILayout.ObjectField(RISMessageStrings.Strings.str_Icon, targetProp.PropIcon, typeof(Texture2D), false, GUILayout.Height(EditorGUIUtility.singleLineHeight));
+                                targetProp.PropGroupType = (RISV3.PropGroup)EditorGUILayout.EnumPopup(RISMessageStrings.Strings.str_Exclusive + RISMessageStrings.Strings.str_Group, targetProp.PropGroupType);
+                                targetProp.IsDefaultEnabled = EditorGUILayout.Toggle(RISMessageStrings.Strings.str_DefaultStatus, targetProp.IsDefaultEnabled);
+                                targetProp.LocalOnly = EditorGUILayout.Toggle(RISMessageStrings.Strings.str_LocalFunc, targetProp.LocalOnly);
                                 GUILayout.Space(5);
-                                EditorGUILayout.LabelField("追加アニメーション");
-                                targetProp.EnableAnimation = (AnimationClip)EditorGUILayout.ObjectField("　有効化時", targetProp.EnableAnimation, typeof(AnimationClip), false);
-                                targetProp.DisableAnimation = (AnimationClip)EditorGUILayout.ObjectField("　無効化時", targetProp.DisableAnimation, typeof(AnimationClip), false);
+                                EditorGUILayout.LabelField(RISMessageStrings.Strings.str_AdditionalAnimation);
+                                targetProp.EnableAnimation = (AnimationClip)EditorGUILayout.ObjectField("　" + RISMessageStrings.Strings.str_OnEnable, targetProp.EnableAnimation, typeof(AnimationClip), false);
+                                targetProp.DisableAnimation = (AnimationClip)EditorGUILayout.ObjectField("　" + RISMessageStrings.Strings.str_OnDisable, targetProp.DisableAnimation, typeof(AnimationClip), false);
+                                GUILayout.Space(5);
+                                targetProp.UseResetTimer = EditorGUILayout.Toggle(RISMessageStrings.Strings.str_OffTimer, targetProp.UseResetTimer);
+                                if (targetProp.UseResetTimer)
+                                    targetProp.ResetSecond = Mathf.Min(60, Mathf.Max(0, EditorGUILayout.FloatField("　" + RISMessageStrings.Strings.str_Sec, targetProp.ResetSecond)));
+                                GUILayout.Space(5);
+                                targetProp.MaterialOverride =
+                                    (Material)EditorGUILayout.ObjectField(RISMessageStrings.Strings.str_Material, targetProp.MaterialOverride, typeof(Material), false, GUILayout.Height(EditorGUIUtility.singleLineHeight));
                                 GUILayout.Space(5);
                                 if (gameObjectsReorderableList == null || propIsChanged)
                                     InitializeGameObjectsList(false, targetProp);
@@ -347,15 +447,19 @@ namespace YagihataItems.RadialInventorySystemV3
                             }
                             else
                             {
-                                EditorGUILayout.TextField("プロップ名", "");
-                                EditorGUILayout.ObjectField("アイコン", null, typeof(Texture2D), false, GUILayout.Height(EditorGUIUtility.singleLineHeight));
-                                EditorGUILayout.EnumPopup("排他グループ", RISV3.PropGroup.None);
-                                EditorGUILayout.Toggle("初期状態", false);
-                                EditorGUILayout.Toggle("ローカル動作", false);
+                                EditorGUILayout.TextField(RISMessageStrings.Strings.str_Prop + RISMessageStrings.Strings.str_Name, "");
+                                EditorGUILayout.ObjectField(RISMessageStrings.Strings.str_Icon, null, typeof(Texture2D), false, GUILayout.Height(EditorGUIUtility.singleLineHeight));
+                                EditorGUILayout.EnumPopup(RISMessageStrings.Strings.str_Exclusive + RISMessageStrings.Strings.str_Group, RISV3.PropGroup.None);
+                                EditorGUILayout.Toggle(RISMessageStrings.Strings.str_DefaultStatus, false);
+                                EditorGUILayout.Toggle(RISMessageStrings.Strings.str_LocalFunc, false);
                                 GUILayout.Space(5);
-                                EditorGUILayout.LabelField("追加アニメーション");
-                                EditorGUILayout.ObjectField("　有効化時", null, typeof(AnimationClip), false);
-                                EditorGUILayout.ObjectField("　無効化時", null, typeof(AnimationClip), false);
+                                EditorGUILayout.LabelField(RISMessageStrings.Strings.str_AdditionalAnimation);
+                                EditorGUILayout.ObjectField("　" + RISMessageStrings.Strings.str_OnEnable, null, typeof(AnimationClip), false);
+                                EditorGUILayout.ObjectField("　" + RISMessageStrings.Strings.str_OnDisable, null, typeof(AnimationClip), false);
+                                GUILayout.Space(5);
+                                 EditorGUILayout.Toggle(RISMessageStrings.Strings.str_OffTimer, false);
+                                GUILayout.Space(5);
+                                EditorGUILayout.ObjectField(RISMessageStrings.Strings.str_Material, null, typeof(Material), false, GUILayout.Height(EditorGUIUtility.singleLineHeight));
                                 GUILayout.Space(5);
                                 gameObjectsReorderableList = null;
                                 gameObjectsDummyReorderableList.DoLayoutList();
@@ -381,9 +485,9 @@ namespace YagihataItems.RadialInventorySystemV3
                 drawHeaderCallback = rect =>
                 {
                     if(variables != null && variables.MenuMode == RISV3.RISMode.Advanced)
-                        EditorGUI.LabelField(rect, $"{"メニュー一覧"}: {groups.Count}");
+                        EditorGUI.LabelField(rect, RISMessageStrings.Strings.str_Menu + RISMessageStrings.Strings.str_List + $": {groups.Count}");
                     else
-                        EditorGUI.LabelField(rect, $"{"グループ一覧"}: {groups.Count}");
+                        EditorGUI.LabelField(rect, RISMessageStrings.Strings.str_Group + RISMessageStrings.Strings.str_List + $"一覧: {groups.Count}");
                     var position =
                         new Rect(
                             rect.x + rect.width - 20f,
@@ -393,9 +497,11 @@ namespace YagihataItems.RadialInventorySystemV3
                         );
                     if (groups.Count < 8 && GUI.Button(position, ReorderableListStyle.AddContent, ReorderableListStyle.AddStyle))
                     {
-                        Undo.RecordObject(settings, $"Add new PropGroup.");
+                        if (settings != null)
+                            Undo.RecordObject(settings, $"Add new PropGroup.");
                         variables.Groups.Add(new PropGroup() { GroupName = "Group" + groups.Count });
-                        EditorUtility.SetDirty(settings);
+                        if (settings != null)
+                            EditorUtility.SetDirty(settings);
                     }
                 },
                 drawElementCallback = (rect, index, isActive, isFocused) =>
@@ -405,17 +511,22 @@ namespace YagihataItems.RadialInventorySystemV3
 
                     var style = GUI.skin.label;
                     style.fontSize = (int)(rect.height / 1.75f);
-                    GUI.Label(rect, groups[index].GroupName, style);
+                    var name = groups[index].GroupName;
+                    if (string.IsNullOrEmpty(name))
+                        name = "Group" + index;
+                    GUI.Label(rect, name, style);
                     style.fontSize = 0;
                     rect.x = rect.x + rect.width - 20f;
                     rect.width = 20f;
                     if (GUI.Button(rect, ReorderableListStyle.SubContent, ReorderableListStyle.SubStyle))
                     {
-                        Undo.RecordObject(settings, $"Remove PropGroup - \"{groups[index].GroupName}\".");
+                        if (settings != null)
+                            Undo.RecordObject(settings, $"Remove PropGroup - \"{groups[index].GroupName}\".");
                         groups.RemoveAt(index);
                         if (index >= groups.Count)
                             index = propGroupsReorderableList.index = -1;
-                        EditorUtility.SetDirty(settings);
+                        if (settings != null)
+                            EditorUtility.SetDirty(settings);
                     }
                 },
 
@@ -442,7 +553,7 @@ namespace YagihataItems.RadialInventorySystemV3
             {
                 drawHeaderCallback = rect =>
                 {
-                    EditorGUI.LabelField(rect, $"{"プロップ一覧"}: {props.Count}");
+                    EditorGUI.LabelField(rect, RISMessageStrings.Strings.str_Prop + RISMessageStrings.Strings.str_List + $": {props.Count}");
                     var position =
                         new Rect(
                             rect.x + rect.width - 20f,
@@ -450,14 +561,21 @@ namespace YagihataItems.RadialInventorySystemV3
                             20f,
                             13f
                         );
-                    var propCountMax = 8;
-                    if (group != null && group.ExclusiveMode && variables != null && variables.MenuMode == RISV3.RISMode.Simple)
-                        propCountMax = 7;
-                    if (props.Count < propCountMax && GUI.Button(position, ReorderableListStyle.AddContent, ReorderableListStyle.AddStyle))
+                    var maxPropCount = 8;
+                    if (variables != null && group != null)
                     {
-                        Undo.RecordObject(settings, $"Add new Prop.");
+                        if (variables.MenuMode == RISV3.RISMode.Simple && group.ExclusiveMode == 1)
+                            maxPropCount = 7;
+                        else if (variables.MenuMode == RISV3.RISMode.Advanced && group.BaseMenu != null)
+                            maxPropCount = 8 - group.BaseMenu.controls.Count;
+                    }
+                    if (props.Count < maxPropCount && GUI.Button(position, ReorderableListStyle.AddContent, ReorderableListStyle.AddStyle))
+                    {
+                        if (settings != null)
+                            Undo.RecordObject(settings, $"Add new Prop.");
                         group.Props.Add(new Prop());
-                        EditorUtility.SetDirty(settings);
+                        if (settings != null)
+                            EditorUtility.SetDirty(settings);
                     }
                 },
                 drawElementCallback = (rect, index, isActive, isFocused) =>
@@ -465,20 +583,56 @@ namespace YagihataItems.RadialInventorySystemV3
                     if (props.Count <= index)
                         return;
                     var rawPropName = props[index].GetPropName();
-                    var propName = !string.IsNullOrEmpty(rawPropName) ? rawPropName : $"Prop{index} (未割り当て)";
+                    var propName = !string.IsNullOrEmpty(rawPropName) ? rawPropName : $"Prop{index}";
                     GUI.Label(rect, propName);
                     rect.x = rect.x + rect.width - 20f;
                     rect.width = 20f;
                     if (GUI.Button(rect, ReorderableListStyle.SubContent, ReorderableListStyle.SubStyle))
                     {
-                        Undo.RecordObject(settings, $"Remove Prop - \"{propName}\".");
+                        if (settings != null)
+                            Undo.RecordObject(settings, $"Remove Prop - \"{propName}\".");
                         props.RemoveAt(index);
-                        if (index >= props.Count) 
-                            index = propsReorderableList.index = - 1;
-                        EditorUtility.SetDirty(settings);
+                        if (index >= props.Count)
+                            index = propsReorderableList.index = -1;
+                        if (settings != null)
+                            EditorUtility.SetDirty(settings);
                     }
                 },
+                drawElementBackgroundCallback = (rect, index, isActive, isFocused) =>
+                {
+                    if (!isFocused)
+                    {
+                        var maxPropCount = 8;
+                        if (variables != null && group != null)
+                        {
+                            if (variables.MenuMode == RISV3.RISMode.Simple && group.ExclusiveMode == 1)
+                                maxPropCount = 7;
+                            else if (variables.MenuMode == RISV3.RISMode.Advanced && group.BaseMenu != null)
+                                maxPropCount = 8 - group.BaseMenu.controls.Count;
+                        }
+                        if (index >= maxPropCount)
+                        {
+                            if (redTexture == null)
+                            {
+                                redTexture = new Texture2D(1, 1);
+                                redTexture.SetPixel(0, 0, new Color(1f, 0.5f, 0.5f, 0.5f));
+                                redTexture.Apply();
+                            }
+                            GUI.DrawTexture(rect, redTexture);
+                        }
 
+                    }
+                    else
+                    {
+                        if (blueTexture == null)
+                        {
+                            blueTexture = new Texture2D(1, 1);
+                            blueTexture.SetPixel(0, 0, new Color(0.5f, 0.5f, 1f, 0.5f));
+                            blueTexture.Apply();
+                        }
+                        GUI.DrawTexture(rect, blueTexture);
+                    }
+                },
                 drawFooterCallback = rect => { },
                 footerHeight = 0f,
                 elementHeightCallback = index =>
@@ -502,7 +656,7 @@ namespace YagihataItems.RadialInventorySystemV3
             var list = new ReorderableList(gameObjects, typeof(GameObject));
             list.drawHeaderCallback = rect =>
             {
-                EditorGUI.LabelField(rect, $"{"オブジェクト一覧"}: {gameObjects.Count}");
+                EditorGUI.LabelField(rect, RISMessageStrings.Strings.str_Object + RISMessageStrings.Strings.str_List + $": {gameObjects.Count}");
                 var position =
                     new Rect(
                         rect.x + rect.width - 20f,
@@ -512,9 +666,11 @@ namespace YagihataItems.RadialInventorySystemV3
                     );
                 if (GUI.Button(position, ReorderableListStyle.AddContent, ReorderableListStyle.AddStyle) && propFlag)
                 {
-                    Undo.RecordObject(settings, $"Add new TargetObject.");
+                    if (settings != null)
+                        Undo.RecordObject(settings, $"Add new TargetObject.");
                     prop.TargetObjects.Add(null);
-                    EditorUtility.SetDirty(settings);
+                    if (settings != null)
+                        EditorUtility.SetDirty(settings);
                 }
             };
             list.drawElementCallback = (rect, index, isActive, isFocused) =>
@@ -522,16 +678,21 @@ namespace YagihataItems.RadialInventorySystemV3
                 if (gameObjects.Count <= index)
                     return;
                 rect.width -= 20;
-                gameObjects[index] = (GameObject)EditorGUI.ObjectField(rect, gameObjects[index], typeof(GameObject), true);
+                var targetObject = gameObjects[index];
+                if (targetObject != null && !targetObject.IsChildOf(variables.AvatarRoot.gameObject))
+                    targetObject = null;
+                gameObjects[index] = (GameObject)EditorGUI.ObjectField(rect, targetObject, typeof(GameObject), true);
                 rect.x = rect.x + rect.width;
                 rect.width = 20f;
                 if (GUI.Button(rect, ReorderableListStyle.SubContent, ReorderableListStyle.SubStyle))
                 {
-                    Undo.RecordObject(settings, $"Remove TargetObject - \"{index}\".");
+                    if (settings != null)
+                        Undo.RecordObject(settings, $"Remove TargetObject - \"{index}\".");
                     gameObjects.RemoveAt(index);
                     if (index >= gameObjects.Count)
                         index = list.index = -1;
-                    EditorUtility.SetDirty(settings);
+                    if (settings != null)
+                        EditorUtility.SetDirty(settings);
                 }
             };
 

@@ -28,6 +28,14 @@ namespace YagihataItems.RadialInventorySystemV3
         public List<GameObject> TargetObjects = new List<GameObject>();
         [SerializeField]
         public RISV3.PropGroup PropGroupType = RISV3.PropGroup.None;
+        [SerializeField]
+        public Material MaterialOverride = null;
+        [SerializeField]
+        public bool UseResetTimer = false;
+        [SerializeField]
+        [Range(0,60)] public float ResetSecond = 0f;
+        [SerializeField]
+        public bool SaveParameter = true;
         public Prop(GameObject gameObject)
         {
             TargetObject = gameObject;
@@ -58,6 +66,10 @@ namespace YagihataItems.RadialInventorySystemV3
             obj.PropName = this.PropName;
             obj.TargetObjects.AddRange(this.TargetObjects);
             obj.PropGroupType = this.PropGroupType;
+            obj.MaterialOverride = this.MaterialOverride;
+            obj.UseResetTimer = this.UseResetTimer;
+            obj.ResetSecond = this.ResetSecond;
+            obj.SaveParameter = this.SaveParameter;
             return obj;
         }
 
@@ -75,12 +87,16 @@ namespace YagihataItems.RadialInventorySystemV3
                    EqualityComparer<AnimationClip>.Default.Equals(DisableAnimation, prop.DisableAnimation) &&
                    PropName == prop.PropName &&
                    EqualityComparer<List<GameObject>>.Default.Equals(TargetObjects, prop.TargetObjects) &&
-                   PropGroupType == prop.PropGroupType;
+                   PropGroupType == prop.PropGroupType &&
+                   EqualityComparer<Material>.Default.Equals(MaterialOverride, prop.MaterialOverride) &&
+                   UseResetTimer == prop.UseResetTimer &&
+                   ResetSecond == prop.ResetSecond &&
+                   SaveParameter == prop.SaveParameter;
         }
 
         public override int GetHashCode()
         {
-            int hashCode = -1096752834;
+            int hashCode = -1549559767;
             hashCode = hashCode * -1521134295 + base.GetHashCode();
             hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(name);
             hashCode = hashCode * -1521134295 + hideFlags.GetHashCode();
@@ -93,6 +109,10 @@ namespace YagihataItems.RadialInventorySystemV3
             hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(PropName);
             hashCode = hashCode * -1521134295 + EqualityComparer<List<GameObject>>.Default.GetHashCode(TargetObjects);
             hashCode = hashCode * -1521134295 + PropGroupType.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<Material>.Default.GetHashCode(MaterialOverride);
+            hashCode = hashCode * -1521134295 + UseResetTimer.GetHashCode();
+            hashCode = hashCode * -1521134295 + ResetSecond.GetHashCode();
+            hashCode = hashCode * -1521134295 + SaveParameter.GetHashCode();
             return hashCode;
         }
     }

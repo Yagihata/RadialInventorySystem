@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using VRC.SDK3.Avatars.ScriptableObjects;
 
 namespace YagihataItems.RadialInventorySystemV3
 {
@@ -17,13 +18,15 @@ namespace YagihataItems.RadialInventorySystemV3
         [SerializeField]
         public Texture2D GroupIcon = null;
         [SerializeField]
-        public bool ExclusiveMode = false;
+        public int ExclusiveMode = 0;
+        [SerializeField]
+        public VRCExpressionsMenu BaseMenu = null;
         public PropGroup()
         {
             Props = new List<Prop>();
             GroupName = "";
             GroupIcon = null;
-            ExclusiveMode = false;
+            ExclusiveMode = 0;
         }
         public object Clone()
         {
@@ -32,6 +35,7 @@ namespace YagihataItems.RadialInventorySystemV3
             obj.GroupIcon = this.GroupIcon;
             obj.ExclusiveMode = this.ExclusiveMode;
             obj.Props.AddRange(this.Props.Select(n => (Prop)n.Clone()));
+            obj.BaseMenu = this.BaseMenu;
             return obj;
         }
 
@@ -44,12 +48,13 @@ namespace YagihataItems.RadialInventorySystemV3
                    EqualityComparer<List<Prop>>.Default.Equals(Props, group.Props) &&
                    GroupName == group.GroupName &&
                    EqualityComparer<Texture2D>.Default.Equals(GroupIcon, group.GroupIcon) &&
-                   ExclusiveMode == group.ExclusiveMode;
+                   ExclusiveMode == group.ExclusiveMode &&
+                   EqualityComparer<VRCExpressionsMenu>.Default.Equals(BaseMenu, group.BaseMenu);
         }
 
         public override int GetHashCode()
         {
-            int hashCode = -1016128720;
+            int hashCode = 963063520;
             hashCode = hashCode * -1521134295 + base.GetHashCode();
             hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(name);
             hashCode = hashCode * -1521134295 + hideFlags.GetHashCode();
@@ -57,6 +62,7 @@ namespace YagihataItems.RadialInventorySystemV3
             hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(GroupName);
             hashCode = hashCode * -1521134295 + EqualityComparer<Texture2D>.Default.GetHashCode(GroupIcon);
             hashCode = hashCode * -1521134295 + ExclusiveMode.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<VRCExpressionsMenu>.Default.GetHashCode(BaseMenu);
             return hashCode;
         }
     }

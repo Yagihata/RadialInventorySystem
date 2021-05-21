@@ -18,6 +18,7 @@ namespace YagihataItems.RadialInventorySystemV3
 
         [SerializeField] [HideInInspector] public RISVariables risVariables = new RISVariables();
         [SerializeField] public RISV3.RISMode MenuMode { get { return risVariables.MenuMode; } set { risVariables.MenuMode = value; } }
+        [SerializeField] public bool ApplyEnabled { get { return risVariables.ApplyEnabled; } set { risVariables.ApplyEnabled = value; } }
         public void SetVariables(IEditorExtVariables variables)
         {
             if (!(variables is RISVariables))
@@ -29,6 +30,7 @@ namespace YagihataItems.RadialInventorySystemV3
             this.FolderID = risVariables.FolderID;
             this.Groups = risVariables.Groups;
             this.MenuMode = risVariables.MenuMode;
+            this.ApplyEnabled = risVariables.ApplyEnabled;
         }
         public IEditorExtVariables GetVariables()
         {
@@ -39,7 +41,8 @@ namespace YagihataItems.RadialInventorySystemV3
                 OptimizeParams = this.OptimizeParams,
                 FolderID = this.FolderID,
                 Groups = this.Groups,
-                MenuMode = this.MenuMode
+                MenuMode = this.MenuMode,
+                ApplyEnabled = this.ApplyEnabled
             };
         }
     }
@@ -52,5 +55,6 @@ namespace YagihataItems.RadialInventorySystemV3
         [SerializeField] public string FolderID = "";
         [SerializeField] public List<PropGroup> Groups = new List<PropGroup>();
         [SerializeField] public RISV3.RISMode MenuMode = RISV3.RISMode.Simple;
+        [SerializeField] public bool ApplyEnabled = true;
     }
 }
