@@ -69,14 +69,18 @@ namespace YagihataItems.RadialInventorySystemV3
             public string str_ExclusiveType2 = "Enable";
             public string str_Unselected = "(Unselected)";
         }
+        private static bool Initialize = false;
         public static string[] ExclusiveType = new string[3];
         private static LanguageStrings languageStrings = null;
         public static LanguageStrings Strings
         {
             get
             {
-                if (languageStrings == null)
+                if (!Initialize)
+                {
                     EditorInitialize();
+                    Initialize = true;
+                }
                 return languageStrings;
             }
             private set { languageStrings = value; }
@@ -85,11 +89,11 @@ namespace YagihataItems.RadialInventorySystemV3
         static void EditorInitialize()
         {
             TextAsset languageJSON = AssetDatabase.LoadAssetAtPath<TextAsset>(RISV3.WorkFolderPath + "Languages/" + CultureInfo.CurrentCulture.Name + ".json");
-            Strings = new LanguageStrings();
+            languageStrings = new LanguageStrings();
             EditorJsonUtility.FromJsonOverwrite(languageJSON.text, languageStrings);
-            ExclusiveType[0] = Strings.str_ExclusiveType0;
-            ExclusiveType[1] = Strings.str_ExclusiveType1;
-            ExclusiveType[2] = Strings.str_ExclusiveType2;
+            ExclusiveType[0] = languageStrings.str_ExclusiveType0;
+            ExclusiveType[1] = languageStrings.str_ExclusiveType1;
+            ExclusiveType[2] = languageStrings.str_ExclusiveType2;
 
         }
     }

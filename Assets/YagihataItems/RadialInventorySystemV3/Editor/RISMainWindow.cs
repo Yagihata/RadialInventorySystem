@@ -135,7 +135,7 @@ namespace YagihataItems.RadialInventorySystemV3
                                     memoryUseFromScript = paramsTemp.Sum(n => VRCExpressionParameters.TypeCost(n.valueType));
                                 }
                             }
-                            EditorGUILayoutExtra.CostViewer(memoryNow, memoryAdded, memoryUseFromScript, RISMessageStrings.Strings.str_UsedMemory, RISMessageStrings.Strings.str_RemainMemory);
+                            EditorGUILayoutExtra.CostViewer(memoryNow, memoryAdded, memoryUseFromScript, RISMessageStrings.Strings.str_UsedMemory, RISMessageStrings.Strings.str_RemainMemory, RISV3.CountBarStyleL, RISV3.CountBarStyleR);
                         }
 
                         EditorGUILayoutExtra.SeparatorWithSpace();
