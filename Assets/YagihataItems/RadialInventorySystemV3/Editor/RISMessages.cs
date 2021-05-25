@@ -90,7 +90,8 @@ namespace YagihataItems.RadialInventorySystemV3
         {
             TextAsset languageJSON = AssetDatabase.LoadAssetAtPath<TextAsset>(RISV3.WorkFolderPath + "Languages/" + CultureInfo.CurrentCulture.Name + ".json");
             languageStrings = new LanguageStrings();
-            EditorJsonUtility.FromJsonOverwrite(languageJSON.text, languageStrings);
+            if (languageJSON != null)
+                EditorJsonUtility.FromJsonOverwrite(languageJSON.text, languageStrings);
             ExclusiveType[0] = languageStrings.str_ExclusiveType0;
             ExclusiveType[1] = languageStrings.str_ExclusiveType1;
             ExclusiveType[2] = languageStrings.str_ExclusiveType2;
