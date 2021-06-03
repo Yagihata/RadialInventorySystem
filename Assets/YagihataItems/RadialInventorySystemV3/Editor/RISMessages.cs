@@ -67,10 +67,11 @@ namespace YagihataItems.RadialInventorySystemV3
             public string str_ExclusiveType0 = "Disable(Without Reset)";
             public string str_ExclusiveType1 = "Disable(With Reset)";
             public string str_ExclusiveType2 = "Enable";
+            public string str_ExclusiveType3 = "Enable(V2)";
             public string str_Unselected = "(Unselected)";
         }
         private static bool Initialize = false;
-        public static string[] ExclusiveType = new string[3];
+        public static string[] ExclusiveType = new string[4];
         private static LanguageStrings languageStrings = null;
         public static LanguageStrings Strings
         {
@@ -95,6 +96,7 @@ namespace YagihataItems.RadialInventorySystemV3
             ExclusiveType[0] = languageStrings.str_ExclusiveType0;
             ExclusiveType[1] = languageStrings.str_ExclusiveType1;
             ExclusiveType[2] = languageStrings.str_ExclusiveType2;
+            ExclusiveType[3] = languageStrings.str_ExclusiveType3;
 
         }
     }
