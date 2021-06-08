@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
@@ -19,6 +20,7 @@ namespace YagihataItems.RadialInventorySystemV3
         [SerializeField] [HideInInspector] public RISVariables risVariables = new RISVariables();
         [SerializeField] public RISV3.RISMode MenuMode { get { return risVariables.MenuMode; } set { risVariables.MenuMode = value; } }
         [SerializeField] public bool ApplyEnabled { get { return risVariables.ApplyEnabled; } set { risVariables.ApplyEnabled = value; } }
+        [SerializeField] public int[] AdvancedGroupMode { get { return risVariables.AdvancedGroupMode; } set { risVariables.AdvancedGroupMode = value; } }
         public void SetVariables(IEditorExtVariables variables)
         {
             if (!(variables is RISVariables))
@@ -31,6 +33,7 @@ namespace YagihataItems.RadialInventorySystemV3
             this.Groups = risVariables.Groups;
             this.MenuMode = risVariables.MenuMode;
             this.ApplyEnabled = risVariables.ApplyEnabled;
+            this.AdvancedGroupMode = risVariables.AdvancedGroupMode;
         }
         public IEditorExtVariables GetVariables()
         {
@@ -42,7 +45,8 @@ namespace YagihataItems.RadialInventorySystemV3
                 FolderID = this.FolderID,
                 Groups = this.Groups,
                 MenuMode = this.MenuMode,
-                ApplyEnabled = this.ApplyEnabled
+                ApplyEnabled = this.ApplyEnabled,
+                AdvancedGroupMode = this.AdvancedGroupMode
             };
         }
     }
@@ -56,5 +60,6 @@ namespace YagihataItems.RadialInventorySystemV3
         [SerializeField] public List<PropGroup> Groups = new List<PropGroup>();
         [SerializeField] public RISV3.RISMode MenuMode = RISV3.RISMode.Simple;
         [SerializeField] public bool ApplyEnabled = true;
+        [SerializeField] public int[] AdvancedGroupMode = new int[Enum.GetNames(typeof(RISV3.PropGroup)).Length];
     }
 }

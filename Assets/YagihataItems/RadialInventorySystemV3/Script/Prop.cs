@@ -41,12 +41,14 @@ namespace YagihataItems.RadialInventorySystemV3
             TargetObject = gameObject;
             IsDefaultEnabled = false;
             PropIcon = null;
+            TargetObjects.Add(null);
         }
         public Prop()
         {
             TargetObject = null;
             IsDefaultEnabled = false;
             PropIcon = null;
+            TargetObjects.Add(null);
         }
         public string GetPropName()
         {
