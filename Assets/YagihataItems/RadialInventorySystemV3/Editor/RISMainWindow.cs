@@ -298,8 +298,11 @@ namespace YagihataItems.RadialInventorySystemV3
                                 variables.Groups[groupIndex].ExclusiveMode = EditorGUILayout.Popup(RISMessageStrings.Strings.str_Exclusive + RISMessageStrings.Strings.str_Mode, variables.Groups[groupIndex].ExclusiveMode, RISMessageStrings.ExclusiveType);
                             }
                             else
-                                variables.Groups[groupIndex].BaseMenu = 
+                            {
+                                variables.Groups[groupIndex].BaseMenu =
                                     (VRCExpressionsMenu)EditorGUILayout.ObjectField(RISMessageStrings.Strings.str_Base + RISMessageStrings.Strings.str_Menu, variables.Groups[groupIndex].BaseMenu, typeof(VRCExpressionsMenu), false, GUILayout.Height(EditorGUIUtility.singleLineHeight));
+                                variables.Groups[groupIndex].UseResetButton = EditorGUILayout.Toggle(RISMessageStrings.Strings.str_UseReset, variables.Groups[groupIndex].UseResetButton);
+                            }
                             if (selectedGroupChangeFlag)
                                 InitializePropList(variables.Groups[groupIndex]);
                             using (var scope = new EditorGUILayout.HorizontalScope())
@@ -573,10 +576,11 @@ namespace YagihataItems.RadialInventorySystemV3
                     var maxPropCount = 8;
                     if (variables != null && group != null)
                     {
-                        if (variables.MenuMode == RISV3.RISMode.Simple && group.ExclusiveMode == 1)
+                        if ((variables.MenuMode == RISV3.RISMode.Simple && group.ExclusiveMode == 1) ||
+                        (variables.MenuMode == RISV3.RISMode.Advanced && group.UseResetButton))
                             maxPropCount = 7;
-                        else if (variables.MenuMode == RISV3.RISMode.Advanced && group.BaseMenu != null)
-                            maxPropCount = 8 - group.BaseMenu.controls.Count;
+                        if (variables.MenuMode == RISV3.RISMode.Advanced && group.BaseMenu != null)
+                            maxPropCount -= group.BaseMenu.controls.Count;
                     }
                     if (props.Count < maxPropCount && GUI.Button(position, ReorderableListStyle.AddContent, ReorderableListStyle.AddStyle))
                     {

@@ -47,5 +47,6 @@
   "str_ExclusiveType1": "無効(リセットあり)",
   "str_ExclusiveType2": "有効",
   "str_ExclusiveType3": "有効(V2)",
-  "str_Unselected": "（未選択）"
+  "str_Unselected": "（未選択）",
+  "str_UseReset" : "リセットボタン"
 }

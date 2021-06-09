@@ -329,7 +329,8 @@ namespace YagihataItems.RadialInventorySystemV3
                         EditorUtility.SetDirty(layer.stateMachine);
                     }
                 }
-                if (group.ExclusiveMode == 1 && variables.MenuMode == RISV3.RISMode.Simple)
+                if ((variables.MenuMode == RISV3.RISMode.Simple && group.ExclusiveMode == 1) ||
+                    (variables.MenuMode == RISV3.RISMode.Advanced && group.UseResetButton))
                 {
                     var layerName = $"RISV3-RESET-G{groupIndex}";
 
@@ -672,7 +673,8 @@ namespace YagihataItems.RadialInventorySystemV3
             foreach (var groupIndex in Enumerable.Range(0, variables.Groups.Count))
             {
                 var group = variables.Groups[groupIndex];
-                if (variables.MenuMode == RISV3.RISMode.Simple && group.ExclusiveMode == 1)
+                if ((variables.MenuMode == RISV3.RISMode.Simple && group.ExclusiveMode == 1) ||
+                    (variables.MenuMode == RISV3.RISMode.Advanced && group.UseResetButton))
                     TryAddParam(variables, $"RISV3-G{groupIndex}RESET", 0f, false);
                 foreach (var propIndex in Enumerable.Range(0, group.Props.Count))
                 {
@@ -723,7 +725,8 @@ namespace YagihataItems.RadialInventorySystemV3
                 if (variables.MenuMode == RISV3.RISMode.Advanced && group.BaseMenu != null)
                     AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(group.BaseMenu), subMenuFolder + $"Group{groupIndex}Menu.asset");
                 VRCExpressionsMenu subMenu = control.subMenu = UnityUtils.TryGetAsset(subMenuFolder + $"Group{groupIndex}Menu.asset", typeof(VRCExpressionsMenu)) as VRCExpressionsMenu;
-                if(group.ExclusiveMode == 1 && variables.MenuMode == RISV3.RISMode.Simple)
+                if((variables.MenuMode == RISV3.RISMode.Simple && group.ExclusiveMode == 1) ||
+                    (variables.MenuMode == RISV3.RISMode.Advanced && group.UseResetButton))
                 {
                     var propControl = new VRCExpressionsMenu.Control();
                     propControl.name = "Reset";
