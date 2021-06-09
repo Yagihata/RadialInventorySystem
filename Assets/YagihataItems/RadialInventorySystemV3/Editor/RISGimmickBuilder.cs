@@ -116,7 +116,7 @@ namespace YagihataItems.RadialInventorySystemV3
                 foreach (var propIndex in Enumerable.Range(0, group.Props.Count))
                 {
                     var prop = group.Props[propIndex];
-                    var propName = prop.GetPropName();
+                    var propName = prop.GetPropName(variables.MenuMode);
                     if (string.IsNullOrWhiteSpace(propName))
                         propName = "Prop" + propIndex.ToString();
                     var layerName = $"RISV3-MAIN-G{groupIndex}P{propIndex}";
@@ -343,35 +343,32 @@ namespace YagihataItems.RadialInventorySystemV3
                     var stateMachine = layer.stateMachine;
                     stateMachine.Clear();
 
-                    if (variables.MenuMode == RISV3.RISMode.Simple)
-                    {
-                        var onState = stateMachine.AddState("Reset", new Vector3(300, 100, 0));
-                        onState.writeDefaultValues = variables.WriteDefaults;
-                        var offState = stateMachine.AddState("Wait", new Vector3(300, 200, 0));
-                        offState.writeDefaultValues = variables.WriteDefaults;
+                    var onState = stateMachine.AddState("Reset", new Vector3(300, 100, 0));
+                    onState.writeDefaultValues = variables.WriteDefaults;
+                    var offState = stateMachine.AddState("Wait", new Vector3(300, 200, 0));
+                    offState.writeDefaultValues = variables.WriteDefaults;
 
-                        var transition = stateMachine.MakeAnyStateTransition(onState);
-                        transition.CreateSingleCondition(AnimatorConditionMode.If, paramName, 1f, false, false);
-                        transition = stateMachine.MakeAnyStateTransition(offState);
-                        transition.CreateSingleCondition(AnimatorConditionMode.IfNot, paramName, 1f, false, false);
+                    var transition = stateMachine.MakeAnyStateTransition(onState);
+                    transition.CreateSingleCondition(AnimatorConditionMode.If, paramName, 1f, false, false);
+                    transition = stateMachine.MakeAnyStateTransition(offState);
+                    transition.CreateSingleCondition(AnimatorConditionMode.IfNot, paramName, 1f, false, false);
 
-                        stateMachine.defaultState = offState;
+                    stateMachine.defaultState = offState;
 
-                        var driver = onState.AddStateMachineBehaviour<VRCAvatarParameterDriver>();
-                        driver.parameters =
-                            Enumerable.Range(0, group.Props.Count).Select(num => new VRC_AvatarParameterDriver.Parameter()
-                            {
-                                name = $"RISV3-G{groupIndex}P{num}",
-                                type = VRC_AvatarParameterDriver.ChangeType.Set,
-                                value = group.Props[num].IsDefaultEnabled ? 1 : 0
-                            }).ToList();
-                        driver.parameters.Add(new VRC_AvatarParameterDriver.Parameter()
+                    var driver = onState.AddStateMachineBehaviour<VRCAvatarParameterDriver>();
+                    driver.parameters =
+                        Enumerable.Range(0, group.Props.Count).Select(num => new VRC_AvatarParameterDriver.Parameter()
                         {
-                            name = $"RISV3-G{groupIndex}RESET",
+                            name = $"RISV3-G{groupIndex}P{num}",
                             type = VRC_AvatarParameterDriver.ChangeType.Set,
-                            value = 0
-                        });
-                    }
+                            value = group.Props[num].IsDefaultEnabled ? 1 : 0
+                        }).ToList();
+                    driver.parameters.Add(new VRC_AvatarParameterDriver.Parameter()
+                    {
+                        name = $"RISV3-G{groupIndex}RESET",
+                        type = VRC_AvatarParameterDriver.ChangeType.Set,
+                        value = 0
+                    });
                 }
             }
 
@@ -739,7 +736,7 @@ namespace YagihataItems.RadialInventorySystemV3
                 foreach (var propIndex in Enumerable.Range(0,group.Props.Count))
                 {
                     var prop = group.Props[propIndex];
-                    var propName = prop.GetPropName();
+                    var propName = prop.GetPropName(variables.MenuMode);
                     if (string.IsNullOrWhiteSpace(propName))
                         propName = "Prop" + propIndex.ToString();
                     var propControl = new VRCExpressionsMenu.Control();

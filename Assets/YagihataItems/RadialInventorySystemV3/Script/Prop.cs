@@ -50,10 +50,17 @@ namespace YagihataItems.RadialInventorySystemV3
             PropIcon = null;
             TargetObjects.Add(null);
         }
-        public string GetPropName()
+        public string GetPropName(RISV3.RISMode menuMode)
         {
             if (string.IsNullOrEmpty(PropName))
-                return TargetObject != null ? TargetObject.name : "";
+            {
+                if (menuMode == RISV3.RISMode.Simple)
+                    return TargetObject != null ? TargetObject.name : "";
+                else if (menuMode == RISV3.RISMode.Advanced)
+                    return TargetObjects.Any() && TargetObjects.First() != null ? TargetObjects.First().name : "";
+                else
+                    return "";
+            }
             else
                 return PropName;
         }

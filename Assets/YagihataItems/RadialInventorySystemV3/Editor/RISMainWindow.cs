@@ -595,7 +595,7 @@ namespace YagihataItems.RadialInventorySystemV3
                 {
                     if (props.Count <= index)
                         return;
-                    var rawPropName = props[index].GetPropName();
+                    var rawPropName = props[index].GetPropName(variables.MenuMode);
                     var propName = !string.IsNullOrEmpty(rawPropName) ? rawPropName : $"Prop{index}";
                     GUI.Label(rect, propName);
                     rect.x = rect.x + rect.width - 20f;
