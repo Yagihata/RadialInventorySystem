@@ -260,7 +260,6 @@ namespace YagihataItems.RadialInventorySystemV3
                                         var subProp = subGroup.Props[subPropIndex];
                                         if (!(groupIndex == subGroupIndex && propIndex == subPropIndex) && subProp.PropGroupType == prop.PropGroupType)
                                         {
-                                            Debug.Log($"{(int)prop.PropGroupType} in {variables.AdvancedGroupMode}");
                                             var groupMode = variables.AdvancedGroupMode[(int)prop.PropGroupType];
                                             var defaultFallback = groupMode == 1;
                                             driver.parameters.Add(new VRC_AvatarParameterDriver.Parameter()

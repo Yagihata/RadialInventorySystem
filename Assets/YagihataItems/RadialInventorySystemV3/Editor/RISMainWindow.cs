@@ -426,16 +426,25 @@ namespace YagihataItems.RadialInventorySystemV3
                                 targetProp.PropIcon =
                                     (Texture2D)EditorGUILayout.ObjectField(RISMessageStrings.Strings.str_Icon, targetProp.PropIcon, typeof(Texture2D), false, GUILayout.Height(EditorGUIUtility.singleLineHeight));
                                 targetProp.PropGroupType = (RISV3.PropGroup)EditorGUILayout.EnumPopup(RISMessageStrings.Strings.str_Exclusive + RISMessageStrings.Strings.str_Group, targetProp.PropGroupType);
+                                if (targetProp.PropGroupType != RISV3.PropGroup.None)
+                                {
+                                    var modeCount = Enum.GetNames(typeof(RISV3.PropGroup)).Length;
+                                    if (variables.AdvancedGroupMode.Length != modeCount)
+                                        Array.Resize(ref variables.AdvancedGroupMode, modeCount);
+                                    var v2Mode = variables.AdvancedGroupMode[(int)targetProp.PropGroupType] == 1;
+                                    v2Mode = EditorGUILayout.Toggle("┗V2" + RISMessageStrings.Strings.str_Mode, v2Mode);
+                                    variables.AdvancedGroupMode[(int)targetProp.PropGroupType] = v2Mode ? 1 : 0;
+                                }
                                 targetProp.IsDefaultEnabled = EditorGUILayout.Toggle(RISMessageStrings.Strings.str_DefaultStatus, targetProp.IsDefaultEnabled);
                                 targetProp.LocalOnly = EditorGUILayout.Toggle(RISMessageStrings.Strings.str_LocalFunc, targetProp.LocalOnly);
                                 GUILayout.Space(5);
                                 EditorGUILayout.LabelField(RISMessageStrings.Strings.str_AdditionalAnimation);
-                                targetProp.EnableAnimation = (AnimationClip)EditorGUILayout.ObjectField("　" + RISMessageStrings.Strings.str_OnEnable, targetProp.EnableAnimation, typeof(AnimationClip), false);
-                                targetProp.DisableAnimation = (AnimationClip)EditorGUILayout.ObjectField("　" + RISMessageStrings.Strings.str_OnDisable, targetProp.DisableAnimation, typeof(AnimationClip), false);
+                                targetProp.EnableAnimation = (AnimationClip)EditorGUILayout.ObjectField("┣" + RISMessageStrings.Strings.str_OnEnable, targetProp.EnableAnimation, typeof(AnimationClip), false);
+                                targetProp.DisableAnimation = (AnimationClip)EditorGUILayout.ObjectField("┗" + RISMessageStrings.Strings.str_OnDisable, targetProp.DisableAnimation, typeof(AnimationClip), false);
                                 GUILayout.Space(5);
                                 targetProp.UseResetTimer = EditorGUILayout.Toggle(RISMessageStrings.Strings.str_OffTimer, targetProp.UseResetTimer);
                                 if (targetProp.UseResetTimer)
-                                    targetProp.ResetSecond = Mathf.Min(60, Mathf.Max(0, EditorGUILayout.FloatField("　" + RISMessageStrings.Strings.str_Sec, targetProp.ResetSecond)));
+                                    targetProp.ResetSecond = Mathf.Min(60, Mathf.Max(0, EditorGUILayout.FloatField("┗" + RISMessageStrings.Strings.str_Sec, targetProp.ResetSecond)));
                                 GUILayout.Space(5);
                                 targetProp.MaterialOverride =
                                     (Material)EditorGUILayout.ObjectField(RISMessageStrings.Strings.str_Material, targetProp.MaterialOverride, typeof(Material), false, GUILayout.Height(EditorGUIUtility.singleLineHeight));
@@ -454,8 +463,8 @@ namespace YagihataItems.RadialInventorySystemV3
                                 EditorGUILayout.Toggle(RISMessageStrings.Strings.str_LocalFunc, false);
                                 GUILayout.Space(5);
                                 EditorGUILayout.LabelField(RISMessageStrings.Strings.str_AdditionalAnimation);
-                                EditorGUILayout.ObjectField("　" + RISMessageStrings.Strings.str_OnEnable, null, typeof(AnimationClip), false);
-                                EditorGUILayout.ObjectField("　" + RISMessageStrings.Strings.str_OnDisable, null, typeof(AnimationClip), false);
+                                EditorGUILayout.ObjectField("┣" + RISMessageStrings.Strings.str_OnEnable, null, typeof(AnimationClip), false);
+                                EditorGUILayout.ObjectField("┗" + RISMessageStrings.Strings.str_OnDisable, null, typeof(AnimationClip), false);
                                 GUILayout.Space(5);
                                  EditorGUILayout.Toggle(RISMessageStrings.Strings.str_OffTimer, false);
                                 GUILayout.Space(5);
