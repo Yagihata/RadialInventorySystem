@@ -48,5 +48,6 @@
   "str_ExclusiveType2": "Enable",
   "str_ExclusiveType3": "Enable(V2)",
   "str_Unselected": "(Unselected)",
-  "str_UseReset": "Use Reset"
+  "str_UseReset": "Use Reset",
+  "str_ApplyDefaults": "SetActive to Default"
 }

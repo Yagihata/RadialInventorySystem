@@ -70,6 +70,7 @@ namespace YagihataItems.RadialInventorySystemV3
             public string str_ExclusiveType3 = "Enable(V2)";
             public string str_Unselected = "(Unselected)";
             public string str_UseReset = "Use Reset";
+            public string str_ApplyDefaults = "SetActive to Default";
         }
         private static bool Initialize = false;
         public static string[] ExclusiveType = new string[4];

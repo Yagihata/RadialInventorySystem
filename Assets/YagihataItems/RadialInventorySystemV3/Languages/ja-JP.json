@@ -48,5 +48,6 @@
   "str_ExclusiveType2": "有効",
   "str_ExclusiveType3": "有効(V2)",
   "str_Unselected": "（未選択）",
-  "str_UseReset" : "リセットボタン"
+  "str_UseReset": "リセットボタン",
+  "str_ApplyDefaults": "デフォルト状態を反映"
 }
