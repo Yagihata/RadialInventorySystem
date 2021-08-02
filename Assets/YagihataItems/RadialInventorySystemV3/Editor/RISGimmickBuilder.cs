@@ -754,7 +754,7 @@ namespace YagihataItems.RadialInventorySystemV3
                     var prop = group.Props[propIndex];
                     var v2Mode = false;
                     if ((variables.MenuMode == RISV3.RISMode.Simple && group.ExclusiveMode == 3) ||
-                        (variables.MenuMode == RISV3.RISMode.Advanced && prop.PropGroupType != RISV3.PropGroup.None))
+                        (variables.MenuMode == RISV3.RISMode.Advanced && prop.PropGroupType != RISV3.PropGroup.None && variables.AdvancedGroupMode[(int)prop.PropGroupType] == 1))
                         v2Mode = true;
                     TryAddParam(variables, $"RISV3-G{groupIndex}P{propIndex}", prop.IsDefaultEnabled && !v2Mode ? 1f : 0f, prop.SaveParameter);
                 }
