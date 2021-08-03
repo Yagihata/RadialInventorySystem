@@ -17,7 +17,7 @@ namespace YagihataItems.RadialInventorySystemV3
         [SerializeField] public string FolderID { get { return risVariables.FolderID; } set { risVariables.FolderID = value; } }
         [SerializeField] public List<PropGroup> Groups { get { return risVariables.Groups; } set { risVariables.Groups = value; } }
 
-        [SerializeField] [HideInInspector] public RISVariables risVariables = new RISVariables();
+        [SerializeField] /*[HideInInspector]*/ public RISVariables risVariables = new RISVariables();
         [SerializeField] public RISV3.RISMode MenuMode { get { return risVariables.MenuMode; } set { risVariables.MenuMode = value; } }
         [SerializeField] public bool ApplyEnabled { get { return risVariables.ApplyEnabled; } set { risVariables.ApplyEnabled = value; } }
         [SerializeField] public int[] AdvancedGroupMode { get { return risVariables.AdvancedGroupMode; } set { risVariables.AdvancedGroupMode = value; } }

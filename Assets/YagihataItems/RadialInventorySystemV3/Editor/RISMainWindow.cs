@@ -231,11 +231,46 @@ namespace YagihataItems.RadialInventorySystemV3
         private void RestoreSettings()
         {
             variables = new RISVariables();
+            // AvatarRootが一致するRISSettingsもしくは、nameが一致するRISSettingsを取得。
             settings = EditorExtSettingsTool.RestoreSettings<RISSettings>(avatarRoot, RISV3.SettingsName) as RISSettings;
-            if (settings != null)
+            if (settings != null){
                 variables = settings.GetVariables() as RISVariables;
-            else
+                if(avatarRoot != variables.AvatarRoot){
+                    // 指定したAvatarRootとRISSettingsのAvatarRootが異なる場合、インスタンスをCloneした上でTargetObjectsを割り当てしなおす。
+                    // (AvatarRootが異なる場合、他のAvatarRootの設定をコピーしていることが想定される。インスタンスをCloneしないと元の設定に影響してしまう。)
+                    // 異なるAvatarRootに属するTargetObjectsは指定したAvatarRootの子ではないためNullになってしまうので、
+                    // hierarchyが一致するobjectにremapすることで回避する。(元のAvatarRootを残しておく必要あり。)
+                    // remap終了後AvatarRootを置換して設定を保存する。
+                    variables.FolderID = System.Guid.NewGuid().ToString();
+                    for(int groupIndex = 0; groupIndex < variables.Groups.Count; ++groupIndex){
+                        variables.Groups[groupIndex] = (PropGroup)variables.Groups[groupIndex].Clone();
+                        for(int propIndex=0; propIndex < variables.Groups[groupIndex].Props.Count; ++propIndex){
+                            // PropはPropGroupのCloneの中でClone済
+                            // variables.Groups[groupIndex].Props[propIndex] = (Prop)variables.Groups[groupIndex].Props[propIndex].Clone();
+                            for(int objIndex=0; objIndex < variables.Groups[groupIndex].Props[propIndex].TargetObjects.Count; ++objIndex){
+                                GameObject targetObject = variables.Groups[groupIndex].Props[propIndex].TargetObjects[objIndex];
+                                if(targetObject != null && !targetObject.IsChildOf(avatarRoot.gameObject)){
+                                    // 指定したavatarRootの子でない場合、元のavatarRootを起点としてパスを取得。
+                                    var objPath = YagiAPI.GetGameObjectPath(targetObject, variables.AvatarRoot.gameObject);
+                                    // 指定したavatarRootの子に同じパスのObjectが存在すれば置換。
+                                    var targetTransform = avatarRoot.transform.Find(objPath);
+                                    if(targetTransform!=null){
+                                        targetObject = targetTransform.gameObject;
+                                        variables.Groups[groupIndex].Props[propIndex].TargetObjects[objIndex] = targetObject;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    variables.AvatarRoot = avatarRoot;
+                    SaveSettings();
+                }
+            }
+            else{
+                // 保存された設定なし
                 variables.FolderID = System.Guid.NewGuid().ToString();
+            }
+
             InitializeGroupList();
         }
         private void SaveSettings()
@@ -422,6 +457,7 @@ namespace YagihataItems.RadialInventorySystemV3
                         }
                         else
                         {
+                            // AdvancedMode
                             EditorGUIUtility.labelWidth = 80;
                             if (targetProp != null)
                             {
@@ -511,7 +547,9 @@ namespace YagihataItems.RadialInventorySystemV3
                     {
                         if (settings != null)
                             Undo.RecordObject(settings, $"Add new PropGroup.");
-                        variables.Groups.Add(new PropGroup() { GroupName = "Group" + groups.Count });
+                        var newPropGroup = ScriptableObject.CreateInstance<PropGroup>();
+                        newPropGroup.GroupName = "Group" + groups.Count;
+                        variables.Groups.Add(newPropGroup);
                         if (settings != null)
                             EditorUtility.SetDirty(settings);
                     }
@@ -586,7 +624,9 @@ namespace YagihataItems.RadialInventorySystemV3
                     {
                         if (settings != null)
                             Undo.RecordObject(settings, $"Add new Prop.");
-                        group.Props.Add(new Prop());
+                        var newProp = ScriptableObject.CreateInstance<Prop>();
+                        newProp.TargetObjects.Add(null);
+                        group.Props.Add(newProp);
                         if (settings != null)
                             EditorUtility.SetDirty(settings);
                     }
@@ -692,8 +732,12 @@ namespace YagihataItems.RadialInventorySystemV3
                     return;
                 rect.width -= 20;
                 var targetObject = gameObjects[index];
-                if (targetObject != null && !targetObject.IsChildOf(variables.AvatarRoot.gameObject))
+                // Debug.Log(targetObject);
+                // Debug.Log(variables.AvatarRoot);
+                if (targetObject != null && !targetObject.IsChildOf(variables.AvatarRoot.gameObject)){
+                    Debug.LogWarning(targetObject + " is not child of " + variables.AvatarRoot);
                     targetObject = null;
+                }
                 gameObjects[index] = (GameObject)EditorGUI.ObjectField(rect, targetObject, typeof(GameObject), true);
                 rect.x = rect.x + rect.width;
                 rect.width = 20f;
