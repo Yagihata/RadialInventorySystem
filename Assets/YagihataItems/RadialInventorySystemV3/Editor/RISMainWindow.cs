@@ -254,7 +254,7 @@ namespace YagihataItems.RadialInventorySystemV3
                         if(variables.Groups[groupIndex] == null)
                         {
                             EditorUtility.DisplayDialog("Radial Inventory System", $"グループ{groupIndex}が破損していたため、\r\nグループの初期化を行いました。", "OK");
-                            variables.Groups[groupIndex] = new PropGroup();
+                            variables.Groups[groupIndex] = ScriptableObject.CreateInstance<PropGroup>();
                         }
                         else if (variables.Groups[groupIndex].Props == null)
                         {
@@ -267,7 +267,7 @@ namespace YagihataItems.RadialInventorySystemV3
                             if (variables.Groups[groupIndex].Props[propIndex] == null)
                             {
                                 EditorUtility.DisplayDialog("Radial Inventory System", $"グループ{groupIndex}のプロップ{propIndex}が破損していたため、\r\nプロップの初期化を行いました。", "OK");
-                                variables.Groups[groupIndex].Props[propIndex] = new Prop();
+                                variables.Groups[groupIndex].Props[propIndex] = ScriptableObject.CreateInstance<Prop>();
                             }
                             else if(variables.Groups[groupIndex].Props[propIndex].TargetObjects == null)
                             {
