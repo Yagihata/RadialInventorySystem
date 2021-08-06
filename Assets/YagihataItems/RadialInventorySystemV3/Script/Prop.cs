@@ -65,9 +65,10 @@ namespace YagihataItems.RadialInventorySystemV3
         public object Clone()
         {
             var obj = ScriptableObject.CreateInstance<Prop>();
+            obj.TargetObject = this.TargetObject;
             obj.IsDefaultEnabled = this.IsDefaultEnabled;
-            obj.PropIcon = this.PropIcon;
             obj.LocalOnly = this.LocalOnly;
+            obj.PropIcon = this.PropIcon;
             obj.EnableAnimation = this.EnableAnimation;
             obj.DisableAnimation = this.DisableAnimation;
             obj.PropName = this.PropName;

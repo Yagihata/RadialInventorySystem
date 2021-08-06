@@ -276,9 +276,12 @@ namespace YagihataItems.RadialInventorySystemV3
                             }
                             // PropはPropGroupのCloneの中でClone済
                             // variables.Groups[groupIndex].Props[propIndex] = (Prop)variables.Groups[groupIndex].Props[propIndex].Clone();
+
+                            GameObject targetObject = null;
+                            // AdvancedModeのTargetObjectsのチェック
                             foreach (var objIndex in Enumerable.Range(0, variables.Groups[groupIndex].Props[propIndex].TargetObjects.Count))
                             {
-                                GameObject targetObject = variables.Groups[groupIndex].Props[propIndex].TargetObjects[objIndex];
+                                targetObject = variables.Groups[groupIndex].Props[propIndex].TargetObjects[objIndex];
                                 if (targetObject != null && !targetObject.IsChildOf(avatarRoot.gameObject))
                                 {
                                     // 指定したavatarRootの子でない場合、元のavatarRootを起点としてパスを取得。
@@ -291,6 +294,22 @@ namespace YagihataItems.RadialInventorySystemV3
                                         variables.Groups[groupIndex].Props[propIndex].TargetObjects[objIndex] = targetObject;
                                     }
                                 }
+                            }
+
+                            // SimpleModeのTargetObjectのチェック
+                            targetObject = variables.Groups[groupIndex].Props[propIndex].TargetObject;
+                            if(targetObject != null && !targetObject.IsChildOf(avatarRoot.gameObject))
+                            {
+                                // 指定したavatarRootの子でない場合、元のavatarRootを起点としてパスを取得。
+                                var objPath = YagiAPI.GetGameObjectPath(targetObject, variables.AvatarRoot.gameObject);
+                                // 指定したavatarRootの子に同じパスのObjectが存在すれば置換。
+                                var targetTransform = avatarRoot.transform.Find(objPath);
+                                if (targetTransform != null)
+                                {
+                                    targetObject = targetTransform.gameObject;
+                                    variables.Groups[groupIndex].Props[propIndex].TargetObject = targetObject;
+                                }
+
                             }
                         }
                     }
