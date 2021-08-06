@@ -32,7 +32,7 @@ namespace YagihataItems.RadialInventorySystemV3
         }
         public object Clone()
         {
-            var obj = new PropGroup();
+            var obj = ScriptableObject.CreateInstance<PropGroup>();
             obj.GroupName = this.GroupName;
             obj.GroupIcon = this.GroupIcon;
             obj.ExclusiveMode = this.ExclusiveMode;

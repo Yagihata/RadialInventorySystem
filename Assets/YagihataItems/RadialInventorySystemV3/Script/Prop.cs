@@ -41,14 +41,12 @@ namespace YagihataItems.RadialInventorySystemV3
             TargetObject = gameObject;
             IsDefaultEnabled = false;
             PropIcon = null;
-            TargetObjects.Add(null);
         }
         public Prop()
         {
             TargetObject = null;
             IsDefaultEnabled = false;
             PropIcon = null;
-            TargetObjects.Add(null);
         }
         public string GetPropName(RISV3.RISMode menuMode)
         {
@@ -66,7 +64,7 @@ namespace YagihataItems.RadialInventorySystemV3
         }
         public object Clone()
         {
-            var obj = new Prop(TargetObject);
+            var obj = ScriptableObject.CreateInstance<Prop>();
             obj.IsDefaultEnabled = this.IsDefaultEnabled;
             obj.PropIcon = this.PropIcon;
             obj.LocalOnly = this.LocalOnly;
