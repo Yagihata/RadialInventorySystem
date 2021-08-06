@@ -83,14 +83,15 @@ namespace YagihataItems.RadialInventorySystemV3
                     int memoryAdded = 0;
                     using (new EditorGUI.DisabledGroupScope(rootIsNull))
                     {
-                        if (!rootIsNull && avatarRoot != avatarRootBefore)
+                        if(!rootIsNull)
                         {
-                            RestoreSettings();
-                            avatarRootBefore = avatarRoot;
-
-                        }
-                        if (!rootIsNull)
+                            if (avatarRoot != avatarRootBefore)
+                            {
+                                RestoreSettings();
+                                avatarRootBefore = avatarRoot;
+                            }
                             variables.AvatarRoot = avatarRoot;
+                        }
 
                         EditorGUILayoutExtra.SeparatorWithSpace();
 
@@ -235,26 +236,57 @@ namespace YagihataItems.RadialInventorySystemV3
             settings = EditorExtSettingsTool.RestoreSettings<RISSettings>(avatarRoot, RISV3.SettingsName) as RISSettings;
             if (settings != null){
                 variables = settings.GetVariables() as RISVariables;
-                if(avatarRoot != variables.AvatarRoot){
+                if(avatarRoot != variables.AvatarRoot)
+                {
                     // 指定したAvatarRootとRISSettingsのAvatarRootが異なる場合、インスタンスをCloneした上でTargetObjectsを割り当てしなおす。
                     // (AvatarRootが異なる場合、他のAvatarRootの設定をコピーしていることが想定される。インスタンスをCloneしないと元の設定に影響してしまう。)
                     // 異なるAvatarRootに属するTargetObjectsは指定したAvatarRootの子ではないためNullになってしまうので、
                     // hierarchyが一致するobjectにremapすることで回避する。(元のAvatarRootを残しておく必要あり。)
                     // remap終了後AvatarRootを置換して設定を保存する。
                     variables.FolderID = System.Guid.NewGuid().ToString();
-                    for(int groupIndex = 0; groupIndex < variables.Groups.Count; ++groupIndex){
+                    if(variables.Groups == null)
+                    {
+                        EditorUtility.DisplayDialog("Radial Inventory System", "グループリストが破損していたため、\r\nリストの初期化を行いました。", "OK");
+                        variables.Groups = new List<PropGroup>();
+                    }
+                    foreach(var groupIndex in Enumerable.Range(0, variables.Groups.Count))
+                    {
+                        if(variables.Groups[groupIndex] == null)
+                        {
+                            EditorUtility.DisplayDialog("Radial Inventory System", $"グループ{groupIndex}が破損していたため、\r\nグループの初期化を行いました。", "OK");
+                            variables.Groups[groupIndex] = new PropGroup();
+                        }
+                        else if (variables.Groups[groupIndex].Props == null)
+                        {
+                            EditorUtility.DisplayDialog("Radial Inventory System", $"グループ{groupIndex}のプロップリストが破損していたため、\r\nプロップリストの初期化を行いました。", "OK");
+                            variables.Groups[groupIndex].Props = new List<Prop>();
+                        }
                         variables.Groups[groupIndex] = (PropGroup)variables.Groups[groupIndex].Clone();
-                        for(int propIndex=0; propIndex < variables.Groups[groupIndex].Props.Count; ++propIndex){
+                        foreach (var propIndex in Enumerable.Range(0, variables.Groups[groupIndex].Props.Count))
+                        {
+                            if (variables.Groups[groupIndex].Props[propIndex] == null)
+                            {
+                                EditorUtility.DisplayDialog("Radial Inventory System", $"グループ{groupIndex}のプロップ{propIndex}が破損していたため、\r\nプロップの初期化を行いました。", "OK");
+                                variables.Groups[groupIndex].Props[propIndex] = new Prop();
+                            }
+                            else if(variables.Groups[groupIndex].Props[propIndex].TargetObjects == null)
+                            {
+                                EditorUtility.DisplayDialog("Radial Inventory System", $"グループ{groupIndex}のプロップ{propIndex}の\r\nターゲットリストが破損していたため、リストの初期化を行いました。", "OK");
+                                variables.Groups[groupIndex].Props[propIndex].TargetObjects = new List<GameObject>();
+                            }
                             // PropはPropGroupのCloneの中でClone済
                             // variables.Groups[groupIndex].Props[propIndex] = (Prop)variables.Groups[groupIndex].Props[propIndex].Clone();
-                            for(int objIndex=0; objIndex < variables.Groups[groupIndex].Props[propIndex].TargetObjects.Count; ++objIndex){
+                            foreach (var objIndex in Enumerable.Range(0, variables.Groups[groupIndex].Props[propIndex].TargetObjects.Count))
+                            {
                                 GameObject targetObject = variables.Groups[groupIndex].Props[propIndex].TargetObjects[objIndex];
-                                if(targetObject != null && !targetObject.IsChildOf(avatarRoot.gameObject)){
+                                if (targetObject != null && !targetObject.IsChildOf(avatarRoot.gameObject))
+                                {
                                     // 指定したavatarRootの子でない場合、元のavatarRootを起点としてパスを取得。
                                     var objPath = YagiAPI.GetGameObjectPath(targetObject, variables.AvatarRoot.gameObject);
                                     // 指定したavatarRootの子に同じパスのObjectが存在すれば置換。
                                     var targetTransform = avatarRoot.transform.Find(objPath);
-                                    if(targetTransform!=null){
+                                    if (targetTransform != null)
+                                    {
                                         targetObject = targetTransform.gameObject;
                                         variables.Groups[groupIndex].Props[propIndex].TargetObjects[objIndex] = targetObject;
                                     }
@@ -353,8 +385,10 @@ namespace YagihataItems.RadialInventorySystemV3
                                     GUILayout.Space(0);
                                 }
                             }
-                            targetProp = (variables.Groups[groupIndex].Props.Count >= 1 && propsReorderableList.index >= 0) ?
-                                variables.Groups[groupIndex].Props[propsReorderableList.index] : null;
+                            if (variables.Groups[groupIndex].Props.Count > propsReorderableList.index && propsReorderableList.index >= 0)
+                                targetProp = variables.Groups[groupIndex].Props[propsReorderableList.index];
+                            else
+                                targetProp = null;
                         }
                         else
                         {

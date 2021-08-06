@@ -705,7 +705,6 @@ namespace YagihataItems.RadialInventorySystemV3
                         transition.CreateSingleCondition(AnimatorConditionMode.If, paramName, 1f, prop.LocalOnly && !prop.IsDefaultEnabled, true);
                     }
                     var clipName = $"PAIR{pairsIndex}-{stateName}";
-                    Debug.Log(clipName);
                     AssetDatabase.CreateAsset(clip, animationsFolder + clipName + ".anim");
                     EditorUtility.SetDirty(clip);
                     state.motion = clip;
