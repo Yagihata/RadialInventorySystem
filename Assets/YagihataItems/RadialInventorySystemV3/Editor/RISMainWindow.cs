@@ -58,7 +58,10 @@ namespace YagihataItems.RadialInventorySystemV3
                         height = headerTexture.height;
                     var width = position.size.x - (showingVerticalScroll ? 22 : 8);
                     GUILayout.Space(2);
-                    EditorGUILayoutExtra.HeaderWithVersionInfo(headerTexture, width == beforeWidth ? width: beforeWidth, height, newerVersion, RISV3.CurrentVersion, "ris", RISMessageStrings.Strings.str_NewVersion, RISV3.DownloadUrl);
+                    var newVersion = newerVersion;
+                    if (!newerVersion.StartsWith("ris_"))
+                        newVersion = RISV3.CurrentVersion;
+                    EditorGUILayoutExtra.HeaderWithVersionInfo(headerTexture, width == beforeWidth ? width: beforeWidth, height, newVersion, RISV3.CurrentVersion, "ris", RISMessageStrings.Strings.str_NewVersion, RISV3.DownloadUrl);
                     
                     EditorGUILayoutExtra.Space();
                     var avatarDescriptors = FindObjectsOfType(typeof(VRCAvatarDescriptor));

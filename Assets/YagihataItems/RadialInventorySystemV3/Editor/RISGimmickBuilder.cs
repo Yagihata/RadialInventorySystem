@@ -92,8 +92,11 @@ namespace YagihataItems.RadialInventorySystemV3
                         {
                             foreach (var subProp in prop.TargetObjects)
                             {
-                                subProp.SetActive(prop.IsDefaultEnabled);
-                                EditorUtility.SetDirty(subProp);
+                                if(subProp != null)
+                                {
+                                    subProp.SetActive(prop.IsDefaultEnabled);
+                                    EditorUtility.SetDirty(subProp);
+                                }
                             }
                         }
                     }
@@ -133,9 +136,9 @@ namespace YagihataItems.RadialInventorySystemV3
                     var layerName = $"RISV3-MAIN-G{groupIndex}P{propIndex}";
 
                     var paramName = $"RISV3-G{groupIndex}P{propIndex}";
-                    CheckParam(fxLayer, paramName, prop.IsDefaultEnabled);
+                    CheckParam(avatar, fxLayer, paramName, prop.IsDefaultEnabled);
                     if (prop.LocalOnly)
-                        CheckParam(fxLayer, "IsLocal", false);
+                        CheckParam(avatar, fxLayer, "IsLocal", false);
 
                     var layer = fxLayer.FindAnimatorControllerLayer(layerName);
                     if (layer == null)
@@ -253,15 +256,18 @@ namespace YagihataItems.RadialInventorySystemV3
                                 var clipOFF = new AnimationClip();
                                 foreach (var gameObject in prop.TargetObjects)
                                 {
-                                    var curve = new AnimationCurve();
-                                    curve.AddKey(0f, 1);
-                                    curve.AddKey(1f / clipON.frameRate, 1);
-                                    clipON.SetCurve(gameObject.GetRelativePath(avatar.gameObject), typeof(GameObject), "m_IsActive", curve);
+                                    if(gameObject != null)
+                                    {
+                                        var curve = new AnimationCurve();
+                                        curve.AddKey(0f, 1);
+                                        curve.AddKey(1f / clipON.frameRate, 1);
+                                        clipON.SetCurve(gameObject.GetRelativePath(avatar.gameObject), typeof(GameObject), "m_IsActive", curve);
 
-                                    curve = new AnimationCurve();
-                                    curve.AddKey(0f, 0);
-                                    curve.AddKey(1f / clipOFF.frameRate, 0);
-                                    clipOFF.SetCurve(gameObject.GetRelativePath(avatar.gameObject), typeof(GameObject), "m_IsActive", curve);
+                                        curve = new AnimationCurve();
+                                        curve.AddKey(0f, 0);
+                                        curve.AddKey(1f / clipOFF.frameRate, 0);
+                                        clipOFF.SetCurve(gameObject.GetRelativePath(avatar.gameObject), typeof(GameObject), "m_IsActive", curve);
+                                    }
                                 }
                                 var clipONName = "G" + groupIndex.ToString() + "P" + propIndex.ToString() + "ON";
                                 AssetDatabase.CreateAsset(clipON, animationsFolder + clipONName + ".anim");
@@ -357,7 +363,7 @@ namespace YagihataItems.RadialInventorySystemV3
                     var layerName = $"RISV3-RESET-G{groupIndex}";
 
                     var paramName = $"RISV3-G{groupIndex}RESET";
-                    CheckParam(fxLayer, paramName, false);
+                    CheckParam(avatar, fxLayer, paramName, false);
 
                     var layer = fxLayer.FindAnimatorControllerLayer(layerName);
                     if (layer == null)
@@ -438,9 +444,9 @@ namespace YagihataItems.RadialInventorySystemV3
                                 var onTransition = stateMachine.MakeAnyStateTransition(onState);
 
                                 var paramName = $"RISV3-G{materialReference.index.group}P{materialReference.index.prop}";
-                                CheckParam(fxLayer, paramName, prop.IsDefaultEnabled);
+                                CheckParam(avatar, fxLayer, paramName, prop.IsDefaultEnabled);
                                 if (prop.LocalOnly)
-                                    CheckParam(fxLayer, "IsLocal", false);
+                                    CheckParam(avatar, fxLayer, "IsLocal", false);
                                 onTransition.CreateSingleCondition(AnimatorConditionMode.If, paramName, 1f, prop.LocalOnly && !prop.IsDefaultEnabled, true);
 
                                 var dict = new Dictionary<string, int>();
@@ -478,9 +484,9 @@ namespace YagihataItems.RadialInventorySystemV3
 
                                         var subProp = variables.Groups[groupIndex].Props[propIndex];
                                         var paramKey = $"RISV3-G{groupIndex}P{propIndex}";
-                                        CheckParam(fxLayer, paramName, subProp.IsDefaultEnabled);
+                                        CheckParam(avatar, fxLayer, paramName, subProp.IsDefaultEnabled);
                                         if (subProp.LocalOnly)
-                                            CheckParam(fxLayer, "IsLocal", false);
+                                            CheckParam(avatar, fxLayer, "IsLocal", false);
 
                                         if (dict.ContainsKey(paramKey))
                                             dict[paramKey] = 0;
@@ -682,16 +688,19 @@ namespace YagihataItems.RadialInventorySystemV3
                         {
                             foreach (var targetObject in prop.TargetObjects)
                             {
-                                curve.AddKey(0f, frameValue);
-                                curve.AddKey(1f / clip.frameRate, frameValue);
-                                clip.SetCurve(targetObject.GetRelativePath(avatar.gameObject), typeof(GameObject), "m_IsActive", curve);
+                                if(targetObject != null)
+                                {
+                                    curve.AddKey(0f, frameValue);
+                                    curve.AddKey(1f / clip.frameRate, frameValue);
+                                    clip.SetCurve(targetObject.GetRelativePath(avatar.gameObject), typeof(GameObject), "m_IsActive", curve);
+                                }
                             }
                         }
 
                         if (activeIndex == -1)
                         {
                             var paramName = $"RISV3-G{groupIndex}P{propIndex}";
-                            CheckParam(fxLayer, paramName, false);
+                            CheckParam(avatar, fxLayer, paramName, false);
                             transition.AddCondition(AnimatorConditionMode.IfNot, paramName, 1f, false, true);
                         }
                     }
@@ -699,7 +708,7 @@ namespace YagihataItems.RadialInventorySystemV3
                     {
                         var targetPair = pairs[activeIndex];
                         var paramName = $"RISV3-G{targetPair.group}P{targetPair.prop}";
-                        CheckParam(fxLayer, paramName, false);
+                        CheckParam(avatar, fxLayer, paramName, false);
                         transition = stateMachine.MakeAnyStateTransition(state);
                         var prop = variables.Groups[targetPair.group].Props[targetPair.prop];
                         transition.CreateSingleCondition(AnimatorConditionMode.If, paramName, 1f, prop.LocalOnly && !prop.IsDefaultEnabled, true);
@@ -719,9 +728,10 @@ namespace YagihataItems.RadialInventorySystemV3
             avatar.baseAnimationLayers[4].animatorController = fxLayer;
             EditorUtility.SetDirty(avatar.baseAnimationLayers[4].animatorController);
             EditorUtility.SetDirty(avatar);
+
         }
 
-        private static void CheckParam(AnimatorController controller, string paramName, bool defaultEnabled)
+        private static void CheckParam(VRCAvatarDescriptor avatar, AnimatorController controller, string paramName, bool defaultEnabled)
         {
             var param = controller.parameters.FirstOrDefault(n => n.name == paramName);
             if (param == null)
