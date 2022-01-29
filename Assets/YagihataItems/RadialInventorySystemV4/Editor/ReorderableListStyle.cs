@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 
-namespace YagihataItems.RadialInventorySystemV3
+namespace YagihataItems.RadialInventorySystemV4
 {
     public static class ReorderableListStyle
     {

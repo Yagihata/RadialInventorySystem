@@ -5,7 +5,7 @@ using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDKBase;
 
-namespace YagihataItems.RadialInventorySystemV3
+namespace YagihataItems.RadialInventorySystemV4
 {
     [CustomEditor(typeof(RISSettings))]
     public class RISSettingsEditor : Editor
@@ -67,7 +67,7 @@ namespace YagihataItems.RadialInventorySystemV3
                 EditorUtility.SetDirty(settings);
 
             var menuMode = settings.MenuMode;
-            settings.MenuMode = (RISV3.RISMode)EditorGUILayout.EnumPopup("Menu Mode", settings.MenuMode);
+            settings.MenuMode = (RIS.RISMode)EditorGUILayout.EnumPopup("Menu Mode", settings.MenuMode);
             if (settings.MenuMode != menuMode)
                 EditorUtility.SetDirty(settings);
 

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace YagihataItems.RadialInventorySystemV3
+namespace YagihataItems.RadialInventorySystemV4
 {
     public static class RISErrorChecker
     {
@@ -14,7 +14,7 @@ namespace YagihataItems.RadialInventorySystemV3
                 return new string[] { };
 
             var errors = new List<string>();
-            var prefixText = variables.MenuMode == RISV3.RISMode.Simple ? RISMessageStrings.Strings.str_Group : RISMessageStrings.Strings.str_Menu;
+            var prefixText = variables.MenuMode == RIS.RISMode.Simple ? RISMessageStrings.Strings.str_Group : RISMessageStrings.Strings.str_Menu;
             if (variables.Groups.Count == 0)
                 errors.Add(prefixText + RISMessageStrings.Strings.str_NeedOnce);
 
@@ -28,9 +28,9 @@ namespace YagihataItems.RadialInventorySystemV3
                     errors.Add($"{prefixText}[{groupName}]" + RISMessageStrings.Strings.str_MissingProp);
 
                 var maxPropsCount = 8;
-                if (variables.MenuMode == RISV3.RISMode.Simple && group.ExclusiveMode == 1)
+                if (variables.MenuMode == RIS.RISMode.Simple && group.ExclusiveMode == 1)
                     maxPropsCount = 7;
-                else if (variables.MenuMode == RISV3.RISMode.Advanced && group.BaseMenu != null)
+                else if (variables.MenuMode == RIS.RISMode.Advanced && group.BaseMenu != null)
                     maxPropsCount = 8 - group.BaseMenu.controls.Count;
                 if (group.Props.Count > maxPropsCount)
                     errors.Add($"{prefixText}[{groupName}]" + string.Format(RISMessageStrings.Strings.str_OverProp, maxPropsCount));
@@ -41,12 +41,12 @@ namespace YagihataItems.RadialInventorySystemV3
                     if (string.IsNullOrEmpty(propName))
                         propName = "Prop" + group.Props.IndexOf(prop);
 
-                    if (variables.MenuMode == RISV3.RISMode.Simple)
+                    if (variables.MenuMode == RIS.RISMode.Simple)
                     {
                         if (prop.TargetObject == null)
                             errors.Add($"{prefixText}[{groupName}]" + RISMessageStrings.Strings.str_GroupsProp + $"[{propName}]" + RISMessageStrings.Strings.str_MissingObject);
                     }
-                    else if (variables.MenuMode == RISV3.RISMode.Advanced)
+                    else if (variables.MenuMode == RIS.RISMode.Advanced)
                     {
                         if (!prop.TargetObjects.Any(n => n != null) && prop.DisableAnimation == null && prop.EnableAnimation == null)
                             errors.Add($"{prefixText}[{groupName}]" + RISMessageStrings.Strings.str_GroupsProp + $"[{propName}]" + RISMessageStrings.Strings.str_MissingObjectOrAnim);

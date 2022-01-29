@@ -7,7 +7,7 @@ using VRC.SDK3.Avatars.Components;
 using VRC.SDKBase;
 using YagihataItems.YagiUtils;
 
-namespace YagihataItems.RadialInventorySystemV3
+namespace YagihataItems.RadialInventorySystemV4
 {
     public class RISSettings : MonoBehaviour, IEditorExtSettings
     {
@@ -18,7 +18,7 @@ namespace YagihataItems.RadialInventorySystemV3
         [SerializeField] public List<PropGroup> Groups { get { return risVariables.Groups; } set { risVariables.Groups = value; } }
 
         [SerializeField] /*[HideInInspector]*/ public RISVariables risVariables = new RISVariables();
-        [SerializeField] public RISV3.RISMode MenuMode { get { return risVariables.MenuMode; } set { risVariables.MenuMode = value; } }
+        [SerializeField] public RIS.RISMode MenuMode { get { return risVariables.MenuMode; } set { risVariables.MenuMode = value; } }
         [SerializeField] public bool ApplyEnabled { get { return risVariables.ApplyEnabled; } set { risVariables.ApplyEnabled = value; } }
         [SerializeField] public int[] AdvancedGroupMode { get { return risVariables.AdvancedGroupMode; } set { risVariables.AdvancedGroupMode = value; } }
         public void SetVariables(IEditorExtVariables variables)
@@ -58,8 +58,8 @@ namespace YagihataItems.RadialInventorySystemV3
         [SerializeField] public bool OptimizeParams = true;
         [SerializeField] public string FolderID = "";
         [SerializeField] public List<PropGroup> Groups = new List<PropGroup>();
-        [SerializeField] public RISV3.RISMode MenuMode = RISV3.RISMode.Simple;
+        [SerializeField] public RIS.RISMode MenuMode = RIS.RISMode.Simple;
         [SerializeField] public bool ApplyEnabled = true;
-        [SerializeField] public int[] AdvancedGroupMode = new int[Enum.GetNames(typeof(RISV3.PropGroup)).Length];
+        [SerializeField] public int[] AdvancedGroupMode = new int[Enum.GetNames(typeof(RIS.PropGroup)).Length];
     }
 }

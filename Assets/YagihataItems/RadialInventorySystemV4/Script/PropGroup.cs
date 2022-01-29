@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using VRC.SDK3.Avatars.ScriptableObjects;
 
-namespace YagihataItems.RadialInventorySystemV3
+namespace YagihataItems.RadialInventorySystemV4
 {
     [Serializable]
     public class PropGroup : ScriptableObject, ICloneable

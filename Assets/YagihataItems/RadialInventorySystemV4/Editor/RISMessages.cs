@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 
-namespace YagihataItems.RadialInventorySystemV3
+namespace YagihataItems.RadialInventorySystemV4
     
 {
     public class RISMessageStrings
@@ -91,7 +91,7 @@ namespace YagihataItems.RadialInventorySystemV3
         [InitializeOnLoadMethod]
         static void EditorInitialize()
         {
-            TextAsset languageJSON = AssetDatabase.LoadAssetAtPath<TextAsset>(RISV3.WorkFolderPath + "Languages/" + CultureInfo.CurrentCulture.Name + ".json");
+            TextAsset languageJSON = AssetDatabase.LoadAssetAtPath<TextAsset>(RIS.WorkFolderPath + "Languages/" + CultureInfo.CurrentCulture.Name + ".json");
             languageStrings = new LanguageStrings();
             if (languageJSON != null)
                 EditorJsonUtility.FromJsonOverwrite(languageJSON.text, languageStrings);

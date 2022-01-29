@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace YagihataItems.RadialInventorySystemV3
+namespace YagihataItems.RadialInventorySystemV4
 {
     [Serializable]
     public class Prop : ScriptableObject, ICloneable
@@ -27,7 +27,7 @@ namespace YagihataItems.RadialInventorySystemV3
         [SerializeField]
         public List<GameObject> TargetObjects = new List<GameObject>();
         [SerializeField]
-        public RISV3.PropGroup PropGroupType = RISV3.PropGroup.None;
+        public RIS.PropGroup PropGroupType = RIS.PropGroup.None;
         [SerializeField]
         public Material MaterialOverride = null;
         [SerializeField]
@@ -48,13 +48,13 @@ namespace YagihataItems.RadialInventorySystemV3
             IsDefaultEnabled = false;
             PropIcon = null;
         }
-        public string GetPropName(RISV3.RISMode menuMode)
+        public string GetPropName(RIS.RISMode menuMode)
         {
             if (string.IsNullOrEmpty(PropName))
             {
-                if (menuMode == RISV3.RISMode.Simple)
+                if (menuMode == RIS.RISMode.Simple)
                     return TargetObject != null ? TargetObject.name : "";
-                else if (menuMode == RISV3.RISMode.Advanced)
+                else if (menuMode == RIS.RISMode.Advanced)
                     return TargetObjects.Any() && TargetObjects.First() != null ? TargetObjects.First().name : "";
                 else
                     return "";

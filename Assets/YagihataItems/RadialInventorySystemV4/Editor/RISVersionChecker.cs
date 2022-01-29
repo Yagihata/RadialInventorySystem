@@ -8,15 +8,15 @@ using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 
-namespace YagihataItems.RadialInventorySystemV3
+namespace YagihataItems.RadialInventorySystemV4
 {
     class RISVersionChecker
     {
-        const string TMP_FILE_PATH = "Temp/RISStartupFlag";
+        const string TMP_FILE_PATH = "Temp/RISV4StartupFlag";
         public static string GetNewerVersion()
         {
 
-            TextAsset newVersionTxt = AssetDatabase.LoadAssetAtPath<TextAsset>(RISV3.WorkFolderPath + "newerVersion.txt");
+            TextAsset newVersionTxt = AssetDatabase.LoadAssetAtPath<TextAsset>(RIS.WorkFolderPath + "newerVersion.txt");
             if (newVersionTxt != null)
                 return newVersionTxt.text.Trim();
             else
@@ -25,7 +25,7 @@ namespace YagihataItems.RadialInventorySystemV3
         [InitializeOnLoadMethod]
         static void EditorInitialize()
         {
-            if(!File.Exists(TMP_FILE_PATH) || !File.Exists(RISV3.WorkFolderPath + "newerVersion.txt"))
+            if(!File.Exists(TMP_FILE_PATH) || !File.Exists(RIS.WorkFolderPath + "newerVersion.txt"))
             {
                 File.Create(TMP_FILE_PATH);
                 CheckNewerVersion();
@@ -37,10 +37,10 @@ namespace YagihataItems.RadialInventorySystemV3
             {
                 try
                 {
-                    string text = wc.DownloadString(RISV3.VersionUrl);
+                    string text = wc.DownloadString(RIS.VersionUrl);
                     var newerVersion = text.Trim();
                     Debug.Log(newerVersion);
-                    File.WriteAllText(RISV3.WorkFolderPath + "newerVersion.txt", newerVersion);
+                    File.WriteAllText(RIS.WorkFolderPath + "newerVersion.txt", newerVersion);
                     AssetDatabase.Refresh();
                 }
                 catch (WebException exc)
