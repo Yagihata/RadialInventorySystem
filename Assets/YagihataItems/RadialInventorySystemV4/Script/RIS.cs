@@ -28,6 +28,7 @@ namespace YagihataItems.RadialInventorySystemV4
         public enum RISMode
         {
             Simple,
+            Basic,
             Advanced
         }
         public enum PropGroup
@@ -41,6 +42,11 @@ namespace YagihataItems.RadialInventorySystemV4
             Group6,
             Group7,
             Group8,
+        }
+        public enum BoneType
+        {
+            None,
+            Head
         }
     }
 }
