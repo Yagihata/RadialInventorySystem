@@ -100,51 +100,87 @@ namespace YagihataItems.RadialInventorySystemV4
                             {
                                 using (new GUILayout.VerticalScope())
                                 {
-                                    using (new GUILayout.HorizontalScope())
+                                    if (targetId != 7)
                                     {
-                                        using (new GUILayout.VerticalScope(GUILayout.Width(1)))
+                                        using (new GUILayout.HorizontalScope())
                                         {
-                                            GUILayout.Label(RISMessageStrings.Strings.str_Icon);
-                                            if (targetProp != null)
-                                                targetProp.PropIcon = (Texture2D)EditorGUILayout.ObjectField(targetProp.PropIcon, typeof(Texture2D), false, GUILayout.Width(EditorGUIUtility.singleLineHeight * 3), GUILayout.Height(EditorGUIUtility.singleLineHeight * 3));
-                                            else
-                                                EditorGUILayout.ObjectField(null, typeof(Texture2D), false, GUILayout.Width(EditorGUIUtility.singleLineHeight * 3), GUILayout.Height(EditorGUIUtility.singleLineHeight * 3));
-                                        }
-                                        using (new GUILayout.VerticalScope())
-                                        {
-                                            GUILayout.Label(RISMessageStrings.Strings.str_Prop + RISMessageStrings.Strings.str_Name);
-                                            if (targetProp != null)
-                                                targetProp.PropName = EditorGUILayout.TextField(targetProp.PropName);
-                                            else
-                                                EditorGUILayout.TextField("");
+                                            using (new GUILayout.VerticalScope(GUILayout.Width(1)))
+                                            {
+                                                GUILayout.Label(RISMessageStrings.Strings.str_Icon);
+                                                if (targetProp != null)
+                                                    targetProp.PropIcon = (Texture2D)EditorGUILayout.ObjectField(targetProp.PropIcon, typeof(Texture2D), false, GUILayout.Width(EditorGUIUtility.singleLineHeight * 3), GUILayout.Height(EditorGUIUtility.singleLineHeight * 3));
+                                                else
+                                                    EditorGUILayout.ObjectField(null, typeof(Texture2D), false, GUILayout.Width(EditorGUIUtility.singleLineHeight * 3), GUILayout.Height(EditorGUIUtility.singleLineHeight * 3));
+                                            }
+                                            using (new GUILayout.VerticalScope())
+                                            {
+                                                GUILayout.Label(RISMessageStrings.Strings.str_Prop + RISMessageStrings.Strings.str_Name);
+                                                if (targetProp != null)
+                                                    targetProp.PropName = EditorGUILayout.TextField(targetProp.PropName);
+                                                else
+                                                    EditorGUILayout.TextField("");
 
-                                            GUILayout.Label(RISMessageStrings.Strings.str_Object);
+                                                GUILayout.Label(RISMessageStrings.Strings.str_Object);
+                                                if (targetProp != null)
+                                                    targetProp.TargetObject = (GameObject)EditorGUILayout.ObjectField(targetProp.TargetObject, typeof(GameObject), true);
+                                                else
+                                                    EditorGUILayout.ObjectField(null, typeof(GameObject), true);
+                                            }
+                                        }
+                                        GUILayout.Space(5);
+                                        using (new GUILayout.HorizontalScope())
+                                        {
+                                            GUILayout.Label("アイテムの追従先");
+                                            GUILayout.FlexibleSpace();
+                                            var bone = RIS.BoneType.None;
                                             if (targetProp != null)
-                                                targetProp.TargetObject = (GameObject)EditorGUILayout.ObjectField(targetProp.TargetObject, typeof(GameObject), true);
+                                                bone = (RIS.BoneType)EditorGUILayout.EnumPopup("", RIS.BoneType.Head, GUILayout.MinWidth(1));
                                             else
-                                                EditorGUILayout.ObjectField(null, typeof(GameObject), true);
+                                                bone = (RIS.BoneType)EditorGUILayout.EnumPopup("", RIS.BoneType.Head, GUILayout.MinWidth(1));
+                                        }
+                                        GUILayout.Space(5);
+                                        using (new GUILayout.HorizontalScope())
+                                        {
+                                            GUILayout.Label("はじめから出しておく");
+                                            GUILayout.FlexibleSpace();
+                                            if (targetProp != null)
+                                                targetProp.IsDefaultEnabled = EditorGUILayout.Toggle(targetProp.IsDefaultEnabled, GUILayout.Width(20));
+                                            else
+                                                EditorGUILayout.Toggle(false, GUILayout.Width(20));
                                         }
                                     }
-                                    GUILayout.Space(5);
-                                    using (new GUILayout.HorizontalScope())
+                                    else
                                     {
-                                        GUILayout.Label("アイテムの追従先");
-                                        GUILayout.FlexibleSpace();
-                                        var bone = RIS.BoneType.None;
-                                        if (targetProp != null)
-                                            bone = (RIS.BoneType)EditorGUILayout.EnumPopup("", RIS.BoneType.Head, GUILayout.MinWidth(1));
-                                        else
-                                            bone = (RIS.BoneType)EditorGUILayout.EnumPopup("", RIS.BoneType.Head, GUILayout.MinWidth(1));
-                                    }
-                                    GUILayout.Space(5);
-                                    using (new GUILayout.HorizontalScope())
-                                    {
-                                        GUILayout.Label("はじめから出しておく");
-                                        GUILayout.FlexibleSpace();
-                                        if (targetProp != null)
-                                            targetProp.IsDefaultEnabled = EditorGUILayout.Toggle(targetProp.IsDefaultEnabled, GUILayout.Width(20));
-                                        else
-                                            EditorGUILayout.Toggle(false, GUILayout.Width(20));
+                                        using (new GUILayout.HorizontalScope())
+                                        {
+                                            using (new GUILayout.VerticalScope(GUILayout.Width(1)))
+                                            {
+                                                GUILayout.Label(RISMessageStrings.Strings.str_Icon);
+                                                if (targetProp != null)
+                                                    targetProp.PropIcon = (Texture2D)EditorGUILayout.ObjectField(targetProp.PropIcon, typeof(Texture2D), false, GUILayout.Width(EditorGUIUtility.singleLineHeight * 3), GUILayout.Height(EditorGUIUtility.singleLineHeight * 3));
+                                                else
+                                                    EditorGUILayout.ObjectField(null, typeof(Texture2D), false, GUILayout.Width(EditorGUIUtility.singleLineHeight * 3), GUILayout.Height(EditorGUIUtility.singleLineHeight * 3));
+                                            }
+                                            using (new GUILayout.VerticalScope())
+                                            {
+                                                GUILayout.Label("");
+                                                GUILayout.Label(RISMessageStrings.Strings.str_Prop + RISMessageStrings.Strings.str_Name);
+                                                if (targetProp != null)
+                                                    targetProp.PropName = EditorGUILayout.TextField(targetProp.PropName);
+                                                else
+                                                    EditorGUILayout.TextField("");
+
+                                                using (new GUILayout.HorizontalScope())
+                                                {
+                                                    GUILayout.Label("はじめから出しておく");
+                                                    GUILayout.FlexibleSpace();
+                                                    if (targetProp != null)
+                                                        targetProp.IsDefaultEnabled = EditorGUILayout.Toggle(targetProp.IsDefaultEnabled, GUILayout.Width(20));
+                                                    else
+                                                        EditorGUILayout.Toggle(false, GUILayout.Width(20));
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
