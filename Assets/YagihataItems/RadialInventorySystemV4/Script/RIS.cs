@@ -4,6 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+using UnityEditor.PackageManager.Requests;
+using UnityEditor.PackageManager;
+#endif
 using VRC.SDK3.Avatars.ScriptableObjects;
 
 namespace YagihataItems.RadialInventorySystemV4
@@ -22,31 +27,41 @@ namespace YagihataItems.RadialInventorySystemV4
         public const string DownloadUrl = "https://yagihata.booth.pm/items/2278448";
         public const VRCExpressionParameters.ValueType IntParam = VRCExpressionParameters.ValueType.Int;
         public const VRCExpressionParameters.ValueType BoolParam = VRCExpressionParameters.ValueType.Bool;
-        public readonly static GUIStyle CountBarStyleL = new GUIStyle(GUI.skin.label) { fontSize = 10, alignment = TextAnchor.UpperLeft, margin = new RectOffset(10, 10, 0, 0) };
-        public readonly static GUIStyle CountBarStyleR = new GUIStyle(GUI.skin.label) { fontSize = 10, alignment = TextAnchor.UpperRight, margin = new RectOffset(10, 10, 0, 0) };
-        public readonly static GUIStyle DonatorLabelStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.UpperCenter, margin = new RectOffset(10, 10, 20, 20), wordWrap = true };
-        public enum RISMode
+        public enum MenuModeType
         {
             Simple,
             Basic,
             Advanced
         }
-        public enum PropGroup
+        public enum ExclusiveGroupType
         {
-            None,
-            Group1,
-            Group2,
-            Group3,
-            Group4,
-            Group5,
-            Group6,
-            Group7,
-            Group8,
+            None = -1,
+            Group1 = 0,
+            Group2 = 1,
+            Group3 = 2,
+            Group4 = 3,
+            Group5 = 4,
+            Group6 = 5,
+            Group7 = 6,
+            Group8 = 7,
         }
         public enum BoneType
         {
             None,
             Head
         }
+        public enum ExclusiveModeType
+        {
+            None,
+            Exclusive,
+            ExclusiveV2
+        }
+#if UNITY_EDITOR
+        [InitializeOnLoadMethod]
+        static void CheckPackages()
+        {
+            Client.Add("com.unity.nuget.newtonsoft-json");
+        }
+#endif
     }
 }

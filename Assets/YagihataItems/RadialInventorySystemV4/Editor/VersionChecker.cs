@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace YagihataItems.RadialInventorySystemV4
 {
-    class RISVersionChecker
+    class VersionChecker
     {
         const string TMP_FILE_PATH = "Temp/RISV4StartupFlag";
         public static string GetNewerVersion()

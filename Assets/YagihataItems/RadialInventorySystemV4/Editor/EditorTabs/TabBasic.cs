@@ -1,4 +1,4 @@
-﻿using System;
+﻿/*using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -55,15 +55,15 @@ namespace YagihataItems.RadialInventorySystemV4
                     using (new EditorGUILayout.VerticalScope(GUILayout.Width(cellWidth + 20)))
                     {
                         EditorGUIUtility.labelWidth = 80;
-                        var prefixText = RISMessageStrings.Strings.str_Group;
-                        EditorGUILayout.LabelField(prefixText + RISMessageStrings.Strings.str_Settings, new GUIStyle("ProjectBrowserHeaderBgTop"), GUILayout.ExpandWidth(true));
+                        var prefixText = "グループ";
+                        EditorGUILayout.LabelField(prefixText + "設定", new GUIStyle("ProjectBrowserHeaderBgTop"), GUILayout.ExpandWidth(true));
                         GUILayout.Space(3);
                         if (groupIsSelected)
                         {
-                            variables.Groups[groupIndex].GroupName = EditorGUILayout.TextField(prefixText + RISMessageStrings.Strings.str_Name, variables.Groups[groupIndex].GroupName);
+                            variables.Groups[groupIndex].GroupName = EditorGUILayout.TextField(prefixText + "名", variables.Groups[groupIndex].GroupName);
                             variables.Groups[groupIndex].GroupIcon =
-                                (Texture2D)EditorGUILayout.ObjectField(RISMessageStrings.Strings.str_Icon, variables.Groups[groupIndex].GroupIcon, typeof(Texture2D), false, GUILayout.Height(EditorGUIUtility.singleLineHeight));
-                            variables.Groups[groupIndex].ExclusiveMode = EditorGUILayout.Popup(RISMessageStrings.Strings.str_Exclusive + RISMessageStrings.Strings.str_Mode, variables.Groups[groupIndex].ExclusiveMode, RISMessageStrings.ExclusiveType);
+                                (Texture2D)EditorGUILayout.ObjectField("アイコン", variables.Groups[groupIndex].GroupIcon, typeof(Texture2D), false, GUILayout.Height(EditorGUIUtility.singleLineHeight));
+                            variables.Groups[groupIndex].ExclusiveMode = EditorGUILayout.Popup("排他モード", variables.Groups[groupIndex].ExclusiveMode, MessageStrings.ExclusiveType);
                             if (selectedGroupChangeFlag)
                                 InitializePropList(variables.Groups[groupIndex], variables, settings);
                             using (var scope = new EditorGUILayout.HorizontalScope())
@@ -86,9 +86,9 @@ namespace YagihataItems.RadialInventorySystemV4
                         }
                         else
                         {
-                            EditorGUILayout.TextField(RISMessageStrings.Strings.str_Group + RISMessageStrings.Strings.str_Name, "");
-                            EditorGUILayout.ObjectField(RISMessageStrings.Strings.str_Icon, null, typeof(Texture2D), false, GUILayout.Height(EditorGUIUtility.singleLineHeight));
-                            EditorGUILayout.Popup(RISMessageStrings.Strings.str_Exclusive + RISMessageStrings.Strings.str_Mode, 0, RISMessageStrings.ExclusiveType);
+                            EditorGUILayout.TextField("グループ名", "");
+                            EditorGUILayout.ObjectField("アイコン", null, typeof(Texture2D), false, GUILayout.Height(EditorGUIUtility.singleLineHeight));
+                            EditorGUILayout.Popup("排他モード", 0, MessageStrings.ExclusiveType);
                             if (selectedGroupChangeFlag)
                                 InitializePropList(null, variables, settings);
                             using (var scope = new EditorGUILayout.HorizontalScope())
@@ -111,9 +111,9 @@ namespace YagihataItems.RadialInventorySystemV4
                     {
                         GUIStyle headerStyle = new GUIStyle("HeaderLabel");
                         headerStyle.margin = new RectOffset(5, 5, 20, 20);
-                        EditorGUILayout.LabelField(RISMessageStrings.Strings.str_Prop + RISMessageStrings.Strings.str_Settings, new GUIStyle("ProjectBrowserHeaderBgTop"), GUILayout.ExpandWidth(true));
+                        EditorGUILayout.LabelField("プロップ設定", new GUIStyle("ProjectBrowserHeaderBgTop"), GUILayout.ExpandWidth(true));
                         GUILayout.Space(3);
-                        EditorGUILayout.LabelField(RISMessageStrings.Strings.str_Prop + RISMessageStrings.Strings.str_Name);
+                        EditorGUILayout.LabelField("プロップ名");
                         using (new EditorGUILayout.HorizontalScope())
                         {
                             GUILayout.Space(20);
@@ -124,7 +124,7 @@ namespace YagihataItems.RadialInventorySystemV4
 
 
                         }
-                        EditorGUILayout.LabelField(RISMessageStrings.Strings.str_Icon);
+                        EditorGUILayout.LabelField("アイコン");
                         using (new EditorGUILayout.HorizontalScope())
                         {
                             GUILayout.Space(20);
@@ -135,7 +135,7 @@ namespace YagihataItems.RadialInventorySystemV4
 
 
                         }
-                        EditorGUILayout.LabelField(RISMessageStrings.Strings.str_Object);
+                        EditorGUILayout.LabelField("オブジェクト");
                         using (new EditorGUILayout.HorizontalScope())
                         {
                             GUILayout.Space(20);
@@ -152,7 +152,7 @@ namespace YagihataItems.RadialInventorySystemV4
                         GUILayout.Space(5);
                         using (new EditorGUILayout.HorizontalScope())
                         {
-                            EditorGUILayout.LabelField(RISMessageStrings.Strings.str_ShowDefault);
+                            EditorGUILayout.LabelField(MessageStrings.Strings.str_ShowDefault);
                             GUILayout.FlexibleSpace();
                             if (targetProp != null)
                                 targetProp.IsDefaultEnabled = EditorGUILayout.Toggle(targetProp.IsDefaultEnabled, GUILayout.Width(20));
@@ -161,7 +161,7 @@ namespace YagihataItems.RadialInventorySystemV4
                         }
                         using (new EditorGUILayout.HorizontalScope())
                         {
-                            EditorGUILayout.LabelField(RISMessageStrings.Strings.str_LocalOnly);
+                            EditorGUILayout.LabelField(MessageStrings.Strings.str_LocalOnly);
                             GUILayout.FlexibleSpace();
                             if (targetProp != null)
                                 targetProp.LocalOnly = EditorGUILayout.Toggle(targetProp.LocalOnly, GUILayout.Width(20));
@@ -170,7 +170,7 @@ namespace YagihataItems.RadialInventorySystemV4
                         }
                         using (new EditorGUILayout.HorizontalScope())
                         {
-                            EditorGUILayout.LabelField(RISMessageStrings.Strings.str_SaveParam);
+                            EditorGUILayout.LabelField(MessageStrings.Strings.str_SaveParam);
                             GUILayout.FlexibleSpace();
                             if (targetProp != null)
                                 targetProp.SaveParameter = EditorGUILayout.Toggle(targetProp.SaveParameter, GUILayout.Width(20));
@@ -195,7 +195,7 @@ namespace YagihataItems.RadialInventorySystemV4
             {
                 drawHeaderCallback = rect =>
                 {
-                    EditorGUI.LabelField(rect, RISMessageStrings.Strings.str_Group + RISMessageStrings.Strings.str_List + $": {groups.Count}");
+                    EditorGUI.LabelField(rect, "グループ一覧" + $": {groups.Count}");
                     var position =
                         new Rect(
                             rect.x + rect.width - 20f,
@@ -263,7 +263,7 @@ namespace YagihataItems.RadialInventorySystemV4
             {
                 drawHeaderCallback = rect =>
                 {
-                    EditorGUI.LabelField(rect, RISMessageStrings.Strings.str_Prop + RISMessageStrings.Strings.str_List + $": {props.Count}");
+                    EditorGUI.LabelField(rect, "プロップ一覧" + $": {props.Count}");
                     var position =
                         new Rect(
                             rect.x + rect.width - 20f,
@@ -360,9 +360,9 @@ namespace YagihataItems.RadialInventorySystemV4
                 return new string[] { };
 
             var errors = new List<string>();
-            var prefixText = RISMessageStrings.Strings.str_Group;
+            var prefixText = "グループ";
             if (variables.Groups.Count == 0)
-                errors.Add(prefixText + RISMessageStrings.Strings.str_NeedOnce);
+                errors.Add(prefixText + "を追加してください。");
 
             foreach (var group in variables.Groups)
             {
@@ -371,13 +371,13 @@ namespace YagihataItems.RadialInventorySystemV4
                     groupName = "Group" + variables.Groups.IndexOf(group);
 
                 if (!group.Props.Any())
-                    errors.Add($"{prefixText}[{groupName}]" + RISMessageStrings.Strings.str_MissingProp);
+                    errors.Add($"{prefixText}[{groupName}]にプロップが登録されていません。");
 
                 var maxPropsCount = 8;
                 if (group.ExclusiveMode == 1)
                     maxPropsCount = 7;
                 if (group.Props.Count > maxPropsCount)
-                    errors.Add($"{prefixText}[{groupName}]" + string.Format(RISMessageStrings.Strings.str_OverProp, maxPropsCount));
+                    errors.Add($"{prefixText}[{groupName}]" + string.Format("のプロップ数がオーバーしています。(最大{0})", maxPropsCount));
 
                 foreach (var prop in group.Props)
                 {
@@ -386,7 +386,7 @@ namespace YagihataItems.RadialInventorySystemV4
                         propName = "Prop" + group.Props.IndexOf(prop);
 
                     if (prop.TargetObject == null)
-                        errors.Add($"{prefixText}[{groupName}]" + RISMessageStrings.Strings.str_GroupsProp + $"[{propName}]" + RISMessageStrings.Strings.str_MissingObject);
+                        errors.Add($"{prefixText}[{groupName}]のプロップ" + $"[{propName}]" + MessageStrings.Strings.str_MissingObject);
                 }
             }
 
@@ -395,3 +395,4 @@ namespace YagihataItems.RadialInventorySystemV4
         }
     }
 }
+*/

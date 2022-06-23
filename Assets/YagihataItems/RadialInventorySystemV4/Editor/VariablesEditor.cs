@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿/*using System.Collections.Generic;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -67,7 +67,7 @@ namespace YagihataItems.RadialInventorySystemV4
                 EditorUtility.SetDirty(settings);
 
             var menuMode = settings.MenuMode;
-            settings.MenuMode = (RIS.RISMode)EditorGUILayout.EnumPopup("Menu Mode", settings.MenuMode);
+            settings.MenuMode = (RIS.MenuModeType)EditorGUILayout.EnumPopup("Menu Mode", settings.MenuMode);
             if (settings.MenuMode != menuMode)
                 EditorUtility.SetDirty(settings);
 
@@ -79,4 +79,4 @@ namespace YagihataItems.RadialInventorySystemV4
             serializedObject.ApplyModifiedProperties();
         }
     }
-}
+}*/

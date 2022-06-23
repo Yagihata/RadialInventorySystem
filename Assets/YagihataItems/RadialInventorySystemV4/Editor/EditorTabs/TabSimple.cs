@@ -1,4 +1,4 @@
-﻿using System;
+﻿/*using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -106,7 +106,7 @@ namespace YagihataItems.RadialInventorySystemV4
                                         {
                                             using (new GUILayout.VerticalScope(GUILayout.Width(1)))
                                             {
-                                                GUILayout.Label(RISMessageStrings.Strings.str_Icon);
+                                                GUILayout.Label("アイコン");
                                                 if (targetProp != null)
                                                     targetProp.PropIcon = (Texture2D)EditorGUILayout.ObjectField(targetProp.PropIcon, typeof(Texture2D), false, GUILayout.Width(EditorGUIUtility.singleLineHeight * 3), GUILayout.Height(EditorGUIUtility.singleLineHeight * 3));
                                                 else
@@ -114,13 +114,13 @@ namespace YagihataItems.RadialInventorySystemV4
                                             }
                                             using (new GUILayout.VerticalScope())
                                             {
-                                                GUILayout.Label(RISMessageStrings.Strings.str_Prop + RISMessageStrings.Strings.str_Name);
+                                                GUILayout.Label("プロップ名");
                                                 if (targetProp != null)
                                                     targetProp.PropName = EditorGUILayout.TextField(targetProp.PropName);
                                                 else
                                                     EditorGUILayout.TextField("");
 
-                                                GUILayout.Label(RISMessageStrings.Strings.str_Object);
+                                                GUILayout.Label("オブジェクト");
                                                 if (targetProp != null)
                                                     targetProp.TargetObject = (GameObject)EditorGUILayout.ObjectField(targetProp.TargetObject, typeof(GameObject), true);
                                                 else
@@ -155,7 +155,7 @@ namespace YagihataItems.RadialInventorySystemV4
                                         {
                                             using (new GUILayout.VerticalScope(GUILayout.Width(1)))
                                             {
-                                                GUILayout.Label(RISMessageStrings.Strings.str_Icon);
+                                                GUILayout.Label("アイコン");
                                                 if (targetProp != null)
                                                     targetProp.PropIcon = (Texture2D)EditorGUILayout.ObjectField(targetProp.PropIcon, typeof(Texture2D), false, GUILayout.Width(EditorGUIUtility.singleLineHeight * 3), GUILayout.Height(EditorGUIUtility.singleLineHeight * 3));
                                                 else
@@ -164,7 +164,7 @@ namespace YagihataItems.RadialInventorySystemV4
                                             using (new GUILayout.VerticalScope())
                                             {
                                                 GUILayout.Label("");
-                                                GUILayout.Label(RISMessageStrings.Strings.str_Prop + RISMessageStrings.Strings.str_Name);
+                                                GUILayout.Label("プロップ名");
                                                 if (targetProp != null)
                                                     targetProp.PropName = EditorGUILayout.TextField(targetProp.PropName);
                                                 else
@@ -277,7 +277,7 @@ namespace YagihataItems.RadialInventorySystemV4
             {
                 drawHeaderCallback = rect =>
                 {
-                    EditorGUI.LabelField(rect, "アイテム" + RISMessageStrings.Strings.str_List + $": {props.Count}");
+                    EditorGUI.LabelField(rect, "アイテム一覧" + $": {props.Count}");
                     var position =
                         new Rect(
                             rect.x + rect.width - 20f,
@@ -372,3 +372,4 @@ namespace YagihataItems.RadialInventorySystemV4
         }
     }
 }
+*/

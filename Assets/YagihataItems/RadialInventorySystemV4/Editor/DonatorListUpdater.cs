@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace YagihataItems.RadialInventorySystemV4
 {
-    class RISDonatorListUpdater
+    class DonatorListUpdater
     {
         const string TMP_FILE_PATH = "Temp/RISDonatorCheckedFlag";
         public static string GetDonators()
