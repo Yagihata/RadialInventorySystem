@@ -59,7 +59,7 @@ namespace YagihataItems.RadialInventorySystemV4
             if (!AssetDatabase.IsValidFolder(folderPath))
                 UnityUtils.CreateFolderRecursively(folderPath);
 
-            var jsonData = JsonConvert.SerializeObject(this);
+            var jsonData = JsonConvert.SerializeObject(this, Formatting.Indented);
             using (var sw = new StreamWriter(jsonPath, false, Encoding.UTF8))
             {
                 sw.Write(jsonData);
