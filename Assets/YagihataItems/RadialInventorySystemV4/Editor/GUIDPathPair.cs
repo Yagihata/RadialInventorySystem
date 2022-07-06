@@ -12,7 +12,7 @@ namespace YagihataItems.RadialInventorySystemV4
         [JsonProperty] public string ObjectGUID { get; set; }
         [JsonProperty] public string ObjectPath { get; set; }
         private ObjectPathStateType _objectPathState;
-        [JsonConverter(typeof(StringEnumConverter))] [JsonProperty] public ObjectPathStateType ObjectPathState { get { return _objectPathState; } }
+        [JsonConverter(typeof(StringEnumConverter))] [JsonProperty] public ObjectPathStateType ObjectPathState { get { return _objectPathState; } private set { _objectPathState = value; } }
         private T objectCache = null;
         public GUIDPathPair(ObjectPathStateType type)
         {
@@ -39,15 +39,30 @@ namespace YagihataItems.RadialInventorySystemV4
                 if (ObjectPathState == ObjectPathStateType.Asset)
                     ObjectPath = AssetDatabase.GetAssetPath(targetObject);
                 else if (ObjectPathState == ObjectPathStateType.Asset)
-                    ObjectPath = (targetObject as GameObject).GetHierarchyPath(false);
+                {
+                    if (targetObject is GameObject)
+                        ObjectPath = (targetObject as GameObject).GetObjectPath();
+                    else if(targetObject is MonoBehaviour)
+                        ObjectPath = (targetObject as MonoBehaviour).gameObject.GetObjectPath();
+                }
                 else if (ObjectPathState == ObjectPathStateType.RelativeFromObject)
-                    ObjectPath = (targetObject as GameObject).GetRelativePath(parentObject);
+                {
+                    if (targetObject is GameObject)
+                        ObjectPath = (targetObject as GameObject).GetRelativePath(parentObject);
+                    else if (targetObject is MonoBehaviour)
+                        ObjectPath = (targetObject as MonoBehaviour).gameObject.GetRelativePath(parentObject);
+                }
             }
         }
         public T GetObject(GameObject parentObject = null)
         {
-            if (objectCache != null)
+            if (string.IsNullOrEmpty(ObjectPath))
+                return null;
+            Debug.Log($"LOAD => {ObjectPath}");
+            if (objectCache == null)
             {
+                Debug.Log($"CACHE NOT FOUND");
+                Debug.Log($"TYPE IS {ObjectPathState}");
                 if (ObjectPathState == ObjectPathStateType.Asset)
                 {
                     var path = AssetDatabase.GUIDToAssetPath(ObjectPath);
@@ -62,7 +77,12 @@ namespace YagihataItems.RadialInventorySystemV4
                     var instanceID = 0;
                     int.TryParse(ObjectGUID, out instanceID);
                     var targetObject = EditorUtility.InstanceIDToObject(instanceID);
-                    if (targetObject == null || !(targetObject is GameObject))
+                    if(targetObject != null && targetObject is GameObject && typeof(T) == typeof(MonoBehaviour))
+                    {
+                        var gameObj = (targetObject as GameObject);
+                        targetObject = gameObj.GetComponent<T>();
+                    }
+                    if (targetObject == null || !(targetObject is T))
                         targetObject = GameObject.Find(ObjectPath);
                     if (targetObject is T)
                         objectCache = (T)targetObject;
@@ -72,8 +92,23 @@ namespace YagihataItems.RadialInventorySystemV4
                     var instanceID = 0;
                     int.TryParse(ObjectGUID, out instanceID);
                     var targetObject = EditorUtility.InstanceIDToObject(instanceID);
-                    if ((targetObject == null || !(targetObject is GameObject)) && (targetObject as GameObject).IsChildOf(parentObject))
+                    if (targetObject != null && targetObject is GameObject && typeof(T) == typeof(MonoBehaviour))
+                    {
+                        var gameObj = (targetObject as GameObject);
+                        targetObject = gameObj.GetComponent<T>();
+                    }
+                    if (targetObject == null)
                         targetObject = parentObject.transform.Find(ObjectPath)?.gameObject;
+                    if(!(targetObject is T))
+                    {
+                        GameObject gameObj = null;
+                        if (targetObject is GameObject)
+                            gameObj = targetObject as GameObject;
+                        else if (targetObject is MonoBehaviour)
+                            gameObj = (targetObject as MonoBehaviour).gameObject;
+                        if(gameObj != null && gameObj.IsChildOf(parentObject))
+                            targetObject = parentObject.transform.Find(ObjectPath)?.gameObject;
+                    }
                     if (targetObject is T)
                         objectCache = (T)targetObject;
                 }
@@ -93,15 +128,27 @@ namespace YagihataItems.RadialInventorySystemV4
                 ObjectPath = AssetDatabase.GetAssetPath(targetObject);
                 ObjectGUID = AssetDatabase.AssetPathToGUID(ObjectPath);
             }
-            else if(ObjectPathState == ObjectPathStateType.Scene && targetObject is GameObject)
+            else if(ObjectPathState == ObjectPathStateType.Scene)
             {
-                var gameObject = targetObject as GameObject;
-                ObjectPath = gameObject.GetHierarchyPath(false);
+                GameObject gameObject = null;
+                if(targetObject is GameObject)
+                    gameObject = targetObject as GameObject;
+                else if(targetObject is MonoBehaviour)
+                {
+                    gameObject = (targetObject as MonoBehaviour).gameObject;
+                }
+                ObjectPath = gameObject.GetObjectPath();
                 ObjectGUID = gameObject.GetInstanceID().ToString();
             }
-            else if(ObjectPathState == ObjectPathStateType.RelativeFromObject && targetObject is GameObject)
+            else if(ObjectPathState == ObjectPathStateType.RelativeFromObject)
             {
-                var gameObject = targetObject as GameObject;
+                GameObject gameObject = null;
+                if (targetObject is GameObject)
+                    gameObject = targetObject as GameObject;
+                else if (targetObject is MonoBehaviour)
+                {
+                    gameObject = (targetObject as MonoBehaviour).gameObject;
+                }
                 ObjectPath = gameObject.GetRelativePath(parentObject);
                 ObjectGUID = gameObject.GetInstanceID().ToString();
             }
@@ -111,7 +158,83 @@ namespace YagihataItems.RadialInventorySystemV4
                 ObjectGUID = "";
             }
             objectCache = targetObject;
-            Debug.Log($"SET OBJECT => {ObjectPath}, {ObjectGUID}, {ObjectPathState}");
+        }
+        public static bool operator ==(GUIDPathPair<T> a, object valueB)
+        {
+            // 同一のインスタンスを参照している場合は true
+            if (System.Object.ReferenceEquals(a, valueB))
+            {
+                return true;
+            }
+
+            // どちらか片方でも null なら false
+            if (((object)a == null) || ((object)valueB == null))
+            {
+                return false;
+            }
+            if (valueB is GUIDPathPair<T>)
+            {
+                var b = (GUIDPathPair<T>)valueB;
+                if (a.ObjectGUID == b.ObjectGUID)
+                    return true;
+                else if (a.ObjectPath == b.ObjectPath)
+                    return true;
+            }
+            else if(valueB is T)
+            {
+                var b = (T)valueB;
+                if (a.GetObject() == b)
+                    return true;
+                else
+                {
+                    if (a.ObjectPathState == ObjectPathStateType.Asset)
+                    {
+                        var objectPath = AssetDatabase.GetAssetPath(b);
+                        var objectGUID = AssetDatabase.AssetPathToGUID(objectPath);
+                        if (a.ObjectGUID == objectGUID)
+                            return true;
+                        else if (a.ObjectPath == objectPath)
+                            return true;
+                    }
+                    else if (a.ObjectPathState == ObjectPathStateType.Scene)
+                    {
+                        GameObject gameObject = null;
+                        if (b is GameObject)
+                            gameObject = b as GameObject;
+                        else if (b is MonoBehaviour)
+                        {
+                            gameObject = (b as MonoBehaviour).gameObject;
+                        }
+                        var objectPath = gameObject.GetObjectPath();
+                        var objectGUID = gameObject.GetInstanceID().ToString();
+                        if (a.ObjectGUID == objectGUID)
+                            return true;
+                        else if (a.ObjectPath == objectPath)
+                            return true;
+                    }
+                    else if (a.ObjectPathState == ObjectPathStateType.RelativeFromObject)
+                    {
+                        GameObject gameObject = null;
+                        if (b is GameObject)
+                            gameObject = b as GameObject;
+                        else if (b is MonoBehaviour)
+                        {
+                            gameObject = (b as MonoBehaviour).gameObject;
+                        }
+                        var objectPath = gameObject.GetObjectPath();
+                        var objectGUID = gameObject.GetInstanceID().ToString();
+                        if (a.ObjectGUID == objectGUID)
+                            return true;
+                        else if (objectPath.Contains(a.ObjectPath))
+                            return true;
+                    }
+                }
+            }
+            return false;
+        }
+        public static bool operator !=(GUIDPathPair<T> a, object b)
+        {
+            return !(a == b);
         }
     }
     public enum ObjectPathStateType
