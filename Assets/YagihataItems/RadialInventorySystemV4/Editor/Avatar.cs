@@ -18,7 +18,7 @@ namespace YagihataItems.RadialInventorySystemV4
         [JsonProperty] public bool ApplyEnableDefault { get; set; } = true;
         [JsonProperty] public List<Group> Groups { get; set; } = new List<Group>();
         private RIS.ExclusiveModeType[] _exclusiveModes;
-        [JsonConverter(typeof(StringEnumConverter))] [JsonProperty] public RIS.ExclusiveModeType[] ExclusiveModes { get { return _exclusiveModes; } set { _exclusiveModes = value; } }
+        [JsonProperty("changeTypes", ItemConverterType = typeof(StringEnumConverter))] public RIS.ExclusiveModeType[] ExclusiveModes { get { return _exclusiveModes; } set { _exclusiveModes = value; } }
 
         [JsonConverter(typeof(StringEnumConverter))] [JsonProperty] public RIS.MenuModeType MenuMode = RIS.MenuModeType.Simple;
         public Avatar()

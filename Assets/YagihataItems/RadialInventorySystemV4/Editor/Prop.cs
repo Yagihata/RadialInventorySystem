@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -16,7 +17,7 @@ namespace YagihataItems.RadialInventorySystemV4
         [JsonProperty] public GUIDPathPair<AnimationClip> DisableAnimation { get; set; } = null;
         [JsonProperty] public string Name { get; set; } = "";
         [JsonProperty] public List<GUIDPathPair<GameObject>> TargetObjects { get; set; } = new List<GUIDPathPair<GameObject>>();
-        [JsonProperty] public RIS.ExclusiveGroupType ExclusiveGroup { get; set; } = RIS.ExclusiveGroupType.None;
+        [JsonConverter(typeof(StringEnumConverter))] [JsonProperty] public RIS.ExclusiveGroupType ExclusiveGroup { get; set; } = RIS.ExclusiveGroupType.None;
         [JsonProperty] public GUIDPathPair<Material> MaterialOverride { get; set; } = null;
         [JsonProperty] public bool UseResetTimer { get; set; } = false;
         [JsonProperty] public float ResetSecond { get; set; } = 0f;

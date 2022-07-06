@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using UnityEditor;
 using UnityEngine;
 using YagihataItems.YagiUtils;
@@ -11,7 +12,7 @@ namespace YagihataItems.RadialInventorySystemV4
         [JsonProperty] public string ObjectGUID { get; set; }
         [JsonProperty] public string ObjectPath { get; set; }
         private ObjectPathStateType _objectPathState;
-        [JsonProperty] public ObjectPathStateType ObjectPathState { get { return _objectPathState; } }
+        [JsonConverter(typeof(StringEnumConverter))] [JsonProperty] public ObjectPathStateType ObjectPathState { get { return _objectPathState; } }
         private T objectCache = null;
         public GUIDPathPair(ObjectPathStateType type)
         {
@@ -71,7 +72,6 @@ namespace YagihataItems.RadialInventorySystemV4
                     var instanceID = 0;
                     int.TryParse(ObjectGUID, out instanceID);
                     var targetObject = EditorUtility.InstanceIDToObject(instanceID);
-                    Debug.Log($"{targetObject} : {parentObject}");
                     if ((targetObject == null || !(targetObject is GameObject)) && (targetObject as GameObject).IsChildOf(parentObject))
                         targetObject = parentObject.transform.Find(ObjectPath)?.gameObject;
                     if (targetObject is T)
@@ -111,6 +111,7 @@ namespace YagihataItems.RadialInventorySystemV4
                 ObjectGUID = "";
             }
             objectCache = targetObject;
+            Debug.Log($"SET OBJECT => {ObjectPath}, {ObjectGUID}, {ObjectPathState}");
         }
     }
     public enum ObjectPathStateType

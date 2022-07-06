@@ -96,6 +96,9 @@ namespace YagihataItems.RadialInventorySystemV4
                         if (avatarDescriptors.Count() > 0 && indexedList.index >= 0 && indexedList.index < avatarDescriptors.Length)
                         {
                             avatarRoot = avatarDescriptors[indexedList.index] as VRCAvatarDescriptor;
+                            risAvatar = new Avatar();
+                            foreach (var v in tabItems.Values)
+                                v.InitializeTab(ref risAvatar);
                         }
                         else
                         {
