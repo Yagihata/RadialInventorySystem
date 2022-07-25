@@ -20,5 +20,12 @@ namespace YagihataItems.RadialInventorySystemV4
             Icon = new GUIDPathPair<Texture2D>(ObjectPathStateType.Asset);
             BaseMenu = new GUIDPathPair<VRCExpressionsMenu>(ObjectPathStateType.Asset);
         }
+        public void ForceReload(GameObject parent)
+        {
+            Icon.ForceReload();
+            BaseMenu.ForceReload();
+            foreach (var v in Props)
+                v.ForceReload(parent);
+        }
     }
 }

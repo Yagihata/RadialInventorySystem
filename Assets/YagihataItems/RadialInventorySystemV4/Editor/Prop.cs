@@ -26,8 +26,9 @@ namespace YagihataItems.RadialInventorySystemV4
         {
             if (!string.IsNullOrEmpty(Name))
                 return Name;
-            if(TargetObjects.Any() && TargetObjects.First() != null && TargetObjects.First().GetObject(avatar.AvatarRoot?.GetObject()?.gameObject) != null)
-                return TargetObjects.First().GetObject(avatar.AvatarRoot?.GetObject()?.gameObject).name;
+            if(TargetObjects.Any() && TargetObjects.First() != null && avatar.AvatarRoot != null && avatar.AvatarRoot.GetObject() != null && avatar.AvatarRoot.GetObject().gameObject != null &&
+                TargetObjects.First().GetObject(avatar.AvatarRoot.GetObject().gameObject) != null)
+                return TargetObjects.First().GetObject(avatar.AvatarRoot.GetObject().gameObject).name;
             return "";
         }
 
@@ -37,6 +38,14 @@ namespace YagihataItems.RadialInventorySystemV4
             EnableAnimation = new GUIDPathPair<AnimationClip>(ObjectPathStateType.Asset);
             DisableAnimation = new GUIDPathPair<AnimationClip>(ObjectPathStateType.Asset);
             MaterialOverride = new GUIDPathPair<Material>(ObjectPathStateType.Asset);
+        }
+        public void ForceReload(GameObject parent)
+        {
+            Icon.ForceReload();
+            DisableAnimation.ForceReload();
+            MaterialOverride.ForceReload();
+            foreach(var v in TargetObjects)
+                v.ForceReload(parent);
         }
     }
 }

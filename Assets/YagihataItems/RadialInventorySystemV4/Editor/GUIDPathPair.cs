@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using YagihataItems.YagiUtils;
@@ -58,14 +59,11 @@ namespace YagihataItems.RadialInventorySystemV4
         {
             if (string.IsNullOrEmpty(ObjectPath))
                 return null;
-            Debug.Log($"LOAD => {ObjectPath}");
             if (objectCache == null)
             {
-                Debug.Log($"CACHE NOT FOUND");
-                Debug.Log($"TYPE IS {ObjectPathState}");
                 if (ObjectPathState == ObjectPathStateType.Asset)
                 {
-                    var path = AssetDatabase.GUIDToAssetPath(ObjectPath);
+                    var path = AssetDatabase.GUIDToAssetPath(ObjectGUID);
                     var targetObject = AssetDatabase.LoadAssetAtPath(path, typeof(T));
                     if (targetObject == null)
                         targetObject = AssetDatabase.LoadAssetAtPath(ObjectPath, typeof(T));
@@ -77,7 +75,7 @@ namespace YagihataItems.RadialInventorySystemV4
                     var instanceID = 0;
                     int.TryParse(ObjectGUID, out instanceID);
                     var targetObject = EditorUtility.InstanceIDToObject(instanceID);
-                    if(targetObject != null && targetObject is GameObject && typeof(T) == typeof(MonoBehaviour))
+                    if (targetObject != null && targetObject is GameObject && typeof(T) == typeof(MonoBehaviour))
                     {
                         var gameObj = (targetObject as GameObject);
                         targetObject = gameObj.GetComponent<T>();
@@ -98,20 +96,93 @@ namespace YagihataItems.RadialInventorySystemV4
                         targetObject = gameObj.GetComponent<T>();
                     }
                     if (targetObject == null)
+                    {
                         targetObject = parentObject.transform.Find(ObjectPath)?.gameObject;
-                    if(!(targetObject is T))
+                    }
+                    if (!(targetObject is T))
                     {
                         GameObject gameObj = null;
                         if (targetObject is GameObject)
                             gameObj = targetObject as GameObject;
                         else if (targetObject is MonoBehaviour)
                             gameObj = (targetObject as MonoBehaviour).gameObject;
-                        if(gameObj != null && gameObj.IsChildOf(parentObject))
+                        if (gameObj != null && gameObj.IsChildOf(parentObject))
                             targetObject = parentObject.transform.Find(ObjectPath)?.gameObject;
                     }
                     if (targetObject is T)
                         objectCache = (T)targetObject;
                 }
+            }
+            SetObjectPath(objectCache, parentObject);
+            return objectCache;
+        }
+        public T ForceReload(GameObject parentObject = null)
+        {
+            if (string.IsNullOrEmpty(ObjectPath))
+                return null;
+            if (ObjectPathState == ObjectPathStateType.Asset)
+            {
+                var targetObject = AssetDatabase.LoadAssetAtPath(ObjectPath, typeof(T));
+                if (targetObject is T)
+                    objectCache = (T)targetObject;
+            }
+            else if (ObjectPathState == ObjectPathStateType.Scene)
+            {
+                Object targetObject = GameObject.Find(ObjectPath);
+                if (targetObject is T)
+                    objectCache = (T)targetObject;
+            }
+            else if (ObjectPathState == ObjectPathStateType.RelativeFromObject)
+            {
+                Object targetObject = parentObject.transform.Find(ObjectPath)?.gameObject;
+                if (targetObject == null)
+                {
+                    var foundObjects = GameObject.FindObjectsOfType<T>();
+                    GameObject foundObjectFixed = null;
+                    GameObject foundObjectLoose = null;
+                    var pathLooseName = ObjectPath.Split('/').Last();
+                    foreach (var obj in foundObjects)
+                    {
+                        GameObject gameObj = null;
+                        if (obj is GameObject)
+                            gameObj = obj as GameObject;
+                        else if (targetObject is MonoBehaviour)
+                            gameObj = (obj as MonoBehaviour).gameObject;
+                        if (gameObj != null && parentObject != null && gameObj.IsChildOf(parentObject))
+                        {
+                            Debug.Log($"COMPARE {gameObj.GetRelativePath(parentObject)} : {ObjectPath}");
+                            if(gameObj.GetRelativePath(parentObject).EndsWith(ObjectPath))
+                            {
+                                foundObjectFixed = gameObj;
+                                break;
+                            }
+                            if(gameObj.name == pathLooseName)
+                            {
+                                foundObjectLoose = gameObj;
+                            }
+                        }
+                    }
+                    if (foundObjectFixed != null)
+                    {
+                        targetObject = foundObjectFixed;
+                    }
+                    else if (foundObjectLoose != null)
+                    {
+                        targetObject = foundObjectLoose;
+                    }
+                }
+                if (!(targetObject is T))
+                {
+                    GameObject gameObj = null;
+                    if (targetObject is GameObject)
+                        gameObj = targetObject as GameObject;
+                    else if (targetObject is MonoBehaviour)
+                        gameObj = (targetObject as MonoBehaviour).gameObject;
+                    if (gameObj != null && gameObj.IsChildOf(parentObject))
+                        targetObject = parentObject.transform.Find(ObjectPath)?.gameObject;
+                }
+                if (targetObject is T)
+                    objectCache = (T)targetObject;
             }
             SetObjectPath(objectCache, parentObject);
             return objectCache;

@@ -292,7 +292,8 @@ namespace YagihataItems.RadialInventorySystemV4
                 {
                     if (props.Count <= index)
                         return;
-                    var rawPropName = props[index].GetPropName(risAvatar);
+                    var prop = props[index];
+                    var rawPropName = prop.GetPropName(risAvatar);
                     var propName = !string.IsNullOrEmpty(rawPropName) ? rawPropName : $"Prop{index}";
                     GUI.Label(rect, propName);
                     rect.x = rect.x + rect.width - 20f;
@@ -388,6 +389,10 @@ namespace YagihataItems.RadialInventorySystemV4
                         gameObjects[index] = new GUIDPathPair<GameObject>(ObjectPathStateType.RelativeFromObject, targetObject, parent);
                     else
                         gameObjects[index].SetObject(targetObject, parent);
+                    if(gameObjects[index].GetObject(parent) == null && targetObject != null)
+                    {
+                        EditorUtility.DisplayDialog("Radial Inventory System", $"対象アバターとして指定しているオブジェクトの子オブジェクトのみ登録できます。", "OK");
+                    }
                 }
                 rect.x = rect.x + rect.width;
                 rect.width = 20f;

@@ -65,6 +65,20 @@ namespace YagihataItems.RadialInventorySystemV4
                 sw.Write(jsonData);
             }
         }
+        public void SaveToJson(string jsonPath)
+        {
+            if (string.IsNullOrEmpty(jsonPath))
+                return;
+            var dirPath = Path.GetDirectoryName(jsonPath);
+            if (!Directory.Exists(dirPath))
+                Directory.CreateDirectory(dirPath);
+
+            var jsonData = JsonConvert.SerializeObject(this, Formatting.Indented);
+            using (var sw = new StreamWriter(jsonPath, false, Encoding.UTF8))
+            {
+                sw.Write(jsonData);
+            }
+        }
         public static Avatar LoadFromJson(string path)
         {
             var avatar = new Avatar();
@@ -78,6 +92,16 @@ namespace YagihataItems.RadialInventorySystemV4
                 avatar = JsonConvert.DeserializeObject<Avatar>(jsonData);
             }
             return avatar;
+        }
+        public void ForceReload()
+        {
+            AvatarRoot.ForceReload();
+            var parent = AvatarRoot?.GetObject();
+            if (parent != null)
+            {
+                foreach (var v in Groups)
+                    v.ForceReload(parent.gameObject);
+            }
         }
     }
 }
