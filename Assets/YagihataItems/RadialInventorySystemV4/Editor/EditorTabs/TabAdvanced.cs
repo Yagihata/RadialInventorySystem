@@ -15,7 +15,7 @@ namespace YagihataItems.RadialInventorySystemV4
 {
     public class TabAdvanced : EditorTab
     {
-        private ReorderableList GroupsReorderableList;
+        private ReorderableList groupsReorderableList;
         private ReorderableList propsReorderableList;
         private ReorderableList gameObjectsReorderableList = null;
         private ReorderableList gameObjectsDummyReorderableList = null;
@@ -31,7 +31,7 @@ namespace YagihataItems.RadialInventorySystemV4
         }
         public override void DrawTab(ref Avatar risAvatar, Rect position, bool showingVerticalScroll)
         {
-            if (GroupsReorderableList == null)
+            if (groupsReorderableList == null)
                 InitializeGroupList(risAvatar);
             if (propsReorderableList == null)
                 InitializePropList(null, risAvatar);
@@ -47,19 +47,19 @@ namespace YagihataItems.RadialInventorySystemV4
                     using (var scope = new EditorGUILayout.HorizontalScope())
                     {
                         var scopeWidth = cellWidth - 40;
-                        var GroupsHeight = GroupsReorderableList.GetHeight();
+                        var GroupsHeight = groupsReorderableList.GetHeight();
                         using (new EditorGUILayout.HorizontalScope(GUILayout.Height(GroupsHeight), GUILayout.Width(scopeWidth)))
                         {
-                            var oldSelectedIndex = GroupsReorderableList.index;
-                            GroupsReorderableList.DoList(new Rect(scope.rect.x, scope.rect.y, scopeWidth, GroupsHeight));
-                            selectedGroupIsChanged = oldSelectedIndex != GroupsReorderableList.index;
+                            var oldSelectedIndex = groupsReorderableList.index;
+                            groupsReorderableList.DoList(new Rect(scope.rect.x, scope.rect.y, scopeWidth, GroupsHeight));
+                            selectedGroupIsChanged = oldSelectedIndex != groupsReorderableList.index;
                             GUILayout.Space(0);
                         }
 
                     }
                 }
                 GUILayout.Box("", GUILayout.ExpandHeight(true), GUILayout.Width(1));
-                var groupIndex = GroupsReorderableList.index;
+                var groupIndex = groupsReorderableList.index;
                 var groupIsSelected = risAvatar != null && risAvatar.Groups.Count >= 1 && groupIndex >= 0;
                 var advanceMode = (risAvatar != null && risAvatar.MenuMode == RIS.MenuModeType.Advanced);
 
@@ -76,10 +76,9 @@ namespace YagihataItems.RadialInventorySystemV4
                     using (new EditorGUILayout.VerticalScope(GUILayout.Width(cellWidth + 20)))
                     {
                         EditorGUIUtility.labelWidth = 80;
-                        var prefixText = advanceMode ? "メニュー" : "グループ";
-                        EditorGUILayout.LabelField(prefixText + "設定", new GUIStyle("ProjectBrowserHeaderBgTop"), GUILayout.ExpandWidth(true));
+                        EditorGUILayout.LabelField("グループ設定", new GUIStyle("ProjectBrowserHeaderBgTop"), GUILayout.ExpandWidth(true));
                         GUILayout.Space(3);
-                        selectedGroup.Name = EditorGUILayout.TextField(prefixText + "名", selectedGroup.Name);
+                        selectedGroup.Name = EditorGUILayout.TextField("グループ名", selectedGroup.Name);
 
                         EditorGUI.BeginChangeCheck();
 
@@ -198,14 +197,11 @@ namespace YagihataItems.RadialInventorySystemV4
                 groups = risAvatar.Groups;
             else
                 groups = new List<Group>();
-            GroupsReorderableList = new ReorderableList(groups, typeof(Group))
+            groupsReorderableList = new ReorderableList(groups, typeof(Group))
             {
                 drawHeaderCallback = rect =>
                 {
-                    if (risAvatar != null && risAvatar.MenuMode == RIS.MenuModeType.Advanced)
-                        EditorGUI.LabelField(rect, "メニュー一覧" + $": {groups.Count}");
-                    else
-                        EditorGUI.LabelField(rect, "グループ一覧" + $": {groups.Count}");
+                    EditorGUI.LabelField(rect, "グループ一覧" + $": {groups.Count}");
                     var position =
                         new Rect(
                             rect.x + rect.width - 20f,
@@ -238,7 +234,7 @@ namespace YagihataItems.RadialInventorySystemV4
                     {
                         groups.RemoveAt(index);
                         if (index >= groups.Count)
-                            index = GroupsReorderableList.index = -1;
+                            index = groupsReorderableList.index = -1;
                     }
                 },
 
@@ -472,6 +468,8 @@ namespace YagihataItems.RadialInventorySystemV4
                 var maxPropsCount = 8;
                 if (group.BaseMenu != null && group.BaseMenu?.GetObject() != null)
                     maxPropsCount = 8 - group.BaseMenu.GetObject().controls.Count;
+                if (group.UseResetButton)
+                    maxPropsCount--;
                 if (group.Props.Count > maxPropsCount)
                     errors.Add($"{prefixText}[{groupName}]" + string.Format("のプロップ数がオーバーしています。(最大{0})", maxPropsCount));
 
@@ -485,8 +483,6 @@ namespace YagihataItems.RadialInventorySystemV4
                         errors.Add($"{prefixText}[{groupName}]のプロップ" + $"[{propName}]にオブジェクトもアニメーションも登録されていません。");
                 }
             }
-
-
             return errors.ToArray();
         }
 

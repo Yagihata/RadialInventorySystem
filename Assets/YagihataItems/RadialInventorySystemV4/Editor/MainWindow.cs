@@ -70,7 +70,7 @@ namespace YagihataItems.RadialInventorySystemV4
             {
                 tabItems = new Dictionary<RIS.MenuModeType, EditorTab>();
                 //tabItems.Add(RIS.MenuModeType.Simple, new TabSimple());
-                //tabItems.Add(RIS.MenuModeType.Basic, new TabBasic());
+                tabItems.Add(RIS.MenuModeType.Basic, new TabBasic());
                 tabItems.Add(RIS.MenuModeType.Advanced, new TabAdvanced());
             }
             if (countBarStyleL == null)
