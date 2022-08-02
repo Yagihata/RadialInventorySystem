@@ -392,8 +392,8 @@ namespace YagihataItems.RadialInventorySystemV4
                     var propName = prop.Name;
                     if (string.IsNullOrEmpty(propName))
                         propName = "Prop" + group.Props.IndexOf(prop);
-                    var parentGameObject = risAvatar.AvatarRoot.GetObject().gameObject;
-                    if (!prop.TargetObjects.Any(v => v != null && v.GetObject(parentGameObject) != null))
+                    var parentGameObject = risAvatar.AvatarRoot?.GetObject()?.gameObject;
+                    if (prop.TargetObjects.Count <= 0 || prop.TargetObjects[0]?.GetObject(parentGameObject) == null)
                         errors.Add($"{prefixText}[{groupName}]のプロップ" + $"[{propName}]にオブジェクトが登録されていません。");
                 }
             }
@@ -641,10 +641,8 @@ namespace YagihataItems.RadialInventorySystemV4
                     var maxPropCount = 8;
                     if (risAvatar != null && group != null)
                     {
-                        if (risAvatar.MenuMode == RIS.MenuModeType.Advanced && group.UseResetButton)
+                        if (group.UseResetButton)
                             maxPropCount = 7;
-                        if (risAvatar.MenuMode == RIS.MenuModeType.Advanced && group.BaseMenu?.GetObject() != null)
-                            maxPropCount -= group.BaseMenu.GetObject().controls.Count;
                     }
                     if (props.Count < maxPropCount && GUI.Button(position, ReorderableListStyle.AddContent, ReorderableListStyle.AddStyle))
                     {
@@ -677,8 +675,8 @@ namespace YagihataItems.RadialInventorySystemV4
                         var maxPropCount = 8;
                         if (risAvatar != null && group != null)
                         {
-                            if (risAvatar.MenuMode == RIS.MenuModeType.Advanced && group.BaseMenu?.GetObject() != null)
-                                maxPropCount = 8 - group.BaseMenu.GetObject().controls.Count;
+                            if (group.UseResetButton)
+                                maxPropCount = 7;
                         }
                         if (index >= maxPropCount)
                         {

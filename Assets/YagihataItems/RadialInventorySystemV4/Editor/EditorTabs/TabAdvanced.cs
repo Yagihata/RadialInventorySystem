@@ -272,9 +272,9 @@ namespace YagihataItems.RadialInventorySystemV4
                     var maxPropCount = 8;
                     if (risAvatar != null && group != null)
                     {
-                        if (risAvatar.MenuMode == RIS.MenuModeType.Advanced && group.UseResetButton)
+                        if (group.UseResetButton)
                             maxPropCount = 7;
-                        if (risAvatar.MenuMode == RIS.MenuModeType.Advanced && group.BaseMenu?.GetObject() != null)
+                        if (group.BaseMenu?.GetObject() != null)
                             maxPropCount -= group.BaseMenu.GetObject().controls.Count;
                     }
                     if (props.Count < maxPropCount && GUI.Button(position, ReorderableListStyle.AddContent, ReorderableListStyle.AddStyle))
@@ -478,8 +478,8 @@ namespace YagihataItems.RadialInventorySystemV4
                     var propName = prop.Name;
                     if (string.IsNullOrEmpty(propName))
                         propName = "Prop" + group.Props.IndexOf(prop);
-
-                    if (!prop.TargetObjects.Any(n => n != null) && prop.DisableAnimation == null && prop.EnableAnimation == null)
+                    var parentGameObject = risAvatar.AvatarRoot?.GetObject()?.gameObject;
+                    if (!prop.TargetObjects.Any(n => n?.GetObject(parentGameObject) != null) && prop.DisableAnimation?.GetObject() == null && prop.EnableAnimation?.GetObject() == null)
                         errors.Add($"{prefixText}[{groupName}]のプロップ" + $"[{propName}]にオブジェクトもアニメーションも登録されていません。");
                 }
             }
