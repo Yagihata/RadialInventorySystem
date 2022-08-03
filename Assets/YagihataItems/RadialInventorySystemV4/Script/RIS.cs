@@ -20,7 +20,8 @@ namespace YagihataItems.RadialInventorySystemV4
         public const string SettingsFileName = "settings.json";
         public const string CurrentVersion = "ris_v4.0_tesing";
         public const string SettingsNameV3 = "RISV3Settings";
-        public const string SettingsNameV4 = "RISV4Settings";
+        public const string SettingsNameV4 = Prefix + "Settings";
+        public const string Prefix = "RISV4";
         public const string VersionUrl = "https://www.negura-karasu.net/radialinventory/vercheck/";
         public const string DonatorListUrl = "https://www.negura-karasu.net/radialinventory/donators/";
         public const string ManualUrl = "https://www.negura-karasu.net/archives/1456";
@@ -55,7 +56,7 @@ namespace YagihataItems.RadialInventorySystemV4
         {
             None,
             Exclusive,
-            ExclusiveV2
+            LegacyExclusive
         }
 #if UNITY_EDITOR
         [InitializeOnLoadMethod]

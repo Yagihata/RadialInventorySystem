@@ -57,8 +57,9 @@ namespace YagihataItems.RadialInventorySystemV4
                         avatars.Add(avatar);
 
                     }
-                    catch
+                    catch(Exception ex)
                     {
+                        Debug.LogError(ex);
                         EditorUtility.DisplayDialog("Radial Inventory System", $"設定'{Path.GetDirectoryName(jsonPath)}'が破損しています。", "OK");
                     }
                 }
@@ -273,13 +274,13 @@ namespace YagihataItems.RadialInventorySystemV4
                                     risAvatar.SaveToJson();
                                     SaveSettings();
                                     if (tabItems.ContainsKey(risAvatar.MenuMode))
-                                        GimmickBuilder.ApplyToAvatar(risAvatar, tabItems[risAvatar.MenuMode]);
+                                        tabItems[risAvatar.MenuMode].ApplyToAvatar(ref risAvatar);
                                 }
                             }
                             if (GUILayout.Button("適用を解除する", new GUIStyle("ButtonRight")))
                             {
                                 SaveSettings();
-                                GimmickBuilder.RemoveFromAvatar(risAvatar);
+                                tabItems[risAvatar.MenuMode].RemoveFromAvatar(ref risAvatar);
                             }
                         }
                     }

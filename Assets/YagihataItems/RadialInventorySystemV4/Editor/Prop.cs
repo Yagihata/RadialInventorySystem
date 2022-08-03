@@ -26,12 +26,25 @@ namespace YagihataItems.RadialInventorySystemV4
         {
             if (!string.IsNullOrEmpty(Name))
                 return Name;
-            if(TargetObjects.Any() && TargetObjects.First() != null && avatar.AvatarRoot != null && avatar.AvatarRoot.GetObject() != null && avatar.AvatarRoot.GetObject().gameObject != null &&
-                TargetObjects.First().GetObject(avatar.AvatarRoot.GetObject().gameObject) != null)
-                return TargetObjects.First().GetObject(avatar.AvatarRoot.GetObject().gameObject).name;
+
+            var avatarRoot = avatar.GetAvatarRoot();
+
+            if (avatarRoot == null || !TargetObjects.Any())
+                return "";
+
+            var firstObject = TargetObjects.First();
+
+            if (firstObject != null && firstObject.GetObject(avatarRoot.gameObject) != null)
+                return firstObject.GetObject(avatarRoot.gameObject).name;
             return "";
         }
-
+        public GameObject GetFirstTargetObject(Avatar avatar)
+        {
+            var avatarRoot = avatar.GetAvatarRoot();
+            if (avatarRoot == null)
+                return null;
+            return TargetObjects?.FirstOrDefault(v => v?.GetObject(avatarRoot.gameObject) != null).GetObject(avatarRoot.gameObject);
+        }
         public Prop()
         {
             Icon = new GUIDPathPair<Texture2D>(ObjectPathStateType.Asset);

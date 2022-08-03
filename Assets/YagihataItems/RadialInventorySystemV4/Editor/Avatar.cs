@@ -22,12 +22,18 @@ namespace YagihataItems.RadialInventorySystemV4
         [JsonProperty] public List<Group> Groups { get; set; } = new List<Group>();
         private RIS.ExclusiveModeType[] _exclusiveModes;
         [JsonProperty("changeTypes", ItemConverterType = typeof(StringEnumConverter))] public RIS.ExclusiveModeType[] ExclusiveModes { get { return _exclusiveModes; } set { _exclusiveModes = value; } }
+        private GUIDPathPair<AnimationClip>[] _exclusiveDisableClips;
+        public GUIDPathPair<AnimationClip>[] ExclusiveDisableClips { get { return _exclusiveDisableClips; } set { _exclusiveDisableClips = value; } }
 
         [JsonConverter(typeof(StringEnumConverter))] [JsonProperty] public RIS.MenuModeType MenuMode = RIS.MenuModeType.Simple;
         public Avatar()
         {
             AvatarRoot = new GUIDPathPair<VRCAvatarDescriptor>(ObjectPathStateType.Scene);
             UniqueID = Guid.NewGuid().ToString();
+        }
+        public VRCAvatarDescriptor GetAvatarRoot()
+        {
+            return AvatarRoot?.GetObject();
         }
         public void SetExclusiveMode(RIS.ExclusiveGroupType group, RIS.ExclusiveModeType type)
         {
@@ -49,6 +55,27 @@ namespace YagihataItems.RadialInventorySystemV4
                 ExclusiveModes = new RIS.ExclusiveModeType[modeCount];
             else if (ExclusiveModes.Length != modeCount)
                 Array.Resize(ref _exclusiveModes, modeCount);
+        }
+        public void SetExclusiveDisableClip(RIS.ExclusiveGroupType group, AnimationClip clip)
+        {
+            ResizeExclusiveDisableClipsArray();
+            if (group != RIS.ExclusiveGroupType.None)
+                ExclusiveDisableClips[(int)group] = new GUIDPathPair<AnimationClip>(ObjectPathStateType.Asset, clip);
+        }
+        public AnimationClip GetExclusiveDisableClip(RIS.ExclusiveGroupType group)
+        {
+            ResizeExclusiveDisableClipsArray();
+            if (group == RIS.ExclusiveGroupType.None)
+                return null;
+            return ExclusiveDisableClips[(int)group]?.GetObject();
+        }
+        private void ResizeExclusiveDisableClipsArray()
+        {
+            var modeCount = Enum.GetNames(typeof(RIS.ExclusiveGroupType)).Length - 1;
+            if (ExclusiveDisableClips == null)
+                ExclusiveDisableClips = new GUIDPathPair<AnimationClip>[modeCount];
+            else if (ExclusiveDisableClips.Length != modeCount)
+                Array.Resize(ref _exclusiveDisableClips, modeCount);
         }
         public void SaveToJson()
         {
