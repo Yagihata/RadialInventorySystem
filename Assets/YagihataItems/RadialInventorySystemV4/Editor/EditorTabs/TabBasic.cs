@@ -395,9 +395,12 @@ namespace YagihataItems.RadialInventorySystemV4
                     var propName = prop.Name;
                     if (string.IsNullOrEmpty(propName))
                         propName = "Prop" + group.Props.IndexOf(prop);
-                    var parentGameObject = risAvatar.GetAvatarRoot()?.gameObject;
-                    if (prop.TargetObjects.Count <= 0 || prop.TargetObjects[0]?.GetObject(parentGameObject) == null)
-                        errors.Add($"{prefixText}[{groupName}]のプロップ" + $"[{propName}]にオブジェクトが登録されていません。");
+                    if (risAvatar.GetAvatarRoot() != null)
+                    {
+                        var parentGameObject = risAvatar.GetAvatarRoot()?.gameObject;
+                        if (prop.TargetObjects.Count <= 0 || prop.TargetObjects[0]?.GetObject(parentGameObject) == null)
+                            errors.Add($"{prefixText}[{groupName}]のプロップ" + $"[{propName}]にオブジェクトが登録されていません。");
+                    }
                 }
             }
 
@@ -529,7 +532,8 @@ namespace YagihataItems.RadialInventorySystemV4
 
                         if(selectedProp.TargetObjects.Count <= 0)
                             selectedProp.TargetObjects.Add(null);
-
+                        if (risAvatar.GetAvatarRoot() == null)
+                            return;
                         var parent = risAvatar.GetAvatarRoot()?.gameObject;
                         var targetObject = selectedProp.TargetObjects[0]?.GetObject(parent);
                         EditorGUI.BeginChangeCheck();

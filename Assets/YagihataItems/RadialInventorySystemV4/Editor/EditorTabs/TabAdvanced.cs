@@ -412,6 +412,8 @@ namespace YagihataItems.RadialInventorySystemV4
                 if (gameObjects.Count <= index)
                     return;
                 rect.width -= 20;
+                if (risAvatar.AvatarRoot?.GetObject() == null)
+                    return;
                 var parent = risAvatar.AvatarRoot?.GetObject()?.gameObject;
                 var targetObject = gameObjects[index]?.GetObject(parent);
                 EditorGUI.BeginChangeCheck();
@@ -440,25 +442,28 @@ namespace YagihataItems.RadialInventorySystemV4
             {
                 if (!isFocused)
                 {
-                    var parent = risAvatar.AvatarRoot?.GetObject()?.gameObject;
-                    if (parent != null && index >= 0 && index < gameObjects.Count)
+                    if (risAvatar.AvatarRoot?.GetObject() != null)
                     {
-
-                        var targetObject = gameObjects[index]?.GetObject(parent);
-                        if (targetObject != null && !targetObject.IsChildOf(parent))
+                        var parent = risAvatar.AvatarRoot?.GetObject()?.gameObject;
+                        if (parent != null && index >= 0 && index < gameObjects.Count)
                         {
-                            if (redTexture == null)
+
+                            var targetObject = gameObjects[index]?.GetObject(parent);
+                            if (targetObject != null && !targetObject.IsChildOf(parent))
                             {
-                                redTexture = new Texture2D(1, 1);
-                                redTexture.SetPixel(0, 0, new Color(1f, 0.5f, 0.5f, 0.5f));
-                                redTexture.Apply();
+                                if (redTexture == null)
+                                {
+                                    redTexture = new Texture2D(1, 1);
+                                    redTexture.SetPixel(0, 0, new Color(1f, 0.5f, 0.5f, 0.5f));
+                                    redTexture.Apply();
+                                }
+                                GUI.DrawTexture(rect, redTexture);
                             }
-                            GUI.DrawTexture(rect, redTexture);
                         }
                     }
 
-                }
-                else
+                    }
+                    else
                 {
                     if (blueTexture == null)
                     {
@@ -515,9 +520,12 @@ namespace YagihataItems.RadialInventorySystemV4
                     var propName = prop.Name;
                     if (string.IsNullOrEmpty(propName))
                         propName = "Prop" + group.Props.IndexOf(prop);
-                    var parentGameObject = risAvatar.GetAvatarRoot()?.gameObject;
-                    if (!prop.TargetObjects.Any(n => n?.GetObject(parentGameObject) != null) && prop.DisableAnimation?.GetObject() == null && prop.EnableAnimation?.GetObject() == null)
-                        errors.Add($"{prefixText}[{groupName}]のプロップ" + $"[{propName}]にオブジェクトもアニメーションも登録されていません。");
+                    if (risAvatar.GetAvatarRoot() != null)
+                    {
+                        var parentGameObject = risAvatar.GetAvatarRoot()?.gameObject;
+                        if (!prop.TargetObjects.Any(n => n?.GetObject(parentGameObject) != null) && prop.DisableAnimation?.GetObject() == null && prop.EnableAnimation?.GetObject() == null)
+                            errors.Add($"{prefixText}[{groupName}]のプロップ" + $"[{propName}]にオブジェクトもアニメーションも登録されていません。");
+                    }
                 }
             }
             return errors.ToArray();
@@ -905,6 +913,8 @@ namespace YagihataItems.RadialInventorySystemV4
                 onState.writeDefaultValues = risAvatar.UseWriteDefaults;
                 var offState = stateMachine.AddState("PropOFF", new Vector3(300, 200, 0));
                 offState.writeDefaultValues = risAvatar.UseWriteDefaults;
+
+                CheckParam(avatar, fxLayer, paramName, false);
 
                 var transition = stateMachine.MakeAnyStateTransition(onState);
                 transition.CreateSingleCondition(AnimatorConditionMode.If, paramName, 1f, prop.IsLocalOnly && !prop.IsDefaultEnabled, true);
