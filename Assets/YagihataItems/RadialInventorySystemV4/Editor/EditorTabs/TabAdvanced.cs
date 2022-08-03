@@ -21,7 +21,7 @@ namespace YagihataItems.RadialInventorySystemV4
         private ReorderableList groupsReorderableList;
         private ReorderableList propsReorderableList;
         private ReorderableList gameObjectsReorderableList = null;
-        private ReorderableList gameObjectsDummyReorderableList = null;
+        private ReorderableList materialsReorderableList = null;
         private Texture2D redTexture = null;
         private Texture2D blueTexture = null;
         private Group selectedGroup = null;
@@ -30,7 +30,8 @@ namespace YagihataItems.RadialInventorySystemV4
         {
             InitializeGroupList(risAvatar);
             InitializePropList(null, risAvatar);
-            InitializeGameObjectsList(true, risAvatar);
+            InitializeGameObjectsList(risAvatar);
+            InitializeMaterialsList(risAvatar);
         }
         public override void DrawTab(ref Avatar risAvatar, Rect position, bool showingVerticalScroll)
         {
@@ -38,8 +39,10 @@ namespace YagihataItems.RadialInventorySystemV4
                 InitializeGroupList(risAvatar);
             if (propsReorderableList == null)
                 InitializePropList(null, risAvatar);
-            if (gameObjectsDummyReorderableList == null)
-                InitializeGameObjectsList(true, risAvatar);
+            if (gameObjectsReorderableList == null)
+                InitializeGameObjectsList(risAvatar);
+            if (materialsReorderableList == null)
+                InitializeMaterialsList(risAvatar);
             var cellWidth = position.width / 3f - 15f;
             var selectedGroupIsChanged = false;
             var selectedPropIsChanged = false;
@@ -134,7 +137,7 @@ namespace YagihataItems.RadialInventorySystemV4
                         headerStyle.margin = new RectOffset(5, 5, 20, 20);
                         EditorGUILayout.LabelField("プロップ設定", new GUIStyle("ProjectBrowserHeaderBgTop"), GUILayout.ExpandWidth(true));
                         GUILayout.Space(3);
-                        EditorGUIUtility.labelWidth = 80;
+                        EditorGUIUtility.labelWidth = 90;
                         selectedProp.Name = EditorGUILayout.TextField("プロップ名", selectedProp.Name);
 
                         EditorGUI.BeginChangeCheck();
@@ -209,13 +212,21 @@ namespace YagihataItems.RadialInventorySystemV4
                         GUILayout.Space(5);
 
                         EditorGUI.BeginChangeCheck();
-                        var materialOverride = selectedProp.MaterialOverride.GetObject();
+                        /*var materialOverride = selectedProp.MaterialOverride.GetObject();
                         materialOverride = (Material)EditorGUILayout.ObjectField("マテリアル", materialOverride, typeof(Material), false, GUILayout.Height(EditorGUIUtility.singleLineHeight));
                         if (EditorGUI.EndChangeCheck())
-                            selectedProp.MaterialOverride.SetObject(materialOverride);
+                            selectedProp.MaterialOverride.SetObject(materialOverride);*/
+
+                        if (materialsReorderableList == null || selectedPropIsChanged)
+                            InitializeMaterialsList(risAvatar, selectedProp);
+                        EditorGUI.BeginChangeCheck();
+                        materialsReorderableList.DoLayoutList();
+                        if (EditorGUI.EndChangeCheck())
+                            selectedProp.MaterialOverrides = (List<GUIDPathPair<Material>>)materialsReorderableList.list;
+
                         GUILayout.Space(5);
                         if (gameObjectsReorderableList == null || selectedPropIsChanged)
-                            InitializeGameObjectsList(false, risAvatar, selectedProp);
+                            InitializeGameObjectsList(risAvatar, selectedProp);
                         EditorGUI.BeginChangeCheck();
                         gameObjectsReorderableList.DoLayoutList();
                         if (EditorGUI.EndChangeCheck())
@@ -383,11 +394,85 @@ namespace YagihataItems.RadialInventorySystemV4
 
             };
         }
-        private void InitializeGameObjectsList(bool dummyFlag, Avatar risAvatar, Prop prop = null)
+        private void InitializeMaterialsList(Avatar risAvatar, Prop prop = null)
+        {
+            List<GUIDPathPair<Material>> materials = null;
+            var flag = prop != null && prop.MaterialOverrides != null;
+            if (flag)
+                materials = prop.MaterialOverrides;
+            else
+                materials = new List<GUIDPathPair<Material>>();
+            var list = new ReorderableList(materials, typeof(Material));
+            list.drawHeaderCallback = rect =>
+            {
+                EditorGUI.LabelField(rect, "マテリアル一覧" + $": {materials.Count}");
+                var position =
+                    new Rect(
+                        rect.x + rect.width - 20f,
+                        rect.y,
+                        20f,
+                        13f
+                    );
+                if (GUI.Button(position, ReorderableListStyle.AddContent, ReorderableListStyle.AddStyle) && flag)
+                {
+                    prop.MaterialOverrides.Add(null);
+                }
+            };
+            list.drawElementCallback = (rect, index, isActive, isFocused) =>
+            {
+                if (materials.Count <= index)
+                    return;
+                rect.width -= 20;
+                if (risAvatar.AvatarRoot?.GetObject() == null)
+                    return;
+                var parent = risAvatar.AvatarRoot?.GetObject()?.gameObject;
+                var targetObject = materials[index]?.GetObject(parent);
+                EditorGUI.BeginChangeCheck();
+                targetObject = (Material)EditorGUI.ObjectField(rect, targetObject, typeof(Material), false);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    if (materials[index] == null)
+                        materials[index] = new GUIDPathPair<Material>(ObjectPathStateType.Asset, targetObject, parent);
+                    else
+                        materials[index].SetObject(targetObject, parent);
+                }
+                rect.x = rect.x + rect.width;
+                rect.width = 20f;
+                if (GUI.Button(rect, ReorderableListStyle.SubContent, ReorderableListStyle.SubStyle))
+                {
+                    materials.RemoveAt(index);
+                    if (index >= materials.Count)
+                        index = list.index = -1;
+                }
+            };
+            list.drawElementBackgroundCallback = (rect, index, isActive, isFocused) =>
+            {
+                if (isFocused)
+                {
+                    if (blueTexture == null)
+                    {
+                        blueTexture = new Texture2D(1, 1);
+                        blueTexture.SetPixel(0, 0, new Color(0.5f, 0.5f, 1f, 0.5f));
+                        blueTexture.Apply();
+                    }
+                    GUI.DrawTexture(rect, blueTexture);
+                }
+            };
+            list.drawFooterCallback = rect => { };
+            list.footerHeight = 0f;
+            list.elementHeightCallback = index =>
+            {
+                if (materials.Count <= index)
+                    return 0;
+                return EditorGUIUtility.singleLineHeight;
+            };
+            materialsReorderableList = list;
+        }
+        private void InitializeGameObjectsList(Avatar risAvatar, Prop prop = null)
         {
             List<GUIDPathPair<GameObject>> gameObjects = null;
             var propFlag = prop != null && prop.TargetObjects != null;
-            if (!dummyFlag && propFlag)
+            if (propFlag)
                 gameObjects = prop.TargetObjects;
             else
                 gameObjects = new List<GUIDPathPair<GameObject>>();
@@ -482,10 +567,7 @@ namespace YagihataItems.RadialInventorySystemV4
                     return 0;
                 return EditorGUIUtility.singleLineHeight;
             };
-            if (dummyFlag)
-                gameObjectsDummyReorderableList = list;
-            else
-                gameObjectsReorderableList = list;
+            gameObjectsReorderableList = list;
         }
 
         public override string[] CheckErrors(ref Avatar risAvatar)
@@ -707,7 +789,7 @@ namespace YagihataItems.RadialInventorySystemV4
                     {
                         if (prop.TargetObjects.Any(v => v?.GetObject(avatar.gameObject) != null))
                         {
-                            if (prop.MaterialOverride?.GetObject() != null)
+                            if (prop.MaterialOverrides.Any(v => v?.GetObject() != null))
                                 propLayer3.Add(pair, prop);
                             else
                                 propLayer2.Add(pair, prop);
@@ -725,7 +807,7 @@ namespace YagihataItems.RadialInventorySystemV4
                     {
                         if (prop.TargetObjects.Any(v => v?.GetObject(avatar.gameObject) != null))
                         {
-                            if (prop.MaterialOverride?.GetObject() != null)
+                            if (prop.MaterialOverrides.Any(v => v?.GetObject() != null))
                                 propLayer3.Add(pair, prop);
                             else
                                 propLayer1.Add(pair, prop);
@@ -1065,7 +1147,7 @@ namespace YagihataItems.RadialInventorySystemV4
                     {
                         if (!materialDatas.ContainsKey(targetObject))
                             materialDatas.Add(targetObject, new List<MaterialOverrideData>());
-                        materialDatas[targetObject].Add(new MaterialOverrideData() { material = prop.MaterialOverride?.GetObject(), index = new IndexPair() { group = groupIndex, prop = propIndex } });
+                        materialDatas[targetObject].Add(new MaterialOverrideData() { materials = prop.MaterialOverrides.Select(v => v?.GetObject()).ToList(), index = new IndexPair() { group = groupIndex, prop = propIndex } });
                     }
                 }
             }
@@ -1102,10 +1184,10 @@ namespace YagihataItems.RadialInventorySystemV4
                         foreach (var materialIndex in Enumerable.Range(0, materials.Count))
                         {
                             var materialReference = materials[materialIndex];
-                            var material = materialReference.material;
+                            //var material = materialReference.material;
                             var clipON = new AnimationClip();
                             var prop = risAvatar.Groups[materialReference.index.group].Props[materialReference.index.prop];
-                            var onState = stateMachine.AddState(material.name, new Vector3(300, 50 * (materialIndex + 1), 0));
+                            var onState = stateMachine.AddState($"MATERIAL-{materialIndex}", new Vector3(300, 50 * (materialIndex + 1), 0));
                             onState.writeDefaultValues = risAvatar.UseWriteDefaults;
                             var onTransition = stateMachine.MakeAnyStateTransition(onState);
 
@@ -1173,55 +1255,60 @@ namespace YagihataItems.RadialInventorySystemV4
                                     value = driverItem.Value
                                 });
                             }
-                            var addMaterialProperties = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { material });
-                            EditorCurveBinding curveBindingOn = EditorCurveBinding.PPtrCurve(path, renderType, "m_Materials.Array.data[0]");
-                            ObjectReferenceKeyframe[] keyFramesOn = new ObjectReferenceKeyframe[2];
-                            keyFramesOn[0] = new ObjectReferenceKeyframe() { time = 0f, value = material };
-                            keyFramesOn[1] = new ObjectReferenceKeyframe() { time = 1f / clipON.frameRate, value = material };
-                            AnimationUtility.SetObjectReferenceCurve(clipON, curveBindingOn, keyFramesOn);
-                            foreach (var property in addMaterialProperties.Where(addMat => baseMaterialProperties.Any(baseMat => baseMat.name == addMat.name)))
+
+                            foreach (var index in Enumerable.Range(0, materialReference.materials.Count))
                             {
-                                var baseMatProperty = baseMaterialProperties.First(n => n.name == property.name);
-                                properties.Add(property.name);
-                                if (property.type == MaterialProperty.PropType.Color)
+                                var material = materialReference.materials[index];
+                                var addMaterialProperties = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { material });
+                                EditorCurveBinding curveBindingOn = EditorCurveBinding.PPtrCurve(path, renderType, $"m_Materials.Array.data[{index}]");
+                                ObjectReferenceKeyframe[] keyFramesOn = new ObjectReferenceKeyframe[2];
+                                keyFramesOn[0] = new ObjectReferenceKeyframe() { time = 0f, value = material };
+                                keyFramesOn[1] = new ObjectReferenceKeyframe() { time = 1f / clipON.frameRate, value = material };
+                                AnimationUtility.SetObjectReferenceCurve(clipON, curveBindingOn, keyFramesOn);
+                                foreach (var property in addMaterialProperties.Where(addMat => baseMaterialProperties.Any(baseMat => baseMat.name == addMat.name)))
                                 {
-                                    if (baseMatProperty.colorValue.r != property.colorValue.r || baseMatProperty.colorValue.g != property.colorValue.g ||
-                                        baseMatProperty.colorValue.g != property.colorValue.b || baseMatProperty.colorValue.g != property.colorValue.a)
+                                    var baseMatProperty = baseMaterialProperties.First(n => n.name == property.name);
+                                    properties.Add(property.name);
+                                    if (property.type == MaterialProperty.PropType.Color)
                                     {
-                                        curveBindingOn = EditorCurveBinding.FloatCurve(path, renderType, $"material.{property.name}.r");
-                                        var curve = new AnimationCurve();
-                                        curve.AddKey(0f, property.colorValue.r);
-                                        curve.AddKey(1f / clipON.frameRate, property.colorValue.r);
-                                        AnimationUtility.SetEditorCurve(clipON, curveBindingOn, curve);
+                                        if (baseMatProperty.colorValue.r != property.colorValue.r || baseMatProperty.colorValue.g != property.colorValue.g ||
+                                            baseMatProperty.colorValue.g != property.colorValue.b || baseMatProperty.colorValue.g != property.colorValue.a)
+                                        {
+                                            curveBindingOn = EditorCurveBinding.FloatCurve(path, renderType, $"material.{property.name}.r");
+                                            var curve = new AnimationCurve();
+                                            curve.AddKey(0f, property.colorValue.r);
+                                            curve.AddKey(1f / clipON.frameRate, property.colorValue.r);
+                                            AnimationUtility.SetEditorCurve(clipON, curveBindingOn, curve);
 
-                                        curveBindingOn = EditorCurveBinding.FloatCurve(path, renderType, $"material.{property.name}.g");
-                                        curve = new AnimationCurve();
-                                        curve.AddKey(0f, property.colorValue.g);
-                                        curve.AddKey(1f / clipON.frameRate, property.colorValue.g);
-                                        AnimationUtility.SetEditorCurve(clipON, curveBindingOn, curve);
+                                            curveBindingOn = EditorCurveBinding.FloatCurve(path, renderType, $"material.{property.name}.g");
+                                            curve = new AnimationCurve();
+                                            curve.AddKey(0f, property.colorValue.g);
+                                            curve.AddKey(1f / clipON.frameRate, property.colorValue.g);
+                                            AnimationUtility.SetEditorCurve(clipON, curveBindingOn, curve);
 
-                                        curveBindingOn = EditorCurveBinding.FloatCurve(path, renderType, $"material.{property.name}.b");
-                                        curve = new AnimationCurve();
-                                        curve.AddKey(0f, property.colorValue.b);
-                                        curve.AddKey(1f / clipON.frameRate, property.colorValue.b);
-                                        AnimationUtility.SetEditorCurve(clipON, curveBindingOn, curve);
+                                            curveBindingOn = EditorCurveBinding.FloatCurve(path, renderType, $"material.{property.name}.b");
+                                            curve = new AnimationCurve();
+                                            curve.AddKey(0f, property.colorValue.b);
+                                            curve.AddKey(1f / clipON.frameRate, property.colorValue.b);
+                                            AnimationUtility.SetEditorCurve(clipON, curveBindingOn, curve);
 
-                                        curveBindingOn = EditorCurveBinding.FloatCurve(path, renderType, $"material.{property.name}.a");
-                                        curve = new AnimationCurve();
-                                        curve.AddKey(0f, property.colorValue.a);
-                                        curve.AddKey(1f / clipON.frameRate, property.colorValue.a);
-                                        AnimationUtility.SetEditorCurve(clipON, curveBindingOn, curve);
+                                            curveBindingOn = EditorCurveBinding.FloatCurve(path, renderType, $"material.{property.name}.a");
+                                            curve = new AnimationCurve();
+                                            curve.AddKey(0f, property.colorValue.a);
+                                            curve.AddKey(1f / clipON.frameRate, property.colorValue.a);
+                                            AnimationUtility.SetEditorCurve(clipON, curveBindingOn, curve);
+                                        }
                                     }
-                                }
-                                if (property.type == MaterialProperty.PropType.Float)
-                                {
-                                    if (baseMatProperty.floatValue != property.floatValue)
+                                    if (property.type == MaterialProperty.PropType.Float)
                                     {
-                                        curveBindingOn = EditorCurveBinding.FloatCurve(path, renderType, $"material.{property.name}");
-                                        var curve = new AnimationCurve();
-                                        curve.AddKey(0f, property.floatValue);
-                                        curve.AddKey(1f / clipON.frameRate, property.floatValue);
-                                        AnimationUtility.SetEditorCurve(clipON, curveBindingOn, curve);
+                                        if (baseMatProperty.floatValue != property.floatValue)
+                                        {
+                                            curveBindingOn = EditorCurveBinding.FloatCurve(path, renderType, $"material.{property.name}");
+                                            var curve = new AnimationCurve();
+                                            curve.AddKey(0f, property.floatValue);
+                                            curve.AddKey(1f / clipON.frameRate, property.floatValue);
+                                            AnimationUtility.SetEditorCurve(clipON, curveBindingOn, curve);
+                                        }
                                     }
                                 }
                             }

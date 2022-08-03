@@ -213,13 +213,13 @@ namespace YagihataItems.RadialInventorySystemV4
                                     {
                                         var group = risAvatar.Groups[groupIndex];
                                         if (risAvatar.MenuMode == RIS.MenuModeType.Simple && group.UseResetButton)
-                                            paramsTemp.Add(new VRCExpressionParameters.Parameter() { name = $"RISV3-G{groupIndex}RESET", valueType = VRCExpressionParameters.ValueType.Bool });
+                                            paramsTemp.Add(new VRCExpressionParameters.Parameter() { name = $"{RIS.Prefix}-G{groupIndex}RESET", valueType = VRCExpressionParameters.ValueType.Bool });
                                         foreach (var propIndex in Enumerable.Range(0, group.Props.Count))
-                                            paramsTemp.Add(new VRCExpressionParameters.Parameter() { name = $"RISV3-G{groupIndex}P{propIndex}", valueType = VRCExpressionParameters.ValueType.Bool });
+                                            paramsTemp.Add(new VRCExpressionParameters.Parameter() { name = $"{RIS.Prefix}-G{groupIndex}P{propIndex}", valueType = VRCExpressionParameters.ValueType.Bool });
                                     }
                                     var arr = paramsTemp.ToArray();
-                                    memoryNow = expressionParameter.CalculateMemoryCount(arr, risAvatar.OptimizeParameters, "RISV3", true);
-                                    memoryAdded = expressionParameter.CalculateMemoryCount(arr, risAvatar.OptimizeParameters, "RISV3");
+                                    memoryNow = expressionParameter.CalculateMemoryCount(arr, risAvatar.OptimizeParameters, RIS.Prefix, true);
+                                    memoryAdded = expressionParameter.CalculateMemoryCount(arr, risAvatar.OptimizeParameters, RIS.Prefix);
                                     memoryUseFromScript = paramsTemp.Sum(n => VRCExpressionParameters.TypeCost(n.valueType));
                                 }
                             }

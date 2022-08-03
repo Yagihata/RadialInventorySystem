@@ -17,12 +17,7 @@ namespace YagihataItems.RadialInventorySystemV4
         protected class MaterialOverrideData
         {
             public IndexPair index;
-            public Material material;
-        }
-        protected class ExclusivePropData
-        {
-            public IndexPair index;
-            public Material material;
+            public List<Material> materials;
         }
         protected class IndexPair
         {

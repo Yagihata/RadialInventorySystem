@@ -18,7 +18,7 @@ namespace YagihataItems.RadialInventorySystemV4
         [JsonProperty] public string Name { get; set; } = "";
         [JsonProperty] public List<GUIDPathPair<GameObject>> TargetObjects { get; set; } = new List<GUIDPathPair<GameObject>>();
         [JsonConverter(typeof(StringEnumConverter))] [JsonProperty] public RIS.ExclusiveGroupType ExclusiveGroup { get; set; } = RIS.ExclusiveGroupType.None;
-        [JsonProperty] public GUIDPathPair<Material> MaterialOverride { get; set; } = null;
+        [JsonProperty] public List<GUIDPathPair<Material>> MaterialOverrides { get; set; } = new List<GUIDPathPair<Material>>();
         [JsonProperty] public bool UseResetTimer { get; set; } = false;
         [JsonProperty] public float ResetSecond { get; set; } = 0f;
         [JsonProperty] public bool UseSaveParameter { get; set; } = true;
@@ -50,14 +50,14 @@ namespace YagihataItems.RadialInventorySystemV4
             Icon = new GUIDPathPair<Texture2D>(ObjectPathStateType.Asset);
             EnableAnimation = new GUIDPathPair<AnimationClip>(ObjectPathStateType.Asset);
             DisableAnimation = new GUIDPathPair<AnimationClip>(ObjectPathStateType.Asset);
-            MaterialOverride = new GUIDPathPair<Material>(ObjectPathStateType.Asset);
         }
         public void ForceReload(GameObject parent)
         {
             Icon.ForceReload();
             DisableAnimation.ForceReload();
-            MaterialOverride.ForceReload();
-            foreach(var v in TargetObjects)
+            foreach (var v in MaterialOverrides)
+                v.ForceReload(parent);
+            foreach (var v in TargetObjects)
                 v.ForceReload(parent);
         }
     }
