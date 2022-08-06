@@ -771,6 +771,8 @@ namespace YagihataItems.RadialInventorySystemV4
             }
 
 
+            AddFallbackDriver(ref fxLayer, ref risAvatar, fallbackClip);
+
             if (avatar.baseAnimationLayers == null)
                 avatar.baseAnimationLayers = new VRCAvatarDescriptor.CustomAnimLayer[5];
             if (avatar.baseAnimationLayers.Count() != 5)

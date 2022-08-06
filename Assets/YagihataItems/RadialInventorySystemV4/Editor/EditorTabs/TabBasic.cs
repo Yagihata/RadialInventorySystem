@@ -707,12 +707,16 @@ namespace YagihataItems.RadialInventorySystemV4
                 }
             }
 
+            AddFallbackDriver(ref fxLayer, ref risAvatar, fallbackClip);
 
             if (avatar.baseAnimationLayers == null)
                 avatar.baseAnimationLayers = new VRCAvatarDescriptor.CustomAnimLayer[5];
             if (avatar.baseAnimationLayers.Count() != 5)
                 Array.Resize(ref avatar.baseAnimationLayers, 5);
             avatar.baseAnimationLayers[4].animatorController = fxLayer;
+
+
+
             EditorUtility.SetDirty(avatar.baseAnimationLayers[4].animatorController);
             EditorUtility.SetDirty(avatar);
             AssetDatabase.SaveAssets();

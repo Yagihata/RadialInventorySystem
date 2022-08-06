@@ -8,6 +8,7 @@ using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
+using VRC.SDKBase;
 using YagihataItems.YagiUtils;
 
 namespace YagihataItems.RadialInventorySystemV4
@@ -65,6 +66,35 @@ namespace YagihataItems.RadialInventorySystemV4
             else
                 expParams.AddParameter(name, valueType, saved, defaultValue);
 
+        }
+        protected void AddFallbackDriver(ref AnimatorController fxLayer, ref Avatar risAvatar, AnimationClip fallbackClip)
+        {
+            var fallbackParamName = $"{RIS.Prefix}-Initialize";
+            var targetLayerIndex = fxLayer.layers.Length;
+            var fallbackLayerName = $"{RIS.Prefix}-Initialize";
+            var fallbackLayer = fxLayer.FindAnimatorControllerLayer(fallbackLayerName);
+            if (fallbackLayer == null)
+                fallbackLayer = fxLayer.AddAnimatorControllerLayer(fallbackLayerName);
+            var fallbackMachine = fallbackLayer.stateMachine;
+            fallbackMachine.Clear();
+
+            var nonInitializeState = fallbackMachine.AddState("Non-Initialize", new Vector3(300, 100, 0));
+            nonInitializeState.writeDefaultValues = risAvatar.UseWriteDefaults;
+            var initializeState = fallbackMachine.AddState("Initialized", new Vector3(300, 200, 0));
+            initializeState.writeDefaultValues = risAvatar.UseWriteDefaults;
+
+            nonInitializeState.motion = fallbackClip;
+
+            var fallbackTransition = fallbackMachine.MakeAnyStateTransition(nonInitializeState);
+            fallbackTransition.CreateSingleCondition(AnimatorConditionMode.IfNot, fallbackParamName, 1f, false, false);
+            fallbackTransition = fallbackMachine.MakeAnyStateTransition(initializeState);
+            fallbackTransition.CreateSingleCondition(AnimatorConditionMode.If, fallbackParamName, 1f, false, false);
+
+            var fallbackDriver = initializeState.AddStateMachineBehaviour<VRCAnimatorLayerControl>();
+            fallbackDriver.playable = VRC_AnimatorLayerControl.BlendableLayer.FX;
+            fallbackDriver.layer = targetLayerIndex;
+            fallbackDriver.goalWeight = 0f;
+            EditorUtility.SetDirty(fallbackLayer.stateMachine);
         }
         protected void CheckParam(VRCAvatarDescriptor avatar, AnimatorController controller, string paramName, bool defaultEnabled)
         {

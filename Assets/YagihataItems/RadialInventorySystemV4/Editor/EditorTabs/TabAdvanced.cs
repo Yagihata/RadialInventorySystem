@@ -1467,31 +1467,8 @@ namespace YagihataItems.RadialInventorySystemV4
                 EditorUtility.SetDirty(animLayer.stateMachine);
             }
 
-            var targetLayerIndex = fxLayer.layers.Length;
-            var fallbackLayerName = $"{RIS.Prefix}-Initialize";
-            var fallbackLayer = fxLayer.FindAnimatorControllerLayer(fallbackLayerName);
-            if (fallbackLayer == null)
-                fallbackLayer = fxLayer.AddAnimatorControllerLayer(fallbackLayerName);
-            var fallbackMachine = fallbackLayer.stateMachine;
-            fallbackMachine.Clear();
+            AddFallbackDriver(ref fxLayer, ref risAvatar, fallbackClip);
 
-            var nonInitializeState = fallbackMachine.AddState("Non-Initialize", new Vector3(300, 100, 0));
-            nonInitializeState.writeDefaultValues = risAvatar.UseWriteDefaults;
-            var initializeState = fallbackMachine.AddState("Initialized", new Vector3(300, 200, 0));
-            initializeState.writeDefaultValues = risAvatar.UseWriteDefaults;
-
-            nonInitializeState.motion = fallbackClip;
-
-            var fallbackTransition = fallbackMachine.MakeAnyStateTransition(nonInitializeState);
-            fallbackTransition.CreateSingleCondition(AnimatorConditionMode.IfNot, fallbackParamName, 1f, false, false);
-            fallbackTransition = fallbackMachine.MakeAnyStateTransition(initializeState);
-            fallbackTransition.CreateSingleCondition(AnimatorConditionMode.If, fallbackParamName, 1f, false, false);
-
-            var fallbackDriver = initializeState.AddStateMachineBehaviour<VRCAnimatorLayerControl>();
-            fallbackDriver.playable = VRC_AnimatorLayerControl.BlendableLayer.FX;
-            fallbackDriver.layer = targetLayerIndex;
-            fallbackDriver.goalWeight = 0f;
-            EditorUtility.SetDirty(fallbackLayer.stateMachine);
             AssetDatabase.SaveAssets();
 
         }
