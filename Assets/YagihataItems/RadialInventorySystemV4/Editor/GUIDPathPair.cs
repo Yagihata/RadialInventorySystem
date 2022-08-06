@@ -39,7 +39,7 @@ namespace YagihataItems.RadialInventorySystemV4
             {
                 if (ObjectPathState == ObjectPathStateType.Asset)
                     ObjectPath = AssetDatabase.GetAssetPath(targetObject);
-                else if (ObjectPathState == ObjectPathStateType.Asset)
+                else if (ObjectPathState == ObjectPathStateType.Scene)
                 {
                     if (targetObject is GameObject)
                         ObjectPath = (targetObject as GameObject).GetObjectPath();
