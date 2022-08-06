@@ -16,351 +16,8 @@ namespace YagihataItems.RadialInventorySystemV4
 {
     public class TabBasic : EditorTab
     {
-        /*private ReorderableList propGroupsReorderableList;
-        private ReorderableList propsReorderableList;
-        private Texture2D redTexture = null;
-        private Texture2D blueTexture = null;
-        public override void DrawTab(ref RISVariables variables, ref RISSettings settings, Rect position, bool showingVerticalScroll)
-        {
-            if (propGroupsReorderableList == null)
-                InitializeGroupList(variables, settings);
-            if (propsReorderableList == null)
-                InitializePropList(null, variables, settings);
-            var cellWidth = position.width / 3f - 15f;
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                var selectedGroupChangeFlag = true;
-                using (new EditorGUILayout.VerticalScope())
-                {
-                    using (var scope = new EditorGUILayout.HorizontalScope())
-                    {
-                        var scopeWidth = cellWidth - 40;
-                        var propGroupsHeight = propGroupsReorderableList.GetHeight();
-                        using (new EditorGUILayout.HorizontalScope(GUILayout.Height(propGroupsHeight), GUILayout.Width(scopeWidth)))
-                        {
-                            var oldSelectedIndex = propGroupsReorderableList.index;
-                            propGroupsReorderableList.DoList(new Rect(scope.rect.x, scope.rect.y, scopeWidth, propGroupsHeight));
-                            if (variables != null)
-                                variables.Groups = (List<PropGroup>)propGroupsReorderableList.list;
-                            selectedGroupChangeFlag = oldSelectedIndex != propGroupsReorderableList.index;
-                            GUILayout.Space(0);
-                        }
-
-                    }
-                }
-                GUILayout.Box("", GUILayout.ExpandHeight(true), GUILayout.Width(1));
-                var groupIndex = propGroupsReorderableList.index;
-                var groupIsSelected = variables != null && variables.Groups.Count >= 1 && groupIndex >= 0;
-                Prop targetProp = null;
-                var propIsChanged = false;
-                using (new EditorGUI.DisabledGroupScope(!groupIsSelected))
-                {
-                    using (new EditorGUILayout.VerticalScope(GUILayout.Width(cellWidth + 20)))
-                    {
-                        EditorGUIUtility.labelWidth = 80;
-                        var prefixText = "グループ";
-                        EditorGUILayout.LabelField(prefixText + "設定", new GUIStyle("ProjectBrowserHeaderBgTop"), GUILayout.ExpandWidth(true));
-                        GUILayout.Space(3);
-                        if (groupIsSelected)
-                        {
-                            variables.Groups[groupIndex].GroupName = EditorGUILayout.TextField(prefixText + "名", variables.Groups[groupIndex].GroupName);
-                            variables.Groups[groupIndex].GroupIcon =
-                                (Texture2D)EditorGUILayout.ObjectField("アイコン", variables.Groups[groupIndex].GroupIcon, typeof(Texture2D), false, GUILayout.Height(EditorGUIUtility.singleLineHeight));
-                            variables.Groups[groupIndex].ExclusiveMode = EditorGUILayout.Popup("排他モード", variables.Groups[groupIndex].ExclusiveMode, MessageStrings.ExclusiveType);
-                            if (selectedGroupChangeFlag)
-                                InitializePropList(variables.Groups[groupIndex], variables, settings);
-                            using (var scope = new EditorGUILayout.HorizontalScope())
-                            {
-                                var scopeWidth = cellWidth + 20;
-                                var propListHeight = propsReorderableList.GetHeight();
-                                using (new EditorGUILayout.HorizontalScope(GUILayout.Height(propListHeight), GUILayout.Width(scopeWidth)))
-                                {
-                                    var propIndex = propsReorderableList.index;
-                                    propsReorderableList.DoList(new Rect(scope.rect.x, scope.rect.y, scopeWidth, propListHeight));
-                                    variables.Groups[groupIndex].Props = (List<Prop>)propsReorderableList.list;
-                                    propIsChanged = propIndex != propsReorderableList.index;
-                                    GUILayout.Space(0);
-                                }
-                            }
-                            if (variables.Groups[groupIndex].Props.Count > propsReorderableList.index && propsReorderableList.index >= 0)
-                                targetProp = variables.Groups[groupIndex].Props[propsReorderableList.index];
-                            else
-                                targetProp = null;
-                        }
-                        else
-                        {
-                            EditorGUILayout.TextField("グループ名", "");
-                            EditorGUILayout.ObjectField("アイコン", null, typeof(Texture2D), false, GUILayout.Height(EditorGUIUtility.singleLineHeight));
-                            EditorGUILayout.Popup("排他モード", 0, MessageStrings.ExclusiveType);
-                            if (selectedGroupChangeFlag)
-                                InitializePropList(null, variables, settings);
-                            using (var scope = new EditorGUILayout.HorizontalScope())
-                            {
-                                var scopeWidth = cellWidth + 20;
-                                var propListHeight = propsReorderableList.GetHeight();
-                                using (new EditorGUILayout.HorizontalScope(GUILayout.Height(propListHeight), GUILayout.Width(scopeWidth)))
-                                {
-                                    propsReorderableList.DoList(new Rect(scope.rect.x, scope.rect.y, scopeWidth, propListHeight));
-                                    GUILayout.Space(0);
-                                }
-                            }
-                        }
-                    }
-                }
-                GUILayout.Box("", GUILayout.ExpandHeight(true), GUILayout.Width(1));
-                using (new EditorGUI.DisabledGroupScope(targetProp == null))
-                {
-                    using (new EditorGUILayout.VerticalScope(GUILayout.Width(cellWidth + 30 - (showingVerticalScroll ? 14 : 0))))
-                    {
-                        GUIStyle headerStyle = new GUIStyle("HeaderLabel");
-                        headerStyle.margin = new RectOffset(5, 5, 20, 20);
-                        EditorGUILayout.LabelField("プロップ設定", new GUIStyle("ProjectBrowserHeaderBgTop"), GUILayout.ExpandWidth(true));
-                        GUILayout.Space(3);
-                        EditorGUILayout.LabelField("プロップ名");
-                        using (new EditorGUILayout.HorizontalScope())
-                        {
-                            GUILayout.Space(20);
-                            if (targetProp != null)
-                                targetProp.PropName = EditorGUILayout.TextField(targetProp.PropName);
-                            else
-                                EditorGUILayout.TextField("");
-
-
-                        }
-                        EditorGUILayout.LabelField("アイコン");
-                        using (new EditorGUILayout.HorizontalScope())
-                        {
-                            GUILayout.Space(20);
-                            if (targetProp != null)
-                                targetProp.PropIcon = (Texture2D)EditorGUILayout.ObjectField(targetProp.PropIcon, typeof(Texture2D), false, GUILayout.Height(EditorGUIUtility.singleLineHeight));
-                            else
-                                EditorGUILayout.ObjectField(null, typeof(Texture2D), false, GUILayout.Height(EditorGUIUtility.singleLineHeight));
-
-
-                        }
-                        EditorGUILayout.LabelField("オブジェクト");
-                        using (new EditorGUILayout.HorizontalScope())
-                        {
-                            GUILayout.Space(20);
-                            if (targetProp != null)
-                            {
-                                var targetObject = targetProp.TargetObject;
-                                if (targetObject != null && !targetObject.IsChildOf(variables.AvatarRoot.gameObject))
-                                    targetObject = null;
-                                targetProp.TargetObject = (GameObject)EditorGUILayout.ObjectField(targetObject, typeof(GameObject), true);
-                            }
-                            else
-                                EditorGUILayout.ObjectField(null, typeof(GameObject), true);
-                        }
-                        GUILayout.Space(5);
-                        using (new EditorGUILayout.HorizontalScope())
-                        {
-                            EditorGUILayout.LabelField(MessageStrings.Strings.str_ShowDefault);
-                            GUILayout.FlexibleSpace();
-                            if (targetProp != null)
-                                targetProp.IsDefaultEnabled = EditorGUILayout.Toggle(targetProp.IsDefaultEnabled, GUILayout.Width(20));
-                            else
-                                EditorGUILayout.Toggle(false, GUILayout.Width(20));
-                        }
-                        using (new EditorGUILayout.HorizontalScope())
-                        {
-                            EditorGUILayout.LabelField(MessageStrings.Strings.str_LocalOnly);
-                            GUILayout.FlexibleSpace();
-                            if (targetProp != null)
-                                targetProp.LocalOnly = EditorGUILayout.Toggle(targetProp.LocalOnly, GUILayout.Width(20));
-                            else
-                                EditorGUILayout.Toggle(false, GUILayout.Width(20));
-                        }
-                        using (new EditorGUILayout.HorizontalScope())
-                        {
-                            EditorGUILayout.LabelField(MessageStrings.Strings.str_SaveParam);
-                            GUILayout.FlexibleSpace();
-                            if (targetProp != null)
-                                targetProp.SaveParameter = EditorGUILayout.Toggle(targetProp.SaveParameter, GUILayout.Width(20));
-                            else
-                                EditorGUILayout.Toggle(true, GUILayout.Width(20));
-                        }
-                    }
-                }
-                GUILayout.FlexibleSpace();
-
-            }
-            EditorGUIUtility.labelWidth = 0;
-        }
-        private void InitializeGroupList(RISVariables variables, RISSettings settings)
-        {
-            List<PropGroup> groups = null;
-            if (variables != null && variables.Groups != null)
-                groups = variables.Groups;
-            else
-                groups = new List<PropGroup>();
-            propGroupsReorderableList = new ReorderableList(groups, typeof(PropGroup))
-            {
-                drawHeaderCallback = rect =>
-                {
-                    EditorGUI.LabelField(rect, "グループ一覧" + $": {groups.Count}");
-                    var position =
-                        new Rect(
-                            rect.x + rect.width - 20f,
-                            rect.y,
-                            20f,
-                            13f
-                        );
-                    if (groups.Count < 8 && GUI.Button(position, ReorderableListStyle.AddContent, ReorderableListStyle.AddStyle))
-                    {
-                        if (settings != null)
-                            Undo.RecordObject(settings, $"Add new PropGroup.");
-                        var newPropGroup = ScriptableObject.CreateInstance<PropGroup>();
-                        newPropGroup.GroupName = "Group" + groups.Count;
-                        variables.Groups.Add(newPropGroup);
-                        if (settings != null)
-                            EditorUtility.SetDirty(settings);
-                    }
-                },
-                drawElementCallback = (rect, index, isActive, isFocused) =>
-                {
-                    if (groups.Count <= index)
-                        return;
-
-                    var style = GUI.skin.label;
-                    style.fontSize = (int)(rect.height / 1.75f);
-                    var name = groups[index].GroupName;
-                    if (string.IsNullOrEmpty(name))
-                        name = "Group" + index;
-                    GUI.Label(rect, name, style);
-                    style.fontSize = 0;
-                    rect.x = rect.x + rect.width - 20f;
-                    rect.width = 20f;
-                    if (GUI.Button(rect, ReorderableListStyle.SubContent, ReorderableListStyle.SubStyle))
-                    {
-                        if (settings != null)
-                            Undo.RecordObject(settings, $"Remove PropGroup - \"{groups[index].GroupName}\".");
-                        groups.RemoveAt(index);
-                        if (index >= groups.Count)
-                            index = propGroupsReorderableList.index = -1;
-                        if (settings != null)
-                            EditorUtility.SetDirty(settings);
-                    }
-                },
-
-                drawFooterCallback = rect => { },
-                footerHeight = 0f,
-                elementHeightCallback = index =>
-                {
-                    if (groups.Count <= index)
-                        return 0;
-
-                    return EditorGUIUtility.singleLineHeight * 1.6f;
-                }
-
-            };
-        }
-        private void InitializePropList(PropGroup group, RISVariables variables, RISSettings settings)
-        {
-            List<Prop> props = null;
-            if (group != null && group.Props != null)
-                props = group.Props;
-            else
-                props = new List<Prop>();
-            propsReorderableList = new ReorderableList(props, typeof(Prop))
-            {
-                drawHeaderCallback = rect =>
-                {
-                    EditorGUI.LabelField(rect, "プロップ一覧" + $": {props.Count}");
-                    var position =
-                        new Rect(
-                            rect.x + rect.width - 20f,
-                            rect.y,
-                            20f,
-                            13f
-                        );
-                    var maxPropCount = 8;
-                    if (variables != null && group != null)
-                    {
-                        if (group.ExclusiveMode == 1)
-                            maxPropCount = 7;
-                    }
-                    if (props.Count < maxPropCount && GUI.Button(position, ReorderableListStyle.AddContent, ReorderableListStyle.AddStyle))
-                    {
-                        if (settings != null)
-                            Undo.RecordObject(settings, $"Add new Prop.");
-                        var newProp = ScriptableObject.CreateInstance<Prop>();
-                        newProp.TargetObjects.Add(null);
-                        group.Props.Add(newProp);
-                        if (settings != null)
-                            EditorUtility.SetDirty(settings);
-                    }
-                },
-                drawElementCallback = (rect, index, isActive, isFocused) =>
-                {
-                    if (props.Count <= index)
-                        return;
-                    var rawPropName = props[index].GetPropName(variables.MenuMode);
-                    var propName = !string.IsNullOrEmpty(rawPropName) ? rawPropName : $"Prop{index}";
-                    GUI.Label(rect, propName);
-                    rect.x = rect.x + rect.width - 20f;
-                    rect.width = 20f;
-                    if (GUI.Button(rect, ReorderableListStyle.SubContent, ReorderableListStyle.SubStyle))
-                    {
-                        if (settings != null)
-                            Undo.RecordObject(settings, $"Remove Prop - \"{propName}\".");
-                        props.RemoveAt(index);
-                        if (index >= props.Count)
-                            index = propsReorderableList.index = -1;
-                        if (settings != null)
-                            EditorUtility.SetDirty(settings);
-                    }
-                },
-                drawElementBackgroundCallback = (rect, index, isActive, isFocused) =>
-                {
-                    if (!isFocused)
-                    {
-                        var maxPropCount = 8;
-                        if (variables != null && group != null)
-                        {
-                            if (group.ExclusiveMode == 1)
-                                maxPropCount = 7;
-                        }
-                        if (index >= maxPropCount)
-                        {
-                            if (redTexture == null)
-                            {
-                                redTexture = new Texture2D(1, 1);
-                                redTexture.SetPixel(0, 0, new Color(1f, 0.5f, 0.5f, 0.5f));
-                                redTexture.Apply();
-                            }
-                            GUI.DrawTexture(rect, redTexture);
-                        }
-
-                    }
-                    else
-                    {
-                        if (blueTexture == null)
-                        {
-                            blueTexture = new Texture2D(1, 1);
-                            blueTexture.SetPixel(0, 0, new Color(0.5f, 0.5f, 1f, 0.5f));
-                            blueTexture.Apply();
-                        }
-                        GUI.DrawTexture(rect, blueTexture);
-                    }
-                },
-                drawFooterCallback = rect => { },
-                footerHeight = 0f,
-                elementHeightCallback = index =>
-                {
-                    if (props.Count <= index)
-                        return 0;
-
-                    return EditorGUIUtility.singleLineHeight;
-                }
-
-            };
-        }
-        */
         private ReorderableList groupsReorderableList;
         private ReorderableList propsReorderableList;
-        private Texture2D redTexture = null;
-        private Texture2D blueTexture = null;
         private Group selectedGroup;
         private Prop selectedProp;
 
@@ -683,25 +340,13 @@ namespace YagihataItems.RadialInventorySystemV4
                         }
                         if (index >= maxPropCount)
                         {
-                            if (redTexture == null)
-                            {
-                                redTexture = new Texture2D(1, 1);
-                                redTexture.SetPixel(0, 0, new Color(1f, 0.5f, 0.5f, 0.5f));
-                                redTexture.Apply();
-                            }
-                            GUI.DrawTexture(rect, redTexture);
+                            GUI.DrawTexture(rect, TexAssets.RedTexture);
                         }
 
                     }
                     else
                     {
-                        if (blueTexture == null)
-                        {
-                            blueTexture = new Texture2D(1, 1);
-                            blueTexture.SetPixel(0, 0, new Color(0.5f, 0.5f, 1f, 0.5f));
-                            blueTexture.Apply();
-                        }
-                        GUI.DrawTexture(rect, blueTexture);
+                        GUI.DrawTexture(rect, TexAssets.BlueTexture);
                     }
                 },
                 drawFooterCallback = rect => { },
@@ -737,16 +382,17 @@ namespace YagihataItems.RadialInventorySystemV4
             {
                 var group = risAvatar.Groups[groupIndex];
                 if (group.UseResetButton)
-                    TryAddParam(ref risAvatar, $"RIS-G{groupIndex}RESET", 0f, false);
+                    TryAddParam(ref risAvatar, $"{RIS.Prefix}-G{groupIndex}RESET", 0f, false);
                 foreach (var propIndex in Enumerable.Range(0, group.Props.Count))
                 {
                     var prop = group.Props[propIndex];
                     var v2Mode = false;
                     if (risAvatar.GetExclusiveMode((RIS.ExclusiveGroupType)groupIndex) == RIS.ExclusiveModeType.LegacyExclusive)
                         v2Mode = true;
-                    TryAddParam(ref risAvatar, $"RIS-G{groupIndex}P{propIndex}", prop.IsDefaultEnabled && !v2Mode ? 1f : 0f, prop.UseSaveParameter);
+                    TryAddParam(ref risAvatar, $"{RIS.Prefix}-G{groupIndex}P{propIndex}", prop.IsDefaultEnabled && !v2Mode ? 1f : 0f, prop.UseSaveParameter);
                 }
             }
+            TryAddParam(ref risAvatar, $"{RIS.Prefix}-Initialize", 1f, true);
             avatar.expressionParameters = expParams;
             EditorUtility.SetDirty(avatar);
             EditorUtility.SetDirty(avatar.expressionParameters);
@@ -773,7 +419,7 @@ namespace YagihataItems.RadialInventorySystemV4
                 controls.Add(risControl = new VRCExpressionsMenu.Control() { name = "Radial Inventory" });
             rootMenu.controls = controls;
 
-            risControl.icon = Icons.MenuIcon;
+            risControl.icon = TexAssets.MenuIcon;
             risControl.type = VRCExpressionsMenu.Control.ControlType.SubMenu;
             risControl.subMenu = menu = UnityUtils.TryGetAsset(autoGeneratedFolder + $"RadInvMainMenu.asset", typeof(VRCExpressionsMenu)) as VRCExpressionsMenu;
 
@@ -793,7 +439,7 @@ namespace YagihataItems.RadialInventorySystemV4
                 control.type = VRCExpressionsMenu.Control.ControlType.SubMenu;
                 control.icon = group.Icon?.GetObject();
                 if (control.icon == null)
-                    control.icon = Icons.GroupIcon;
+                    control.icon = TexAssets.GroupIcon;
                 VRCExpressionsMenu subMenu = control.subMenu = UnityUtils.TryGetAsset(subMenuFolder + $"Group{groupIndex}Menu.asset", typeof(VRCExpressionsMenu)) as VRCExpressionsMenu;
                 var subMenuControls = subMenu.controls;
                 if (group.UseResetButton)
@@ -802,8 +448,8 @@ namespace YagihataItems.RadialInventorySystemV4
                     propControl.name = "Reset";
                     propControl.type = VRCExpressionsMenu.Control.ControlType.Toggle;
                     propControl.value = 1f;
-                    propControl.icon = Icons.ReloadIcon;
-                    propControl.parameter = new VRCExpressionsMenu.Control.Parameter() { name = $"RIS-G{groupIndex}RESET" };
+                    propControl.icon = TexAssets.ReloadIcon;
+                    propControl.parameter = new VRCExpressionsMenu.Control.Parameter() { name = $"{RIS.Prefix}-G{groupIndex}RESET" };
                     subMenuControls.Add(propControl);
                 }
                 foreach (var propIndex in Enumerable.Range(0, group.Props.Count))
@@ -816,10 +462,10 @@ namespace YagihataItems.RadialInventorySystemV4
                     propControl.name = propName;
                     propControl.type = VRCExpressionsMenu.Control.ControlType.Toggle;
                     propControl.value = 1f;
-                    propControl.parameter = new VRCExpressionsMenu.Control.Parameter() { name = $"RIS-G{groupIndex}P{propIndex}" };
+                    propControl.parameter = new VRCExpressionsMenu.Control.Parameter() { name = $"{RIS.Prefix}-G{groupIndex}P{propIndex}" };
                     propControl.icon = prop.Icon?.GetObject();
                     if (propControl.icon == null)
-                        propControl.icon = Icons.BoxIcon;
+                        propControl.icon = TexAssets.BoxIcon;
                     subMenuControls.Add(propControl);
                 }
                 subMenu.controls = subMenuControls;
@@ -852,6 +498,8 @@ namespace YagihataItems.RadialInventorySystemV4
             foreach (var name in fxLayer.parameters.Where(n => n.name.StartsWith("RIS")).Select(n => n.name))
                 fxLayer.TryRemoveParameter(name);
             fxLayer.parameters = parameters;
+            var fallbackClip = new AnimationClip();
+            var fallbackParamName = $"{RIS.Prefix}-Initialize";
             foreach (var groupIndex in Enumerable.Range(0, risAvatar.Groups.Count))
             {
                 var group = risAvatar.Groups[groupIndex];
@@ -861,6 +509,18 @@ namespace YagihataItems.RadialInventorySystemV4
                 foreach (var propIndex in Enumerable.Range(0, group.Props.Count))
                 {
                     var prop = group.Props[propIndex];
+                    var targetObject = prop?.GetFirstTargetObject(risAvatar);
+                    if(targetObject != null)
+                    {
+                        if (risAvatar.ApplyEnableDefault)
+                            targetObject.SetActive(prop.IsDefaultEnabled);
+                        var relativePath = targetObject.GetRelativePath(avatar.gameObject);
+                        var curve = new AnimationCurve();
+                        var frameValue = prop.IsDefaultEnabled ? 1 : 0;
+                        curve.AddKey(0f, frameValue);
+                        curve.AddKey(1f / fallbackClip.frameRate, frameValue);
+                        fallbackClip.SetCurve(relativePath, typeof(GameObject), "m_IsActive", curve);
+                    }
                     var propName = prop.GetPropName(risAvatar);
                     if (string.IsNullOrWhiteSpace(propName))
                         propName = "Prop" + propIndex.ToString();
@@ -888,13 +548,12 @@ namespace YagihataItems.RadialInventorySystemV4
                     transition.CreateSingleCondition(AnimatorConditionMode.IfNot, paramName, 1f, prop.IsLocalOnly && prop.IsDefaultEnabled, true);
                     if (exclusiveMode == RIS.ExclusiveModeType.LegacyExclusive)
                     {
-                        exclusiveGroupIndexes[groupIndex].Add(new IndexPair() { group = groupIndex, prop = propIndex });
+                        exclusiveGroupIndexes[groupIndex].Add(new IndexPair() { GroupIndex = groupIndex, PropIndex = propIndex });
                         stateMachine.defaultState = offState;
                     }
                     else
                     {
                         var clipName = "G" + groupIndex.ToString() + "P" + propIndex.ToString();
-                        var targetObject = prop?.GetFirstTargetObject(risAvatar);
                         var relativePath = targetObject.GetRelativePath(avatar.gameObject);
 
                         stateMachine.defaultState = prop.IsDefaultEnabled ? onState : offState;
@@ -996,7 +655,7 @@ namespace YagihataItems.RadialInventorySystemV4
                     if (activeIndex >= 0)
                     {
                         var targetPair = pairs[activeIndex];
-                        stateName = $"G{targetPair.group}P{targetPair.prop}ON";
+                        stateName = $"G{targetPair.GroupIndex}P{targetPair.PropIndex}ON";
                     }
                     var state = stateMachine.AddState(stateName, new Vector3(300, 200 + (activeIndex * 50), 0));
                     state.writeDefaultValues = risAvatar.UseWriteDefaults;
@@ -1011,8 +670,8 @@ namespace YagihataItems.RadialInventorySystemV4
                     foreach (var pairIndex in Enumerable.Range(0, pairs.Count))
                     {
                         var pair = pairs[pairIndex];
-                        var groupIndex = pair.group;
-                        var propIndex = pair.prop;
+                        var groupIndex = pair.GroupIndex;
+                        var propIndex = pair.PropIndex;
                         var group = risAvatar.Groups[groupIndex];
                         var prop = group.Props[propIndex];
                         var curve = new AnimationCurve();
@@ -1035,10 +694,10 @@ namespace YagihataItems.RadialInventorySystemV4
                     if (activeIndex != -1)
                     {
                         var targetPair = pairs[activeIndex];
-                        var paramName = $"{RIS.Prefix}-G{targetPair.group}P{targetPair.prop}";
+                        var paramName = $"{RIS.Prefix}-G{targetPair.GroupIndex}P{targetPair.PropIndex}";
                         CheckParam(avatar, fxLayer, paramName, false);
                         transition = stateMachine.MakeAnyStateTransition(state);
-                        var prop = risAvatar.Groups[targetPair.group].Props[targetPair.prop];
+                        var prop = risAvatar.Groups[targetPair.GroupIndex].Props[targetPair.PropIndex];
                         transition.CreateSingleCondition(AnimatorConditionMode.If, paramName, 1f, prop.IsLocalOnly && !prop.IsDefaultEnabled, true);
                     }
                     var clipName = $"PAIR{pairsIndex}-{stateName}";

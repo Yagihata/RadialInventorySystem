@@ -22,6 +22,8 @@ namespace YagihataItems.RadialInventorySystemV4
         [JsonProperty] public bool UseResetTimer { get; set; } = false;
         [JsonProperty] public float ResetSecond { get; set; } = 0f;
         [JsonProperty] public bool UseSaveParameter { get; set; } = true;
+        [JsonConverter(typeof(StringEnumConverter))] [JsonProperty] public RIS.BoneType AttachedBone { get; set; } = RIS.BoneType.None;
+        [JsonProperty] public List<IndexPair> PropSets { get; set; } = new List<IndexPair>();
         public string GetPropName(Avatar avatar)
         {
             if (!string.IsNullOrEmpty(Name))
@@ -56,9 +58,9 @@ namespace YagihataItems.RadialInventorySystemV4
             Icon.ForceReload();
             DisableAnimation.ForceReload();
             foreach (var v in MaterialOverrides)
-                v.ForceReload(parent);
+                v?.ForceReload(parent);
             foreach (var v in TargetObjects)
-                v.ForceReload(parent);
+                v?.ForceReload(parent);
         }
     }
 }

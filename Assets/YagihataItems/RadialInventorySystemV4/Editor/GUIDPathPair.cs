@@ -150,7 +150,9 @@ namespace YagihataItems.RadialInventorySystemV4
                             gameObj = (obj as MonoBehaviour).gameObject;
                         if (gameObj != null && parentObject != null && gameObj.IsChildOf(parentObject))
                         {
-                            if(gameObj.GetRelativePath(parentObject).EndsWith(ObjectPath))
+                            var path = gameObj.GetRelativePath(parentObject);
+                            var pathArr = path.Split('/');
+                            if (pathArr.Length > 0 && pathArr.Last() == ObjectPath)
                             {
                                 foundObjectFixed = gameObj;
                                 break;

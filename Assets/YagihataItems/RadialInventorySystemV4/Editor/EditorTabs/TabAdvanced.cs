@@ -22,8 +22,6 @@ namespace YagihataItems.RadialInventorySystemV4
         private ReorderableList propsReorderableList;
         private ReorderableList gameObjectsReorderableList = null;
         private ReorderableList materialsReorderableList = null;
-        private Texture2D redTexture = null;
-        private Texture2D blueTexture = null;
         private Group selectedGroup = null;
         private Prop selectedProp = null;
         public override void InitializeTab(ref Avatar risAvatar)
@@ -361,25 +359,13 @@ namespace YagihataItems.RadialInventorySystemV4
                         }
                         if (index >= maxPropCount)
                         {
-                            if (redTexture == null)
-                            {
-                                redTexture = new Texture2D(1, 1);
-                                redTexture.SetPixel(0, 0, new Color(1f, 0.5f, 0.5f, 0.5f));
-                                redTexture.Apply();
-                            }
-                            GUI.DrawTexture(rect, redTexture);
+                            GUI.DrawTexture(rect, TexAssets.RedTexture);
                         }
 
                     }
                     else
                     {
-                        if (blueTexture == null)
-                        {
-                            blueTexture = new Texture2D(1, 1);
-                            blueTexture.SetPixel(0, 0, new Color(0.5f, 0.5f, 1f, 0.5f));
-                            blueTexture.Apply();
-                        }
-                        GUI.DrawTexture(rect, blueTexture);
+                        GUI.DrawTexture(rect, TexAssets.BlueTexture);
                     }
                 },
                 drawFooterCallback = rect => { },
@@ -449,13 +435,7 @@ namespace YagihataItems.RadialInventorySystemV4
             {
                 if (isFocused)
                 {
-                    if (blueTexture == null)
-                    {
-                        blueTexture = new Texture2D(1, 1);
-                        blueTexture.SetPixel(0, 0, new Color(0.5f, 0.5f, 1f, 0.5f));
-                        blueTexture.Apply();
-                    }
-                    GUI.DrawTexture(rect, blueTexture);
+                    GUI.DrawTexture(rect, TexAssets.BlueTexture);
                 }
             };
             list.drawFooterCallback = rect => { };
@@ -536,27 +516,15 @@ namespace YagihataItems.RadialInventorySystemV4
                             var targetObject = gameObjects[index]?.GetObject(parent);
                             if (targetObject != null && !targetObject.IsChildOf(parent))
                             {
-                                if (redTexture == null)
-                                {
-                                    redTexture = new Texture2D(1, 1);
-                                    redTexture.SetPixel(0, 0, new Color(1f, 0.5f, 0.5f, 0.5f));
-                                    redTexture.Apply();
-                                }
-                                GUI.DrawTexture(rect, redTexture);
+                                GUI.DrawTexture(rect, TexAssets.RedTexture);
                             }
                         }
                     }
 
-                    }
-                    else
+                }
+                else
                 {
-                    if (blueTexture == null)
-                    {
-                        blueTexture = new Texture2D(1, 1);
-                        blueTexture.SetPixel(0, 0, new Color(0.5f, 0.5f, 1f, 0.5f));
-                        blueTexture.Apply();
-                    }
-                    GUI.DrawTexture(rect, blueTexture);
+                    GUI.DrawTexture(rect, TexAssets.BlueTexture);
                 }
             };
             list.drawFooterCallback = rect => { };
@@ -631,7 +599,7 @@ namespace YagihataItems.RadialInventorySystemV4
             {
                 var group = risAvatar.Groups[groupIndex];
                 if (group.UseResetButton)
-                    TryAddParam(ref risAvatar, $"RIS-G{groupIndex}RESET", 0f, false);
+                    TryAddParam(ref risAvatar, $"{RIS.Prefix}-G{groupIndex}RESET", 0f, false);
                 foreach (var propIndex in Enumerable.Range(0, group.Props.Count))
                 {
                     var prop = group.Props[propIndex];
@@ -639,9 +607,10 @@ namespace YagihataItems.RadialInventorySystemV4
                     if ((risAvatar.MenuMode == RIS.MenuModeType.Simple && risAvatar.GetExclusiveMode((RIS.ExclusiveGroupType)groupIndex) == RIS.ExclusiveModeType.LegacyExclusive) ||
                         (risAvatar.MenuMode == RIS.MenuModeType.Advanced && prop.ExclusiveGroup != RIS.ExclusiveGroupType.None))
                         v2Mode = true;
-                    TryAddParam(ref risAvatar, $"RIS-G{groupIndex}P{propIndex}", prop.IsDefaultEnabled && !v2Mode ? 1f : 0f, prop.UseSaveParameter);
+                    TryAddParam(ref risAvatar, $"{RIS.Prefix}-G{groupIndex}P{propIndex}", prop.IsDefaultEnabled && !v2Mode ? 1f : 0f, prop.UseSaveParameter);
                 }
             }
+            TryAddParam(ref risAvatar, $"{RIS.Prefix}-Initialize", 1f, true);
             avatar.expressionParameters = expParams;
             EditorUtility.SetDirty(avatar);
             EditorUtility.SetDirty(avatar.expressionParameters);
@@ -668,7 +637,7 @@ namespace YagihataItems.RadialInventorySystemV4
                 controls.Add(risControl = new VRCExpressionsMenu.Control() { name = "Radial Inventory" });
             rootMenu.controls = controls;
 
-            risControl.icon = Icons.MenuIcon;
+            risControl.icon = TexAssets.MenuIcon;
             risControl.type = VRCExpressionsMenu.Control.ControlType.SubMenu;
             risControl.subMenu = menu = UnityUtils.TryGetAsset(autoGeneratedFolder + $"RadInvMainMenu.asset", typeof(VRCExpressionsMenu)) as VRCExpressionsMenu;
 
@@ -688,7 +657,7 @@ namespace YagihataItems.RadialInventorySystemV4
                 control.type = VRCExpressionsMenu.Control.ControlType.SubMenu;
                 control.icon = group.Icon?.GetObject();
                 if (control.icon == null)
-                    control.icon = Icons.GroupIcon;
+                    control.icon = TexAssets.GroupIcon;
                 if (group.BaseMenu?.GetObject() != null)
                     AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(group.BaseMenu.GetObject()), subMenuFolder + $"Group{groupIndex}Menu.asset");
                 VRCExpressionsMenu subMenu = control.subMenu = UnityUtils.TryGetAsset(subMenuFolder + $"Group{groupIndex}Menu.asset", typeof(VRCExpressionsMenu)) as VRCExpressionsMenu;
@@ -699,8 +668,8 @@ namespace YagihataItems.RadialInventorySystemV4
                     propControl.name = "Reset";
                     propControl.type = VRCExpressionsMenu.Control.ControlType.Toggle;
                     propControl.value = 1f;
-                    propControl.icon = Icons.ReloadIcon;
-                    propControl.parameter = new VRCExpressionsMenu.Control.Parameter() { name = $"RIS-G{groupIndex}RESET" };
+                    propControl.icon = TexAssets.ReloadIcon;
+                    propControl.parameter = new VRCExpressionsMenu.Control.Parameter() { name = $"{RIS.Prefix}-G{groupIndex}RESET" };
                     subMenuControls.Add(propControl);
                 }
                 foreach (var propIndex in Enumerable.Range(0, group.Props.Count))
@@ -713,10 +682,10 @@ namespace YagihataItems.RadialInventorySystemV4
                     propControl.name = propName;
                     propControl.type = VRCExpressionsMenu.Control.ControlType.Toggle;
                     propControl.value = 1f;
-                    propControl.parameter = new VRCExpressionsMenu.Control.Parameter() { name = $"RIS-G{groupIndex}P{propIndex}" };
+                    propControl.parameter = new VRCExpressionsMenu.Control.Parameter() { name = $"{RIS.Prefix}-G{groupIndex}P{propIndex}" };
                     propControl.icon = prop.Icon?.GetObject();
                     if (propControl.icon == null)
-                        propControl.icon = Icons.BoxIcon;
+                        propControl.icon = TexAssets.BoxIcon;
                     subMenuControls.Add(propControl);
                 }
                 subMenu.controls = subMenuControls;
@@ -747,7 +716,6 @@ namespace YagihataItems.RadialInventorySystemV4
                 fxLayer.TryRemoveParameter(name);
             parameters = fxLayer.parameters;
 
-
             //Layer 0: Off Timer
             //Layer 1: Prop Toggles
             //Layer 2: Props Toggle(LegacyExclusive)
@@ -766,6 +734,8 @@ namespace YagihataItems.RadialInventorySystemV4
             var exclusiveGroups = Enum.GetNames(typeof(RIS.ExclusiveGroupType)).ToList();
             exclusiveGroups.Remove(RIS.ExclusiveGroupType.None.ToString());
             List<IndexPair>[] exclusiveoGroupIndexes = exclusiveGroups.Select(n => new List<IndexPair>()).ToArray();
+            var fallbackClip = new AnimationClip();
+            var fallbackParamName = $"{RIS.Prefix}-Initialize";
             foreach (var groupIndex in Enumerable.Range(0, risAvatar.Groups.Count))
             {
                 var group = risAvatar.Groups[groupIndex];
@@ -774,7 +744,25 @@ namespace YagihataItems.RadialInventorySystemV4
                 foreach (var propIndex in Enumerable.Range(0, group.Props.Count))
                 {
                     var prop = group.Props[propIndex];
-                    var pair = new IndexPair() { group = groupIndex, prop = propIndex };
+
+                    foreach (var targetObject in prop.TargetObjects)
+                    {
+                        var gameObject = targetObject.GetObject(avatar.gameObject);
+                        if (gameObject != null)
+                        {
+                            if (risAvatar.ApplyEnableDefault)
+                                gameObject.SetActive(prop.IsDefaultEnabled);
+                            var relativePath = gameObject.GetRelativePath(avatar.gameObject);
+                            var curve = new AnimationCurve();
+                            var frameValue = prop.IsDefaultEnabled ? 1 : 0;
+                            curve.AddKey(0f, frameValue);
+                            curve.AddKey(1f / fallbackClip.frameRate, frameValue);
+                            fallbackClip.SetCurve(relativePath, typeof(GameObject), "m_IsActive", curve);
+                        }
+                    }
+
+
+                    var pair = new IndexPair() { GroupIndex = groupIndex, PropIndex = propIndex };
 
                     if (prop.UseResetTimer)
                         propLayer0.Add(pair, prop);
@@ -793,13 +781,13 @@ namespace YagihataItems.RadialInventorySystemV4
                                 propLayer3.Add(pair, prop);
                             else
                                 propLayer2.Add(pair, prop);
-                            if (prop.ExclusiveGroup != RIS.ExclusiveGroupType.None && !exclusiveoGroupIndexes[(int)prop.ExclusiveGroup].Any(v => v.group == pair.group && v.prop == pair.prop))
+                            if (prop.ExclusiveGroup != RIS.ExclusiveGroupType.None && !exclusiveoGroupIndexes[(int)prop.ExclusiveGroup].Any(v => v.GroupIndex == pair.GroupIndex && v.PropIndex == pair.PropIndex))
                                 exclusiveoGroupIndexes[(int)prop.ExclusiveGroup].Add(pair);
                         }
                         if (prop.EnableAnimation?.GetObject() != null || prop.DisableAnimation?.GetObject() != null)
                         {
                             propLayer5.Add(pair, prop);
-                            if (prop.ExclusiveGroup != RIS.ExclusiveGroupType.None && !exclusiveoGroupIndexes[(int)prop.ExclusiveGroup].Any(v => v.group == pair.group && v.prop == pair.prop))
+                            if (prop.ExclusiveGroup != RIS.ExclusiveGroupType.None && !exclusiveoGroupIndexes[(int)prop.ExclusiveGroup].Any(v => v.GroupIndex == pair.GroupIndex && v.PropIndex == pair.PropIndex))
                                 exclusiveoGroupIndexes[(int)prop.ExclusiveGroup].Add(pair);
                         }
                     }
@@ -811,13 +799,13 @@ namespace YagihataItems.RadialInventorySystemV4
                                 propLayer3.Add(pair, prop);
                             else
                                 propLayer1.Add(pair, prop);
-                            if (prop.ExclusiveGroup != RIS.ExclusiveGroupType.None && !exclusiveoGroupIndexes[(int)prop.ExclusiveGroup].Any(v => v.group == pair.group && v.prop == pair.prop))
+                            if (prop.ExclusiveGroup != RIS.ExclusiveGroupType.None && !exclusiveoGroupIndexes[(int)prop.ExclusiveGroup].Any(v => v.GroupIndex == pair.GroupIndex && v.PropIndex == pair.PropIndex))
                                 exclusiveoGroupIndexes[(int)prop.ExclusiveGroup].Add(pair);
                         }
                         if (prop.EnableAnimation?.GetObject() != null || prop.DisableAnimation?.GetObject() != null)
                         {
                             propLayer4.Add(pair, prop);
-                            if (prop.ExclusiveGroup != RIS.ExclusiveGroupType.None && !exclusiveoGroupIndexes[(int)prop.ExclusiveGroup].Any(v => v.group == pair.group && v.prop == pair.prop))
+                            if (prop.ExclusiveGroup != RIS.ExclusiveGroupType.None && !exclusiveoGroupIndexes[(int)prop.ExclusiveGroup].Any(v => v.GroupIndex == pair.GroupIndex && v.PropIndex == pair.PropIndex))
                                 exclusiveoGroupIndexes[(int)prop.ExclusiveGroup].Add(pair);
                         }
                     }
@@ -825,11 +813,16 @@ namespace YagihataItems.RadialInventorySystemV4
                 }
 
             }
+
+            CheckParam(avatar, fxLayer, fallbackParamName, false);
+            AssetDatabase.CreateAsset(fallbackClip, animationsFolder + $"FallbackClip" + ".anim");
+            EditorUtility.SetDirty(fallbackClip);
+
             //Layer 0: Off Timer
-            foreach(var pair in propLayer0)
+            foreach (var pair in propLayer0)
             {
-                var groupIndex = pair.Key.group;
-                var propIndex = pair.Key.prop;
+                var groupIndex = pair.Key.GroupIndex;
+                var propIndex = pair.Key.PropIndex;
                 var prop = pair.Value;
                 var paramName = $"{RIS.Prefix}-G{groupIndex}P{propIndex}";
 
@@ -939,14 +932,14 @@ namespace YagihataItems.RadialInventorySystemV4
                 foreach (var pairIndex in Enumerable.Range(0, indexes.Count))
                 {
                     var pair = indexes[pairIndex];
-                    var groupIndex = pair.group;
-                    var propIndex = pair.prop;
+                    var groupIndex = pair.GroupIndex;
+                    var propIndex = pair.PropIndex;
                     var paramName = $"{RIS.Prefix}-G{groupIndex}P{propIndex}";
                     CheckParam(avatar, fxLayer, paramName, false);
                     defaultTransition.AddCondition(AnimatorConditionMode.IfNot, paramName, 1f, false, true);
 
 
-                    stateName = $"G{pair.group}P{pair.prop}ON";
+                    stateName = $"G{pair.GroupIndex}P{pair.PropIndex}ON";
                     var state = stateMachine.AddState(stateName, new Vector3(300, 200 + (pairIndex * 50), 0));
                     state.writeDefaultValues = risAvatar.UseWriteDefaults;
                     var driver = state.AddStateMachineBehaviour<VRCAvatarParameterDriver>();
@@ -955,8 +948,8 @@ namespace YagihataItems.RadialInventorySystemV4
                     foreach (var subPairIndex in Enumerable.Range(0, indexes.Count))
                     {
                         var subPair = indexes[subPairIndex];
-                        var subGroupIndex = subPair.group;
-                        var subPropIndex = subPair.prop;
+                        var subGroupIndex = subPair.GroupIndex;
+                        var subPropIndex = subPair.PropIndex;
                         if (groupIndex != subGroupIndex || propIndex != subPropIndex)
                         {
                             var driverParameters = driver.parameters;
@@ -978,8 +971,8 @@ namespace YagihataItems.RadialInventorySystemV4
             //Layer 1: Prop Toggles(Exclusive=None)
             foreach (var pair in propLayer1)
             {
-                var groupIndex = pair.Key.group;
-                var propIndex = pair.Key.prop;
+                var groupIndex = pair.Key.GroupIndex;
+                var propIndex = pair.Key.PropIndex;
                 var prop = pair.Value;
                 var paramName = $"{RIS.Prefix}-G{groupIndex}P{propIndex}";
 
@@ -1068,8 +1061,8 @@ namespace YagihataItems.RadialInventorySystemV4
 
                 foreach (var pair in indexPairs)
                 {
-                    var groupIndex = pair.group;
-                    var propIndex = pair.prop;
+                    var groupIndex = pair.GroupIndex;
+                    var propIndex = pair.PropIndex;
                     var group = risAvatar.Groups[groupIndex];
                     var prop = group.Props[propIndex];
                     var paramName = $"{RIS.Prefix}-G{groupIndex}P{propIndex}";
@@ -1097,7 +1090,7 @@ namespace YagihataItems.RadialInventorySystemV4
                 foreach (var pairIndex in Enumerable.Range(0, indexPairs.Count))
                 {
                     var mainPair = indexPairs[pairIndex];
-                    stateName = $"G{mainPair.group}P{mainPair.prop}ON";
+                    stateName = $"G{mainPair.GroupIndex}P{mainPair.PropIndex}ON";
                     var state = stateMachine.AddState(stateName, new Vector3(300, 200 + (pairIndex * 50), 0));
                     state.writeDefaultValues = risAvatar.UseWriteDefaults;
                     var clip = new AnimationClip();
@@ -1105,8 +1098,8 @@ namespace YagihataItems.RadialInventorySystemV4
                     foreach (var subPairIndex in Enumerable.Range(0, indexPairs.Count))
                     {
                         var pair = indexPairs[subPairIndex];
-                        var groupIndex = pair.group;
-                        var propIndex = pair.prop;
+                        var groupIndex = pair.GroupIndex;
+                        var propIndex = pair.PropIndex;
                         var curve = new AnimationCurve();
                         var frameValue = pairIndex == subPairIndex ? 1 : 0;
                         foreach (var gameObject in risAvatar.Groups[groupIndex].Props[propIndex].TargetObjects)
@@ -1120,10 +1113,10 @@ namespace YagihataItems.RadialInventorySystemV4
                             }
                         }
                     }
-                    var paramName = $"{RIS.Prefix}-G{mainPair.group}P{mainPair.prop}";
+                    var paramName = $"{RIS.Prefix}-G{mainPair.GroupIndex}P{mainPair.PropIndex}";
                     CheckParam(avatar, fxLayer, paramName, false);
                     transition = stateMachine.MakeAnyStateTransition(state);
-                    var prop = risAvatar.Groups[mainPair.group].Props[mainPair.prop];
+                    var prop = risAvatar.Groups[mainPair.GroupIndex].Props[mainPair.PropIndex];
                     transition.CreateSingleCondition(AnimatorConditionMode.If, paramName, 1f, prop.IsLocalOnly && !prop.IsDefaultEnabled, true);
 
                     clipName = $"PAIR{(int)enumValue}-{stateName}";
@@ -1137,8 +1130,8 @@ namespace YagihataItems.RadialInventorySystemV4
             var materialDatas = new Dictionary<GameObject, List<MaterialOverrideData>>();
             foreach (var pair in propLayer3)
             {
-                var groupIndex = pair.Key.group;
-                var propIndex = pair.Key.prop;
+                var groupIndex = pair.Key.GroupIndex;
+                var propIndex = pair.Key.PropIndex;
                 var prop = pair.Value;
                 foreach (var gameObject in prop.TargetObjects)
                 {
@@ -1147,7 +1140,7 @@ namespace YagihataItems.RadialInventorySystemV4
                     {
                         if (!materialDatas.ContainsKey(targetObject))
                             materialDatas.Add(targetObject, new List<MaterialOverrideData>());
-                        materialDatas[targetObject].Add(new MaterialOverrideData() { materials = prop.MaterialOverrides.Select(v => v?.GetObject()).ToList(), index = new IndexPair() { group = groupIndex, prop = propIndex } });
+                        materialDatas[targetObject].Add(new MaterialOverrideData() { materials = prop.MaterialOverrides.Select(v => v?.GetObject()).ToList(), index = new IndexPair() { GroupIndex = groupIndex, PropIndex = propIndex } });
                     }
                 }
             }
@@ -1186,12 +1179,12 @@ namespace YagihataItems.RadialInventorySystemV4
                             var materialReference = materials[materialIndex];
                             //var material = materialReference.material;
                             var clipON = new AnimationClip();
-                            var prop = risAvatar.Groups[materialReference.index.group].Props[materialReference.index.prop];
+                            var prop = risAvatar.Groups[materialReference.index.GroupIndex].Props[materialReference.index.PropIndex];
                             var onState = stateMachine.AddState($"MATERIAL-{materialIndex}", new Vector3(300, 50 * (materialIndex + 1), 0));
                             onState.writeDefaultValues = risAvatar.UseWriteDefaults;
                             var onTransition = stateMachine.MakeAnyStateTransition(onState);
 
-                            var paramName = $"{RIS.Prefix}-G{materialReference.index.group}P{materialReference.index.prop}";
+                            var paramName = $"{RIS.Prefix}-G{materialReference.index.GroupIndex}P{materialReference.index.PropIndex}";
                             CheckParam(avatar, fxLayer, paramName, prop.IsDefaultEnabled);
                             if (prop.IsLocalOnly)
                                 CheckParam(avatar, fxLayer, "IsLocal", false);
@@ -1206,8 +1199,8 @@ namespace YagihataItems.RadialInventorySystemV4
                                     foreach (var subPropIndex in Enumerable.Range(0, subGroup.Props.Count))
                                     {
                                         var subProp = subGroup.Props[subPropIndex];
-                                        var groupIndex = materialReference.index.group;
-                                        var propIndex = materialReference.index.prop;
+                                        var groupIndex = materialReference.index.GroupIndex;
+                                        var propIndex = materialReference.index.PropIndex;
                                         if (!(groupIndex == subGroupIndex && propIndex == subPropIndex) && subProp.ExclusiveGroup == prop.ExclusiveGroup)
                                         {
                                             var groupMode = risAvatar.GetExclusiveMode(prop.ExclusiveGroup);
@@ -1227,8 +1220,8 @@ namespace YagihataItems.RadialInventorySystemV4
                                 if (subMaterialIndex != materialIndex)
                                 {
                                     var subMaterial = materials[subMaterialIndex];
-                                    var groupIndex = subMaterial.index.group;
-                                    var propIndex = subMaterial.index.prop;
+                                    var groupIndex = subMaterial.index.GroupIndex;
+                                    var propIndex = subMaterial.index.PropIndex;
 
                                     var subProp = risAvatar.Groups[groupIndex].Props[propIndex];
                                     var paramKey = $"{RIS.Prefix}-G{groupIndex}P{propIndex}";
@@ -1242,7 +1235,7 @@ namespace YagihataItems.RadialInventorySystemV4
                                         dict.Add(paramKey, 0);
                                 }
                             }
-                            var removeKey = $"{RIS.Prefix}-G{materialReference.index.group}P{materialReference.index.prop}";
+                            var removeKey = $"{RIS.Prefix}-G{materialReference.index.GroupIndex}P{materialReference.index.PropIndex}";
                             if (dict.ContainsKey(removeKey))
                                 dict.Remove(removeKey);
                             var driver = onState.AddStateMachineBehaviour<VRCAvatarParameterDriver>();
@@ -1372,8 +1365,8 @@ namespace YagihataItems.RadialInventorySystemV4
                         var offTransition = stateMachine.MakeAnyStateTransition(offState);
                         foreach (var material in materials)
                         {
-                            var prop = risAvatar.Groups[material.index.group].Props[material.index.prop];
-                            offTransition.AddCondition(AnimatorConditionMode.IfNot, $"{RIS.Prefix}-G{material.index.group}P{material.index.prop}", 0f, prop.IsLocalOnly && !prop.IsDefaultEnabled, true);
+                            var prop = risAvatar.Groups[material.index.GroupIndex].Props[material.index.PropIndex];
+                            offTransition.AddCondition(AnimatorConditionMode.IfNot, $"{RIS.Prefix}-G{material.index.GroupIndex}P{material.index.PropIndex}", 0f, prop.IsLocalOnly && !prop.IsDefaultEnabled, true);
                         }
                         EditorUtility.SetDirty(clipOFF);
                         layer.stateMachine = stateMachine;
@@ -1384,8 +1377,8 @@ namespace YagihataItems.RadialInventorySystemV4
             //Layer 4: Animation Toggles
             foreach (var pair in propLayer4)
             {
-                var groupIndex = pair.Key.group;
-                var propIndex = pair.Key.prop;
+                var groupIndex = pair.Key.GroupIndex;
+                var propIndex = pair.Key.PropIndex;
                 var prop = pair.Value;
                 var paramName = $"{RIS.Prefix}-G{groupIndex}P{propIndex}";
 
@@ -1444,8 +1437,8 @@ namespace YagihataItems.RadialInventorySystemV4
 
                 foreach (var pair in indexPairs)
                 {
-                    var groupIndex = pair.group;
-                    var propIndex = pair.prop;
+                    var groupIndex = pair.GroupIndex;
+                    var propIndex = pair.PropIndex;
                     var group = risAvatar.Groups[groupIndex];
                     var prop = group.Props[propIndex];
                     var paramName = $"{RIS.Prefix}-G{groupIndex}P{propIndex}";
@@ -1459,20 +1452,46 @@ namespace YagihataItems.RadialInventorySystemV4
                 foreach (var pairIndex in Enumerable.Range(0, indexPairs.Count))
                 {
                     var mainPair = indexPairs[pairIndex];
-                    stateName = $"G{mainPair.group}P{mainPair.prop}ON";
+                    stateName = $"G{mainPair.GroupIndex}P{mainPair.PropIndex}ON";
                     var state = stateMachine.AddState(stateName, new Vector3(300, 200 + (pairIndex * 50), 0));
                     state.writeDefaultValues = risAvatar.UseWriteDefaults;
                     AnimatorStateTransition transition = null;
-                    var paramName = $"{RIS.Prefix}-G{mainPair.group}P{mainPair.prop}";
+                    var paramName = $"{RIS.Prefix}-G{mainPair.GroupIndex}P{mainPair.PropIndex}";
                     CheckParam(avatar, fxLayer, paramName, false);
                     transition = stateMachine.MakeAnyStateTransition(state);
-                    var prop = risAvatar.Groups[mainPair.group].Props[mainPair.prop];
+                    var prop = risAvatar.Groups[mainPair.GroupIndex].Props[mainPair.PropIndex];
                     transition.CreateSingleCondition(AnimatorConditionMode.If, paramName, 1f, prop.IsLocalOnly && !prop.IsDefaultEnabled, true);
 
                     state.motion = prop.EnableAnimation?.GetObject();
                 }
                 EditorUtility.SetDirty(animLayer.stateMachine);
             }
+
+            var targetLayerIndex = fxLayer.layers.Length;
+            var fallbackLayerName = $"{RIS.Prefix}-Initialize";
+            var fallbackLayer = fxLayer.FindAnimatorControllerLayer(fallbackLayerName);
+            if (fallbackLayer == null)
+                fallbackLayer = fxLayer.AddAnimatorControllerLayer(fallbackLayerName);
+            var fallbackMachine = fallbackLayer.stateMachine;
+            fallbackMachine.Clear();
+
+            var nonInitializeState = fallbackMachine.AddState("Non-Initialize", new Vector3(300, 100, 0));
+            nonInitializeState.writeDefaultValues = risAvatar.UseWriteDefaults;
+            var initializeState = fallbackMachine.AddState("Initialized", new Vector3(300, 200, 0));
+            initializeState.writeDefaultValues = risAvatar.UseWriteDefaults;
+
+            nonInitializeState.motion = fallbackClip;
+
+            var fallbackTransition = fallbackMachine.MakeAnyStateTransition(nonInitializeState);
+            fallbackTransition.CreateSingleCondition(AnimatorConditionMode.IfNot, fallbackParamName, 1f, false, false);
+            fallbackTransition = fallbackMachine.MakeAnyStateTransition(initializeState);
+            fallbackTransition.CreateSingleCondition(AnimatorConditionMode.If, fallbackParamName, 1f, false, false);
+
+            var fallbackDriver = initializeState.AddStateMachineBehaviour<VRCAnimatorLayerControl>();
+            fallbackDriver.playable = VRC_AnimatorLayerControl.BlendableLayer.FX;
+            fallbackDriver.layer = targetLayerIndex;
+            fallbackDriver.goalWeight = 0f;
+            EditorUtility.SetDirty(fallbackLayer.stateMachine);
             AssetDatabase.SaveAssets();
 
         }
