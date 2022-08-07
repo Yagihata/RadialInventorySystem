@@ -26,6 +26,8 @@ namespace YagihataItems.RadialInventorySystemV4
             try
             {
                 TextAsset json = AssetDatabase.LoadAssetAtPath<TextAsset>($"{RIS.WorkFolderPath}LanguageFiles/RISV4_{CultureInfo.CurrentCulture.Name}.json");
+                if (json == null)
+                    json = AssetDatabase.LoadAssetAtPath<TextAsset>($"{RIS.WorkFolderPath}LanguageFiles/RISV4_default.json");
                 if (json != null)
                     texts = JsonConvert.DeserializeObject<Dictionary<string, string>>(json.text);
             }
