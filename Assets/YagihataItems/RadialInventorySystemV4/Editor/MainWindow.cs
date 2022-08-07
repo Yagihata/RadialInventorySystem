@@ -69,6 +69,7 @@ namespace YagihataItems.RadialInventorySystemV4
         }
         private void OnGUI()
         {
+            AdsUpdater.DoUpdate();
             if(tabItems == null)
             {
                 tabItems = new Dictionary<RIS.MenuModeType, EditorTab>();
@@ -284,8 +285,8 @@ namespace YagihataItems.RadialInventorySystemV4
                                 var y = (int)adsScope.rect.y;
                                 if (y > 0)
                                     beforeY = y;
-                                var label = string.IsNullOrEmpty(RISStrings.CurrentAdsURL) ? "" : RISStrings.GetString("click_open");
-                                EditorGUILayoutExtra.HeaderWithVersionInfo(TexAssets.AdsTexture, width == beforeWidth ? width : beforeWidth, height, "", "[AD]", "", label, RISStrings.CurrentAdsURL, beforeY + 10);
+                                var label = string.IsNullOrEmpty(AdsUpdater.CurrentAdsURL) ? "" : RISStrings.GetString("click_open");
+                                EditorGUILayoutExtra.HeaderWithVersionInfo(TexAssets.AdsTexture, (width == beforeWidth ? width : beforeWidth) - 10, height, "", "[AD]", "", label, AdsUpdater.CurrentAdsURL, beforeY + 10);
                             }
                             using (new EditorGUILayout.HorizontalScope())
                             {
