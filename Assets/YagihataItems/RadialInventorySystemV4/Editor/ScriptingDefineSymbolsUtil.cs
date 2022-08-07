@@ -15,17 +15,13 @@ namespace YagihataItems.RadialInventorySystemV4
         {
             BuildTargetGroup.Android,
             BuildTargetGroup.Standalone, 
-            /*...必要なものを...*/
         };
-
         public static string CurrentSymbols
         {
             get { return String.Join(";", currentSymbols.ToArray()); }
         }
-
         static ScriptingDefineSymbolsUtil()
         {
-            //インスペクタ上では;区切り
             currentSymbols = PlayerSettings.GetScriptingDefineSymbolsForGroup(BuildTargetGroup.Standalone).Split(';');
         }
 
@@ -38,8 +34,6 @@ namespace YagihataItems.RadialInventorySystemV4
             }
 
         }
-
-
 
         public static void Add(params string[] symbols)
         {

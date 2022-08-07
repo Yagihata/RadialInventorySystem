@@ -18,8 +18,6 @@ namespace YagihataItems.RadialInventorySystemV4
 
             listRequest = Client.List();
             EditorApplication.update += UpdateList;
-            /*addRequest = Client.Add();
-            EditorApplication.update += AddPackage;*/
 
         }
         static void AddPackage()

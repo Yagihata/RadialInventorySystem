@@ -22,6 +22,8 @@ namespace YagihataItems.RadialInventorySystemV4
         public const string ManualUrl = "https://www.negura-karasu.net/archives/1456";
         public const string TwitterUrl = "https://twitter.com/Yagihata4x";
         public const string DownloadUrl = "https://yagihata.booth.pm/items/2278448";
+        public const string AdsUrl = "https://negura-karasu.net/radialinventory/ads/";
+        public const string PRUrl = "https://yagihata.fanbox.cc/posts/4256456";
         public const VRCExpressionParameters.ValueType IntParam = VRCExpressionParameters.ValueType.Int;
         public const VRCExpressionParameters.ValueType BoolParam = VRCExpressionParameters.ValueType.Bool;
         public enum MenuModeType

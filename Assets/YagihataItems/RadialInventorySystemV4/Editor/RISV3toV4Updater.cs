@@ -40,7 +40,7 @@ namespace YagihataItems.RadialInventorySystemV4
 			else
 			{
 				ScriptingDefineSymbolsUtil.Remove("RISV4_V3");
-				EditorUtility.DisplayDialog("Radial Inventory System", $"Radial Inventory System V3のクラスファイルが見つかりません。", "OK");
+				EditorUtility.DisplayDialog(RISStrings.GetString("ris"), RISStrings.GetString("missing_v3"), RISStrings.GetString("ok"));
 			}
 
 		}

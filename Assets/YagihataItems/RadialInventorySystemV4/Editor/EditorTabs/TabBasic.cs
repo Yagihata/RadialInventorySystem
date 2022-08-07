@@ -28,36 +28,35 @@ namespace YagihataItems.RadialInventorySystemV4
                 return new string[] { };
 
             var errors = new List<string>();
-            var prefixText = "グループ";
             if (risAvatar.Groups.Count == 0)
-                errors.Add(prefixText + "を追加してください。");
+                errors.Add(RISStrings.GetString("err_addgroup"));
 
             foreach (var groupIndex in Enumerable.Range(0, risAvatar.Groups.Count))
             {
                 var group = risAvatar.Groups[groupIndex];
                 var groupName = group.Name;
                 if (string.IsNullOrEmpty(groupName))
-                    groupName = "Group" + risAvatar.Groups.IndexOf(group);
+                    groupName = string.Format(RISStrings.GetString("defaultname_group"), risAvatar.Groups.IndexOf(group));
 
                 if (!group.Props.Any())
-                    errors.Add($"{prefixText}[{groupName}]にプロップが登録されていません。");
+                    errors.Add(string.Format(RISStrings.GetString("error_emptygroup"), groupName));
 
                 var maxPropsCount = 8;
                 if (group.UseResetButton)
                     maxPropsCount = 7;
                 if (group.Props.Count > maxPropsCount)
-                    errors.Add($"{prefixText}[{groupName}]" + string.Format("のプロップ数がオーバーしています。(最大{0})", maxPropsCount));
+                    errors.Add(string.Format(RISStrings.GetString("err_overprop"), groupName, maxPropsCount));
 
                 foreach (var prop in group.Props)
                 {
                     var propName = prop.Name;
                     if (string.IsNullOrEmpty(propName))
-                        propName = "Prop" + group.Props.IndexOf(prop);
+                        propName = string.Format(RISStrings.GetString("defaultname_prop"), group.Props.IndexOf(prop));
                     if (risAvatar.GetAvatarRoot() != null)
                     {
                         var parentGameObject = risAvatar.GetAvatarRoot()?.gameObject;
                         if (prop.TargetObjects.Count <= 0 || prop.TargetObjects[0]?.GetObject(parentGameObject) == null)
-                            errors.Add($"{prefixText}[{groupName}]のプロップ" + $"[{propName}]にオブジェクトが登録されていません。");
+                            errors.Add(string.Format(RISStrings.GetString("err_nullobject"), groupName, propName));
                     }
                 }
             }
@@ -112,18 +111,18 @@ namespace YagihataItems.RadialInventorySystemV4
                 {
                     using (new EditorGUILayout.VerticalScope(GUILayout.Width(cellWidth + 20)))
                     {
-                        EditorGUIUtility.labelWidth = 100;
-                        EditorGUILayout.LabelField("グループ設定", new GUIStyle("ProjectBrowserHeaderBgTop"), GUILayout.ExpandWidth(true));
+                        EditorGUIUtility.labelWidth = RISStrings.GetWidth(2);
+                        EditorGUILayout.LabelField(RISStrings.GetString("group_settings"), new GUIStyle("ProjectBrowserHeaderBgTop"), GUILayout.ExpandWidth(true));
                         GUILayout.Space(3);
-                        selectedGroup.Name = EditorGUILayout.TextField("グループ名", selectedGroup.Name);
+                        selectedGroup.Name = EditorGUILayout.TextField(RISStrings.GetString("group_name"), selectedGroup.Name);
 
                         EditorGUI.BeginChangeCheck();
 
                         var icon = selectedGroup.Icon.GetObject();
-                        icon = (Texture2D)EditorGUILayout.ObjectField("アイコン", icon, typeof(Texture2D), false, GUILayout.Height(EditorGUIUtility.singleLineHeight));
+                        icon = (Texture2D)EditorGUILayout.ObjectField(RISStrings.GetString("icon"), icon, typeof(Texture2D), false, GUILayout.Height(EditorGUIUtility.singleLineHeight));
 
                         exclusiveMode = risAvatar.GetExclusiveMode((RIS.ExclusiveGroupType)groupIndex);
-                        exclusiveMode = (RIS.ExclusiveModeType)EditorGUILayout.EnumPopup("排他モード", exclusiveMode);
+                        exclusiveMode = (RIS.ExclusiveModeType)EditorGUILayout.EnumPopup(RISStrings.GetString("exclusive_mode"), exclusiveMode);
 
                         if (EditorGUI.EndChangeCheck())
                         {
@@ -131,7 +130,7 @@ namespace YagihataItems.RadialInventorySystemV4
                             risAvatar.SetExclusiveMode((RIS.ExclusiveGroupType)groupIndex, exclusiveMode);
                         }
 
-                        selectedGroup.UseResetButton = EditorGUILayout.Toggle("リセットボタン", selectedGroup.UseResetButton);
+                        selectedGroup.UseResetButton = EditorGUILayout.Toggle(RISStrings.GetString("reset_button"), selectedGroup.UseResetButton);
                         if (selectedGroupIsChanged)
                             InitializePropList(selectedGroup, risAvatar);
                         using (var scope = new EditorGUILayout.HorizontalScope())
@@ -167,15 +166,15 @@ namespace YagihataItems.RadialInventorySystemV4
                     {
                         GUIStyle headerStyle = new GUIStyle("HeaderLabel");
                         headerStyle.margin = new RectOffset(5, 5, 20, 20);
-                        EditorGUILayout.LabelField("プロップ設定", new GUIStyle("ProjectBrowserHeaderBgTop"), GUILayout.ExpandWidth(true));
+                        EditorGUILayout.LabelField(RISStrings.GetString("prop_settings"), new GUIStyle("ProjectBrowserHeaderBgTop"), GUILayout.ExpandWidth(true));
                         GUILayout.Space(3);
-                        EditorGUIUtility.labelWidth = 100;
-                        selectedProp.Name = EditorGUILayout.TextField("プロップ名", selectedProp.Name);
+                        EditorGUIUtility.labelWidth = RISStrings.GetWidth(3);
+                        selectedProp.Name = EditorGUILayout.TextField(RISStrings.GetString("prop_name"), selectedProp.Name);
 
                         EditorGUI.BeginChangeCheck();
 
                         var icon = selectedProp.Icon.GetObject();
-                        icon = (Texture2D)EditorGUILayout.ObjectField("アイコン", icon, typeof(Texture2D), false, GUILayout.Height(EditorGUIUtility.singleLineHeight));
+                        icon = (Texture2D)EditorGUILayout.ObjectField(RISStrings.GetString("icon"), icon, typeof(Texture2D), false, GUILayout.Height(EditorGUIUtility.singleLineHeight));
                         if (EditorGUI.EndChangeCheck())
                             selectedProp.Icon.SetObject(icon);
 
@@ -184,9 +183,9 @@ namespace YagihataItems.RadialInventorySystemV4
                         else
                             selectedProp.ExclusiveGroup = (RIS.ExclusiveGroupType)groupIndex;
 
-                        selectedProp.IsDefaultEnabled = EditorGUILayout.Toggle("初期状態", selectedProp.IsDefaultEnabled);
-                        selectedProp.IsLocalOnly = EditorGUILayout.Toggle("ローカル動作", selectedProp.IsLocalOnly);
-                        selectedProp.UseSaveParameter = EditorGUILayout.Toggle("有効状態を保存", selectedProp.UseSaveParameter);
+                        selectedProp.IsDefaultEnabled = EditorGUILayout.Toggle(RISStrings.GetString("default_status"), selectedProp.IsDefaultEnabled);
+                        selectedProp.IsLocalOnly = EditorGUILayout.Toggle(RISStrings.GetString("local_mode"), selectedProp.IsLocalOnly);
+                        selectedProp.UseSaveParameter = EditorGUILayout.Toggle(RISStrings.GetString("save_status"), selectedProp.UseSaveParameter);
 
                         if(selectedProp.TargetObjects.Count <= 0)
                             selectedProp.TargetObjects.Add(null);
@@ -204,7 +203,7 @@ namespace YagihataItems.RadialInventorySystemV4
                                 selectedProp.TargetObjects[0].SetObject(targetObject, parent);
                             if (selectedProp.TargetObjects[0].GetObject(parent) == null && targetObject != null)
                             {
-                                EditorUtility.DisplayDialog("Radial Inventory System", $"対象アバターとして指定しているオブジェクトの子オブジェクトのみ登録できます。", "OK");
+                                EditorUtility.DisplayDialog(RISStrings.GetString("ris"), RISStrings.GetString("dlg_childprop"), RISStrings.GetString("ok"));
                             }
                         }
 
@@ -231,7 +230,7 @@ namespace YagihataItems.RadialInventorySystemV4
             {
                 drawHeaderCallback = rect =>
                 {
-                    EditorGUI.LabelField(rect, "グループ一覧" + $": {groups.Count}");
+                    EditorGUI.LabelField(rect, string.Format(RISStrings.GetString("list_group"), groups.Count));
                     var position =
                         new Rect(
                             rect.x + rect.width - 20f,
@@ -242,7 +241,7 @@ namespace YagihataItems.RadialInventorySystemV4
                     if (groups.Count < 8 && GUI.Button(position, ReorderableListStyle.AddContent, ReorderableListStyle.AddStyle))
                     {
                         var newGroup = new Group();
-                        newGroup.Name = "Group" + groups.Count;
+                        newGroup.Name = string.Format(RISStrings.GetString("defaultname_group"), groups.Count);
                         risAvatar.Groups.Add(newGroup);
                     }
                 },
@@ -255,7 +254,7 @@ namespace YagihataItems.RadialInventorySystemV4
                     style.fontSize = (int)(rect.height / 1.75f);
                     var name = groups[index].Name;
                     if (string.IsNullOrEmpty(name))
-                        name = "Group" + index;
+                        name = string.Format(RISStrings.GetString("defaultname_group"), index);
                     GUI.Label(rect, name, style);
                     style.fontSize = 0;
                     rect.x = rect.x + rect.width - 20f;
@@ -291,7 +290,7 @@ namespace YagihataItems.RadialInventorySystemV4
             {
                 drawHeaderCallback = rect =>
                 {
-                    EditorGUI.LabelField(rect, "プロップ一覧" + $": {props.Count}");
+                    EditorGUI.LabelField(rect, string.Format(RISStrings.GetString("list_prop"), props.Count));
                     var position =
                         new Rect(
                             rect.x + rect.width - 20f,
@@ -318,7 +317,7 @@ namespace YagihataItems.RadialInventorySystemV4
                         return;
                     var prop = props[index];
                     var rawPropName = prop.GetPropName(risAvatar);
-                    var propName = !string.IsNullOrEmpty(rawPropName) ? rawPropName : $"Prop{index}";
+                    var propName = !string.IsNullOrEmpty(rawPropName) ? rawPropName : string.Format(RISStrings.GetString("defaultname_prop"), index);
                     GUI.Label(rect, propName);
                     rect.x = rect.x + rect.width - 20f;
                     rect.width = 20f;
@@ -433,7 +432,7 @@ namespace YagihataItems.RadialInventorySystemV4
                 var group = risAvatar.Groups[groupIndex];
                 var groupName = group.Name;
                 if (string.IsNullOrWhiteSpace(groupName))
-                    groupName = "Group" + groupIndex.ToString();
+                    groupName = string.Format(RISStrings.GetString("defaultname_group"), groupIndex);
 
                 VRCExpressionsMenu.Control control = new VRCExpressionsMenu.Control();
                 control.name = groupName;
@@ -446,7 +445,7 @@ namespace YagihataItems.RadialInventorySystemV4
                 if (group.UseResetButton)
                 {
                     var propControl = new VRCExpressionsMenu.Control();
-                    propControl.name = "Reset";
+                    propControl.name = RISStrings.GetString("reset");
                     propControl.type = VRCExpressionsMenu.Control.ControlType.Toggle;
                     propControl.value = 1f;
                     propControl.icon = TexAssets.ReloadIcon;
@@ -458,7 +457,7 @@ namespace YagihataItems.RadialInventorySystemV4
                     var prop = group.Props[propIndex];
                     var propName = prop.GetPropName(risAvatar);
                     if (string.IsNullOrWhiteSpace(propName))
-                        propName = "Prop" + propIndex.ToString();
+                        propName = string.Format(RISStrings.GetString("defaultname_prop"), propIndex);
                     var propControl = new VRCExpressionsMenu.Control();
                     propControl.name = propName;
                     propControl.type = VRCExpressionsMenu.Control.ControlType.Toggle;
@@ -504,9 +503,6 @@ namespace YagihataItems.RadialInventorySystemV4
             foreach (var groupIndex in Enumerable.Range(0, risAvatar.Groups.Count))
             {
                 var group = risAvatar.Groups[groupIndex];
-                var groupName = group.Name;
-                if (string.IsNullOrWhiteSpace(groupName))
-                    groupName = "Group" + groupIndex.ToString();
                 foreach (var propIndex in Enumerable.Range(0, group.Props.Count))
                 {
                     var prop = group.Props[propIndex];
@@ -522,9 +518,6 @@ namespace YagihataItems.RadialInventorySystemV4
                         curve.AddKey(1f / fallbackClip.frameRate, frameValue);
                         fallbackClip.SetCurve(relativePath, typeof(GameObject), "m_IsActive", curve);
                     }
-                    var propName = prop.GetPropName(risAvatar);
-                    if (string.IsNullOrWhiteSpace(propName))
-                        propName = "Prop" + propIndex.ToString();
                     var layerName = $"{RIS.Prefix}-MAIN-G{groupIndex}P{propIndex}";
 
                     var paramName = $"{RIS.Prefix}-G{groupIndex}P{propIndex}";

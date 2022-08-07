@@ -20,10 +20,8 @@ namespace YagihataItems.RadialInventorySystemV4
 {
     public class MainWindow : EditorWindow
     {
-        //private RISSettings settings;
         private IndexedList indexedList = new IndexedList();
         private Vector2 scrollPosition = new Vector2();
-        [SerializeField] private Texture2D headerTexture = null;
         private float beforeWidth = 0f;
         private bool showingVerticalScroll;
         private Rect tabScopeRect = new Rect();
@@ -34,6 +32,7 @@ namespace YagihataItems.RadialInventorySystemV4
         private GUIStyle donatorLabelStyle;
         private VRCAvatarDescriptor avatarRoot = null;
         private Avatar risAvatar = null;
+        private int beforeY = 0;
         [MenuItem("Radial Inventory/RISV4 Editor")]
         private static void Create()
         {
@@ -63,7 +62,7 @@ namespace YagihataItems.RadialInventorySystemV4
                     catch(Exception ex)
                     {
                         Debug.LogError(ex);
-                        EditorUtility.DisplayDialog("Radial Inventory System", $"設定'{Path.GetDirectoryName(jsonPath)}'が破損しています。", "OK");
+                        EditorUtility.DisplayDialog(RISStrings.GetString("ris"), string.Format(RISStrings.GetString("broken_settings"), Path.GetDirectoryName(jsonPath)), RISStrings.GetString("ok"));
                     }
                 }
             }
@@ -90,8 +89,7 @@ namespace YagihataItems.RadialInventorySystemV4
                 using (var verticalScope = new EditorGUILayout.VerticalScope())
                 {
                     scrollPosition = scrollScope.scrollPosition;
-                    if (headerTexture == null)
-                        headerTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(RIS.WorkFolderPath + "Textures/ris_logo_v4.png");
+                    var headerTexture = TexAssets.HeaderTexture;
                     var newerVersion = VersionChecker.GetNewerVersion();
                     var showingVerticalScrollOld = showingVerticalScroll;
                     if (verticalScope.rect.height != 0)
@@ -104,15 +102,15 @@ namespace YagihataItems.RadialInventorySystemV4
                     var newVersion = newerVersion;
                     if (!newerVersion.StartsWith("ris_"))
                         newVersion = RIS.CurrentVersion;
-                    EditorGUILayoutExtra.HeaderWithVersionInfo(headerTexture, width == beforeWidth ? width: beforeWidth, height, newVersion, RIS.CurrentVersion, "ris", "新しいバージョンがあります", RIS.DownloadUrl);
+                    EditorGUILayoutExtra.HeaderWithVersionInfo(headerTexture, width == beforeWidth ? width: beforeWidth, height, newVersion, $"VERSION-{RIS.CurrentVersion}", "ris", "新しいバージョンがあります", RIS.DownloadUrl);
                     
                     EditorGUILayoutExtra.Space();
 
                     if(RISV3toV4Updater.HasV3SettingsOnScene(RIS.SettingsNameV3))
                     {
                         EditorGUILayoutExtra.Separator();
-                        EditorGUILayout.HelpBox("V3の設定オブジェクトが見つかりました。\nこの設定をV4に移行する場合は下のボタンを押してください。", MessageType.Info);
-                        if(GUILayout.Button("RIS V3 -> RIS V4 設定の移行"))
+                        EditorGUILayout.HelpBox(RISStrings.GetString("found_v3"), MessageType.Info);
+                        if(GUILayout.Button(RISStrings.GetString("v3tov4")))
                         {
                             RISV3toV4Updater.SalvageDatas(RIS.SettingsNameV3);
                         }
@@ -122,7 +120,7 @@ namespace YagihataItems.RadialInventorySystemV4
                     EditorGUI.BeginChangeCheck();
                     var avatarDescriptors = FindObjectsOfType(typeof(VRCAvatarDescriptor));
                     indexedList.list = avatarDescriptors.Select(n => n.name).ToArray();
-                    indexedList.index = EditorGUILayoutExtra.IndexedStringList("対象アバター", indexedList, "（未選択）");
+                    indexedList.index = EditorGUILayoutExtra.IndexedStringList(RISStrings.GetString("target_avatar"), indexedList, RISStrings.GetString("unselected"));
 
                     if (EditorGUI.EndChangeCheck() || (avatarRoot == null && indexedList.index != -1))
                     {
@@ -155,20 +153,20 @@ namespace YagihataItems.RadialInventorySystemV4
                     {
                         using (new EditorGUILayout.HorizontalScope())
                         {
-                            if (GUILayout.Button("設定をファイルに出力", new GUIStyle("ButtonLeft")))
+                            if (GUILayout.Button(RISStrings.GetString("export_file"), new GUIStyle("ButtonLeft")))
                             {
                                 if (risAvatar.AvatarRoot.GetObject() == null)
                                     return;
-                                var path = EditorUtility.SaveFilePanel("保存する場所を選択", "", $"RISSettings-{SafeParser.ParseFileName(risAvatar.AvatarRoot.GetObject().name)}.json", "json");
+                                var path = EditorUtility.SaveFilePanel(RISStrings.GetString("select_savepath"), "", $"RISSettings-{SafeParser.ParseFileName(risAvatar.AvatarRoot.GetObject().name)}.json", "json");
                                 if (!string.IsNullOrEmpty(path))
                                 {
                                     risAvatar.SaveToJson(path);
-                                    EditorUtility.DisplayDialog("Radial Inventory System", $"設定をファイルへ出力しました。", "OK");
+                                    EditorUtility.DisplayDialog(RISStrings.GetString("ris"), RISStrings.GetString("save_file"), RISStrings.GetString("ok"));
                                 }
                             }
-                            if (GUILayout.Button("ファイルから設定を復元", new GUIStyle("ButtonRight")))
+                            if (GUILayout.Button(RISStrings.GetString("restore_file"), new GUIStyle("ButtonRight")))
                             {
-                                var path = EditorUtility.OpenFilePanel("設定ファイルを選択", "", "json");
+                                var path = EditorUtility.OpenFilePanel(RISStrings.GetString("select_loadpath"), "", "json");
                                 if (!string.IsNullOrEmpty(path))
                                 {
                                     var avatar = Avatar.LoadFromJson(path);
@@ -181,7 +179,7 @@ namespace YagihataItems.RadialInventorySystemV4
                                     risAvatar.ForceReload();
                                     foreach (var v in tabItems.Values)
                                         v.InitializeTab(ref risAvatar);
-                                    EditorUtility.DisplayDialog("Radial Inventory System", $"設定をファイルから読み込みました。", "OK");
+                                    EditorUtility.DisplayDialog(RISStrings.GetString("ris"), RISStrings.GetString("load_file"), RISStrings.GetString("ok"));
                                 }
                             }
                         }
@@ -213,7 +211,7 @@ namespace YagihataItems.RadialInventorySystemV4
                                     tabItems[risAvatar.MenuMode].CalculateMemoryCost(ref risAvatar, out memoryAdded, out memoryNow, out memoryUseFromScript);
                                 }
                             }
-                            EditorGUILayoutExtra.CostViewer(memoryNow, memoryAdded, memoryUseFromScript, "使用メモリ", "残メモリ", countBarStyleL, countBarStyleR);
+                            EditorGUILayoutExtra.CostViewer(memoryNow, memoryAdded, memoryUseFromScript, RISStrings.GetString("using_memory"), RISStrings.GetString("remain_memory"), countBarStyleL, countBarStyleR);
                         }
 
                         EditorGUILayoutExtra.SeparatorWithSpace();
@@ -225,12 +223,12 @@ namespace YagihataItems.RadialInventorySystemV4
                         var memoryOver = false;
 
 
-                        EditorGUIUtility.labelWidth = 200;
-                        risAvatar.UseWriteDefaults = EditorGUILayout.Toggle("Write Defaultsを使用(非推奨)", risAvatar.UseWriteDefaults);
+                        EditorGUIUtility.labelWidth = RISStrings.GetWidth(0);
+                        risAvatar.UseWriteDefaults = EditorGUILayout.Toggle(RISStrings.GetString("use_writedefaults"), risAvatar.UseWriteDefaults);
                         UnityEditor.Animations.AnimatorController fxLayer = null;
                         if (!isRootNull) fxLayer = avatarRoot.GetFXLayer(RIS.AutoGeneratedFolderPath + risAvatar.UniqueID + "/", false);
-                        risAvatar.OptimizeParameters = EditorGUILayout.Toggle("パラメータの最適化", risAvatar.OptimizeParameters);
-                        risAvatar.ApplyEnableDefault = EditorGUILayout.Toggle("Propの初期状態を反映", risAvatar.ApplyEnableDefault);
+                        risAvatar.OptimizeParameters = EditorGUILayout.Toggle(RISStrings.GetString("optimize_params"), risAvatar.OptimizeParameters);
+                        risAvatar.ApplyEnableDefault = EditorGUILayout.Toggle(RISStrings.GetString("apply_defaults"), risAvatar.ApplyEnableDefault);
 
                         EditorGUIUtility.labelWidth = 0;
                         EditorGUILayoutExtra.Space();
@@ -242,7 +240,7 @@ namespace YagihataItems.RadialInventorySystemV4
                             {
                                 if (memoryOver)
                                 {
-                                    EditorGUILayout.HelpBox(string.Format("使用メモリの合計は{0}以下でなければなりません。", VRCExpressionParameters.MAX_PARAMETER_COST), MessageType.Error);
+                                    EditorGUILayout.HelpBox(string.Format(RISStrings.GetString("err_overmemory"), VRCExpressionParameters.MAX_PARAMETER_COST), MessageType.Error);
                                 }
                                 foreach (var error in errors)
                                 {
@@ -250,11 +248,11 @@ namespace YagihataItems.RadialInventorySystemV4
                                 }
                                 if (showFXWarning)
                                 {
-                                    EditorGUILayout.HelpBox("WriteDefaultsがFXレイヤー内で統一されていません。\nこのままでも動作はしますが、表情切り替えにバグが発生する場合があります。\nWriteDefaultsのチェックを切り替えてもエラーメッセージが消えない場合は使用している他のアバターギミックなどを確認してみてください。", MessageType.Warning);
+                                    EditorGUILayout.HelpBox(RISStrings.GetString("warn_writedefaults"), MessageType.Warning);
                                 }
                                 if (showParamInfo)
                                 {
-                                    EditorGUILayout.HelpBox("パラメータの最適化が無効になっています。空パラメータや重複パラメータを自動で削除したい場合は\nパラメータの最適化を行ってください。", MessageType.Info);
+                                    EditorGUILayout.HelpBox(RISStrings.GetString("warn_paramspace"), MessageType.Info);
                                 }
                             }
 
@@ -263,36 +261,52 @@ namespace YagihataItems.RadialInventorySystemV4
                         {
                             using (new EditorGUI.DisabledGroupScope(errors.Any() || memoryOver))
                             {
-                                if (GUILayout.Button("適用する", new GUIStyle("ButtonLeft")))
+                                if (GUILayout.Button(RISStrings.GetString("attach"), new GUIStyle("ButtonLeft")))
                                 {
                                     risAvatar.SaveToJson();
-                                    SaveSettings();
                                     if (tabItems.ContainsKey(risAvatar.MenuMode))
                                         tabItems[risAvatar.MenuMode].ApplyToAvatar(ref risAvatar);
                                 }
                             }
-                            if (GUILayout.Button("適用を解除する", new GUIStyle("ButtonRight")))
+                            if (GUILayout.Button(RISStrings.GetString("detach"), new GUIStyle("ButtonRight")))
                             {
-                                SaveSettings();
                                 tabItems[risAvatar.MenuMode].RemoveFromAvatar(ref risAvatar);
                             }
                         }
                     }
-
                     EditorGUILayoutExtra.SeparatorWithSpace();
+                    if (TexAssets.AdsTexture != null)
+                    {
+                        using (new EditorGUILayout.VerticalScope(GUI.skin.box))
+                        {
+                            using (var adsScope = new EditorGUILayout.VerticalScope())
+                            {
+                                var y = (int)adsScope.rect.y;
+                                if (y > 0)
+                                    beforeY = y;
+                                var label = string.IsNullOrEmpty(RISStrings.CurrentAdsURL) ? "" : RISStrings.GetString("click_open");
+                                EditorGUILayoutExtra.HeaderWithVersionInfo(TexAssets.AdsTexture, width == beforeWidth ? width : beforeWidth, height, "", "[AD]", "", label, RISStrings.CurrentAdsURL, beforeY + 10);
+                            }
+                            using (new EditorGUILayout.HorizontalScope())
+                            {
+                                GUILayout.FlexibleSpace();
+                                EditorGUILayoutExtra.LinkLabel(RISStrings.GetString("pr_ads"), Color.blue, new Vector2(), 0, RIS.PRUrl);
+                                GUILayout.FlexibleSpace();
+                            }
+                        }
+                        EditorGUILayoutExtra.SeparatorWithSpace();
+                    }
                     using (new EditorGUILayout.VerticalScope(GUI.skin.box))
                     {
-                        EditorGUILayout.HelpBox("Radial Inventory Systemをダウンロードしてくださり、誠にありがとうございます！\n" +
-                            "使用法がわからない場合は、下記リンクより説明書をご覧になった上で使ってみてください。\n" +
-                            "もしバグや機能追加の要望などありましたら、TwitterのDMで教えていただけますと幸いです。", MessageType.None);
+                        EditorGUILayout.HelpBox(RISStrings.GetString("main_helpbox"), MessageType.None);
                         using (new EditorGUILayout.HorizontalScope())
                         {
-                            EditorGUILayoutExtra.LinkLabel("Radial Inventory System V3 説明書", Color.blue, new Vector2(), 0, RIS.ManualUrl);
+                            EditorGUILayoutExtra.LinkLabel(RISStrings.GetString("manual_title"), Color.blue, new Vector2(), 0, RIS.ManualUrl);
                             GUILayout.FlexibleSpace();
                         }
                         using (new EditorGUILayout.HorizontalScope())
                         {
-                            EditorGUILayoutExtra.LinkLabel("Twitter : @Yagihata4x", Color.blue, new Vector2(), 0, RIS.TwitterUrl);
+                            EditorGUILayoutExtra.LinkLabel(RISStrings.GetString("author_twitter"), Color.blue, new Vector2(), 0, RIS.TwitterUrl);
                             GUILayout.FlexibleSpace();
                         }
                     }
@@ -302,7 +316,7 @@ namespace YagihataItems.RadialInventorySystemV4
                         GUILayout.Space(10);
                         using (new EditorGUILayout.VerticalScope(GUI.skin.box))
                         {
-                            EditorGUILayout.LabelField("寄付していただいた方々！（敬称略）", new GUIStyle("ProjectBrowserHeaderBgTop"), GUILayout.ExpandWidth(true));
+                            EditorGUILayout.LabelField(RISStrings.GetString("donators_title"), new GUIStyle("ProjectBrowserHeaderBgTop"), GUILayout.ExpandWidth(true));
                             EditorGUILayout.LabelField(donators, donatorLabelStyle, GUILayout.ExpandWidth(true));
                         }
                     }
@@ -310,108 +324,6 @@ namespace YagihataItems.RadialInventorySystemV4
                     GUILayout.FlexibleSpace();
                 }
             }
-        }
-        
-        private void RestoreSettings()
-        {
-            /*variables = new RISVariables();
-            // AvatarRootが一致するRISSettingsもしくは、nameが一致するRISSettingsを取得。
-            settings = EditorExtSettingsTool.RestoreSettings<RISSettings>(avatarRoot, RIS.SettingsNameV4) as RISSettings;
-
-            if (settings != null){
-                variables = settings.GetVariables() as RISVariables;
-                if(avatarRoot != variables.AvatarRoot)
-                {
-                    // 指定したAvatarRootとRISSettingsのAvatarRootが異なる場合、インスタンスをCloneした上でTargetObjectsを割り当てしなおす。
-                    // (AvatarRootが異なる場合、他のAvatarRootの設定をコピーしていることが想定される。インスタンスをCloneしないと元の設定に影響してしまう。)
-                    // 異なるAvatarRootに属するTargetObjectsは指定したAvatarRootの子ではないためNullになってしまうので、
-                    // hierarchyが一致するobjectにremapすることで回避する。(元のAvatarRootを残しておく必要あり。)
-                    // remap終了後AvatarRootを置換して設定を保存する。
-                    variables.FolderID = System.Guid.NewGuid().ToString();
-                    if(variables.Groups == null)
-                    {
-                        EditorUtility.DisplayDialog("Radial Inventory System", "グループリストが破損していたため、\r\nリストの初期化を行いました。", "OK");
-                        variables.Groups = new List<PropGroup>();
-                    }
-                    foreach(var groupIndex in Enumerable.Range(0, variables.Groups.Count))
-                    {
-                        if(variables.Groups[groupIndex] == null)
-                        {
-                            EditorUtility.DisplayDialog("Radial Inventory System", $"グループ{groupIndex}が破損していたため、\r\nグループの初期化を行いました。", "OK");
-                            variables.Groups[groupIndex] = ScriptableObject.CreateInstance<PropGroup>();
-                        }
-                        else if (variables.Groups[groupIndex].Props == null)
-                        {
-                            EditorUtility.DisplayDialog("Radial Inventory System", $"グループ{groupIndex}のプロップリストが破損していたため、\r\nプロップリストの初期化を行いました。", "OK");
-                            variables.Groups[groupIndex].Props = new List<Prop>();
-                        }
-                        variables.Groups[groupIndex] = (PropGroup)variables.Groups[groupIndex].Clone();
-                        foreach (var propIndex in Enumerable.Range(0, variables.Groups[groupIndex].Props.Count))
-                        {
-                            if (variables.Groups[groupIndex].Props[propIndex] == null)
-                            {
-                                EditorUtility.DisplayDialog("Radial Inventory System", $"グループ{groupIndex}のプロップ{propIndex}が破損していたため、\r\nプロップの初期化を行いました。", "OK");
-                                variables.Groups[groupIndex].Props[propIndex] = ScriptableObject.CreateInstance<Prop>();
-                            }
-                            else if(variables.Groups[groupIndex].Props[propIndex].TargetObjects == null)
-                            {
-                                EditorUtility.DisplayDialog("Radial Inventory System", $"グループ{groupIndex}のプロップ{propIndex}の\r\nターゲットリストが破損していたため、リストの初期化を行いました。", "OK");
-                                variables.Groups[groupIndex].Props[propIndex].TargetObjects = new List<GameObject>();
-                            }
-                            // PropはPropGroupのCloneの中でClone済
-                            // variables.Groups[groupIndex].Props[propIndex] = (Prop)variables.Groups[groupIndex].Props[propIndex].Clone();
-
-                            GameObject targetObject = null;
-                            // AdvancedModeのTargetObjectsのチェック
-                            foreach (var objIndex in Enumerable.Range(0, variables.Groups[groupIndex].Props[propIndex].TargetObjects.Count))
-                            {
-                                targetObject = variables.Groups[groupIndex].Props[propIndex].TargetObjects[objIndex];
-                                if (targetObject != null && !targetObject.IsChildOf(avatarRoot.gameObject))
-                                {
-                                    // 指定したavatarRootの子でない場合、元のavatarRootを起点としてパスを取得。
-                                    var objPath = YagiAPI.GetGameObjectPath(targetObject, variables.AvatarRoot.gameObject);
-                                    // 指定したavatarRootの子に同じパスのObjectが存在すれば置換。
-                                    var targetTransform = avatarRoot.transform.Find(objPath);
-                                    if (targetTransform != null)
-                                    {
-                                        targetObject = targetTransform.gameObject;
-                                        variables.Groups[groupIndex].Props[propIndex].TargetObjects[objIndex] = targetObject;
-                                    }
-                                }
-                            }
-
-                            // SimpleModeのTargetObjectのチェック
-                            targetObject = variables.Groups[groupIndex].Props[propIndex].TargetObject;
-                            if(targetObject != null && !targetObject.IsChildOf(avatarRoot.gameObject))
-                            {
-                                // 指定したavatarRootの子でない場合、元のavatarRootを起点としてパスを取得。
-                                var objPath = YagiAPI.GetGameObjectPath(targetObject, variables.AvatarRoot.gameObject);
-                                // 指定したavatarRootの子に同じパスのObjectが存在すれば置換。
-                                var targetTransform = avatarRoot.transform.Find(objPath);
-                                if (targetTransform != null)
-                                {
-                                    targetObject = targetTransform.gameObject;
-                                    variables.Groups[groupIndex].Props[propIndex].TargetObject = targetObject;
-                                }
-
-                            }
-                        }
-                    }
-                    variables.AvatarRoot = avatarRoot;
-                    SaveSettings();
-                }
-            }
-            else{
-                // 保存された設定なし
-                variables.FolderID = System.Guid.NewGuid().ToString();
-            }
-            */
-            //InitializeGroupList();
-        }
-        private void SaveSettings()
-        {
-            //Debug.Assert(variables != null);
-            //EditorExtSettingsTool.SaveSettings<RISSettings>(avatarRoot, RIS.SettingsNameV4, variables);
         }
     }
 }

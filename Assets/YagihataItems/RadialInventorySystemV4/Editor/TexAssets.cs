@@ -21,6 +21,8 @@ namespace YagihataItems.RadialInventorySystemV4
         private static Texture2D accessory1Icon;
         private static Texture2D accessory2Icon;
         private static Texture2D dresserIcon;
+        private static Texture2D adsTexture;
+        private static Texture2D headerTexture;
         public static Texture2D RedTexture
         {
             get
@@ -126,6 +128,26 @@ namespace YagihataItems.RadialInventorySystemV4
                 if (dresserIcon == null)
                     dresserIcon = AssetDatabase.LoadAssetAtPath<Texture2D>(RIS.WorkFolderPath + "Textures/dresser_icon.png");
                 return dresserIcon;
+            }
+        }
+        public static Texture2D AdsTexture
+        {
+            get
+            {
+                return adsTexture;
+            }
+            set
+            {
+                adsTexture = value;
+            }
+        }
+        public static Texture2D HeaderTexture
+        {
+            get
+            {
+                if (headerTexture == null)
+                    headerTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(RIS.WorkFolderPath + "Textures/ris_logo_v4.png");
+                return headerTexture;
             }
         }
     }
