@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿#if RISV4_JSON
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,3 +15,4 @@ namespace YagihataItems.RadialInventorySystemV4
         [JsonProperty] public int PropIndex;
     }
 }
+#endif

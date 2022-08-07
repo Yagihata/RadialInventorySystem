@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if RISV4_JSON
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -961,3 +962,4 @@ namespace YagihataItems.RadialInventorySystemV4
         }
     }
 }
+#endif

@@ -52,7 +52,7 @@ namespace YagihataItems.RadialInventorySystemV4
             get
             {
                 if (boxIcon == null)
-                    boxIcon = AssetDatabase.LoadAssetAtPath<Texture2D>(RIS.WorkFolderPath + "Textures/box_icon.png");
+                    boxIcon = AssetDatabase.LoadAssetAtPath<Texture2D>(RIS.WorkFolderPath + "Textures/box_icon_v4.png");
                 return boxIcon;
             }
         }
@@ -61,7 +61,7 @@ namespace YagihataItems.RadialInventorySystemV4
             get
             {
                 if (groupIcon == null)
-                    groupIcon = AssetDatabase.LoadAssetAtPath<Texture2D>(RIS.WorkFolderPath + "Textures/group_icon.png");
+                    groupIcon = AssetDatabase.LoadAssetAtPath<Texture2D>(RIS.WorkFolderPath + "Textures/group_icon_v4.png");
                 return groupIcon;
             }
         }
@@ -70,7 +70,7 @@ namespace YagihataItems.RadialInventorySystemV4
             get
             {
                 if (reloadIcon == null)
-                    reloadIcon = AssetDatabase.LoadAssetAtPath<Texture2D>(RIS.WorkFolderPath + "Textures/reload_icon.png");
+                    reloadIcon = AssetDatabase.LoadAssetAtPath<Texture2D>(RIS.WorkFolderPath + "Textures/reload_icon_v4.png");
                 return reloadIcon;
             }
         }
@@ -79,7 +79,7 @@ namespace YagihataItems.RadialInventorySystemV4
             get
             {
                 if (menuIcon == null)
-                    menuIcon = AssetDatabase.LoadAssetAtPath<Texture2D>(RIS.WorkFolderPath + "Textures/ris_icon.png");
+                    menuIcon = AssetDatabase.LoadAssetAtPath<Texture2D>(RIS.WorkFolderPath + "Textures/ris_icon_v4.png");
                 return menuIcon;
             }
         }

@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿#if RISV4_JSON
+using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using System.Collections.Generic;
 using UnityEditor;
@@ -29,3 +30,4 @@ namespace YagihataItems.RadialInventorySystemV4
         }
     }
 }
+#endif

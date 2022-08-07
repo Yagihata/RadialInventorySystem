@@ -4,11 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-#if UNITY_EDITOR
-using UnityEditor;
-using UnityEditor.PackageManager.Requests;
-using UnityEditor.PackageManager;
-#endif
 using VRC.SDK3.Avatars.ScriptableObjects;
 
 namespace YagihataItems.RadialInventorySystemV4
@@ -58,12 +53,5 @@ namespace YagihataItems.RadialInventorySystemV4
             Exclusive,
             LegacyExclusive
         }
-#if UNITY_EDITOR
-        [InitializeOnLoadMethod]
-        static void CheckPackages()
-        {
-            Client.Add("com.unity.nuget.newtonsoft-json");
-        }
-#endif
     }
 }
