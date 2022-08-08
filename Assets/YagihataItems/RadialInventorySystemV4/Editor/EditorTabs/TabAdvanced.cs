@@ -590,6 +590,7 @@ namespace YagihataItems.RadialInventorySystemV4
             var parameters = expParams.parameters;
             foreach (var name in parameters.Where(n => n.name.StartsWith("RIS")).Select(n => n.name))
                 expParams.TryRemoveParameter(name);
+            parameters = expParams.parameters;
             expParams.parameters = parameters;
             foreach (var groupIndex in Enumerable.Range(0, risAvatar.Groups.Count))
             {
@@ -811,7 +812,6 @@ namespace YagihataItems.RadialInventorySystemV4
             }
 
             CheckParam(avatar, fxLayer, fallbackParamName, false);
-            AssetDatabase.CreateAsset(fallbackClip, animationsFolder + $"FallbackClip" + ".anim");
             EditorUtility.SetDirty(fallbackClip);
 
             //Layer 0: Off Timer
@@ -1463,6 +1463,7 @@ namespace YagihataItems.RadialInventorySystemV4
                 EditorUtility.SetDirty(animLayer.stateMachine);
             }
 
+            AssetDatabase.CreateAsset(fallbackClip, animationsFolder + $"FallbackClip" + ".anim");
             AddFallbackDriver(ref fxLayer, ref risAvatar, fallbackClip);
 
             AssetDatabase.SaveAssets();

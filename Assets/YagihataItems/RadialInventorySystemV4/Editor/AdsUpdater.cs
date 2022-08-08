@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿#if RISV4_JSON
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -22,7 +23,6 @@ namespace YagihataItems.RadialInventorySystemV4
             else if (now - lastUpdateTime < new TimeSpan(0, 10, 0))
                 return;
 
-            lastUpdateTime = now;
             using (var client = new HttpClient())
             {
                 try
@@ -50,12 +50,16 @@ namespace YagihataItems.RadialInventorySystemV4
                                 wc.DownloadFile($"{RIS.AdsUrl}/images/{image_name}", downloadPath);
                             AssetDatabase.ImportAsset(downloadPath);
                             var importer = AssetImporter.GetAtPath(downloadPath) as TextureImporter;
-                            importer.textureType = TextureImporterType.Sprite;
-                            AssetDatabase.WriteImportSettingsIfDirty(downloadPath);
-                            importer.SaveAndReimport();
-                            AssetDatabase.SaveAssets();
-                            TexAssets.AdsTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(downloadPath);
-                            CurrentAdsURL = url;
+                            if (importer != null)
+                            {
+                                importer.textureType = TextureImporterType.Sprite;
+                                AssetDatabase.WriteImportSettingsIfDirty(downloadPath);
+                                importer.SaveAndReimport();
+                                AssetDatabase.SaveAssets();
+                                TexAssets.AdsTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(downloadPath);
+                                CurrentAdsURL = url;
+                                lastUpdateTime = now;
+                            }
                         }
                     }
                 }
@@ -67,3 +71,4 @@ namespace YagihataItems.RadialInventorySystemV4
         }
     }
 }
+#endif

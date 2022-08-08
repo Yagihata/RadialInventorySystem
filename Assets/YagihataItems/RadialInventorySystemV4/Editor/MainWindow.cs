@@ -36,6 +36,7 @@ namespace YagihataItems.RadialInventorySystemV4
         [MenuItem("Radial Inventory/RISV4 Editor")]
         private static void Create()
         {
+            RISStrings.EditorInitialize();
             GetWindow<MainWindow>("RISV4 Editor");
         }
         private void LoadAvatars()

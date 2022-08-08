@@ -71,6 +71,7 @@ namespace YagihataItems.RadialInventorySystemV4
         protected void AddFallbackDriver(ref AnimatorController fxLayer, ref Avatar risAvatar, AnimationClip fallbackClip)
         {
             var fallbackParamName = $"{RIS.Prefix}-Initialize";
+            CheckParam(risAvatar.GetAvatarRoot(), fxLayer, fallbackParamName, false);
             var targetLayerIndex = fxLayer.layers.Length;
             var fallbackLayerName = $"{RIS.Prefix}-Initialize";
             var fallbackLayer = fxLayer.FindAnimatorControllerLayer(fallbackLayerName);

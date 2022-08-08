@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿#if RISV4_JSON
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -20,9 +21,8 @@ namespace YagihataItems.RadialInventorySystemV4
         static int[] defaultWidth = new int[] { 200, 110, 100, 100, 80, 90 };
         [InitializeOnLoadMethod]
         [MenuItem("Radial Inventory/Reload Languages")]
-        static void EditorInitialize()
+        public static void EditorInitialize()
         {
-            
             try
             {
                 TextAsset json = AssetDatabase.LoadAssetAtPath<TextAsset>($"{RIS.WorkFolderPath}LanguageFiles/RISV4_{CultureInfo.CurrentCulture.Name}.json");
@@ -64,3 +64,4 @@ namespace YagihataItems.RadialInventorySystemV4
         }
     }
 }
+#endif

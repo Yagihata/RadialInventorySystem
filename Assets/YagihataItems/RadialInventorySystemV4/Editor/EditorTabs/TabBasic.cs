@@ -376,6 +376,8 @@ namespace YagihataItems.RadialInventorySystemV4
             var parameters = expParams.parameters;
             foreach (var name in parameters.Where(n => n.name.StartsWith("RIS")).Select(n => n.name))
                 expParams.TryRemoveParameter(name);
+
+            parameters = expParams.parameters;
             expParams.parameters = parameters;
 
             foreach (var groupIndex in Enumerable.Range(0, risAvatar.Groups.Count))
@@ -701,6 +703,7 @@ namespace YagihataItems.RadialInventorySystemV4
                 }
             }
 
+            AssetDatabase.CreateAsset(fallbackClip, animationsFolder + $"FallbackClip" + ".anim");
             AddFallbackDriver(ref fxLayer, ref risAvatar, fallbackClip);
 
             if (avatar.baseAnimationLayers == null)
