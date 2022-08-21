@@ -600,10 +600,7 @@ namespace YagihataItems.RadialInventorySystemV4
                 foreach (var propIndex in Enumerable.Range(0, group.Props.Count))
                 {
                     var prop = group.Props[propIndex];
-                    var v2Mode = false;
-                    if ((risAvatar.MenuMode == RIS.MenuModeType.Simple && risAvatar.GetExclusiveMode((RIS.ExclusiveGroupType)groupIndex) == RIS.ExclusiveModeType.LegacyExclusive) ||
-                        (risAvatar.MenuMode == RIS.MenuModeType.Advanced && prop.ExclusiveGroup != RIS.ExclusiveGroupType.None))
-                        v2Mode = true;
+                    var v2Mode = prop.ExclusiveGroup != RIS.ExclusiveGroupType.None && risAvatar.GetExclusiveMode(prop.ExclusiveGroup) == RIS.ExclusiveModeType.LegacyExclusive;
                     TryAddParam(ref risAvatar, $"{RIS.Prefix}-G{groupIndex}P{propIndex}", prop.IsDefaultEnabled && !v2Mode ? 1f : 0f, prop.UseSaveParameter);
                 }
             }
