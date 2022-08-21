@@ -146,6 +146,11 @@ namespace YagihataItems.RadialInventorySystemV4
             var dialogResult = EditorUtility.DisplayDialog("Radial Inventory System", $"V3設定の移行が終了しました。設定ファイルを削除しますか？", "はい", "いいえ");
             if (dialogResult)
                 GameObject.DestroyImmediate(settingsContainerRoot);
+            if(!EditorUtility.DisplayDialog("Radial Inventory System", $"設定の移行作業を続けますか？", "はい", "いいえ"))
+            {
+                ScriptingDefineSymbolsUtil.Remove("RISV4_V3");
+                ScriptingDefineSymbolsUtil.Add("RISV4_SALVAGED");
+            }
             AssetDatabase.SaveAssets();
 
         }

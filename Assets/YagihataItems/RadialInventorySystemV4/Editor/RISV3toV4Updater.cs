@@ -22,14 +22,21 @@ namespace YagihataItems.RadialInventorySystemV4
 		[InitializeOnLoadMethod]
 		static void EditorInitialize()
 		{
+#if RISV4_SALVAGED
+			ScriptingDefineSymbolsUtil.Remove("RISV4_V3");
+#else
 			Type type = GetTypeByClassName("YagihataItems.RadialInventorySystemV3.RISSettings");
 			if (type != null)
 				ScriptingDefineSymbolsUtil.Add("RISV4_V3");
 			else
 				ScriptingDefineSymbolsUtil.Remove("RISV4_V3");
+#endif
 		}
 		public static void SalvageDatas(string v3SettingsName)
-        {
+		{
+#if RISV4_SALVAGED
+			ScriptingDefineSymbolsUtil.Remove("RISV4_V3");
+#else
 			Type type = GetTypeByClassName("YagihataItems.RadialInventorySystemV3.RISSettings");
 			if(type != null)
 			{
@@ -43,7 +50,7 @@ namespace YagihataItems.RadialInventorySystemV4
 				ScriptingDefineSymbolsUtil.Remove("RISV4_V3");
 				EditorUtility.DisplayDialog(RISStrings.GetString("ris"), RISStrings.GetString("missing_v3"), RISStrings.GetString("ok"));
 			}
-
+#endif
 		}
 		public static Type GetTypeByClassName(string className)
 		{
