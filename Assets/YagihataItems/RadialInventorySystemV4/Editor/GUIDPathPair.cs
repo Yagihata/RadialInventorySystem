@@ -4,6 +4,7 @@ using Newtonsoft.Json.Converters;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Networking;
 using YagihataItems.YagiUtils;
 
 namespace YagihataItems.RadialInventorySystemV4
@@ -82,7 +83,26 @@ namespace YagihataItems.RadialInventorySystemV4
                         targetObject = gameObj.GetComponent<T>();
                     }
                     if (targetObject == null || !(targetObject is T))
-                        targetObject = GameObject.Find(ObjectPath);
+                    {
+                        var names = ObjectPath.Split('/');
+                        GameObject gameObject = null;
+                        if (names.Length > 0)
+                        {
+                            gameObject = GameObject.Find(UnityWebRequest.UnEscapeURL(names[0]));
+                            if (gameObject != null)
+                            {
+                                for (int i = 1; i < names.Length; i++)
+                                {
+                                    var name = names[i];
+                                    var decodedName = UnityWebRequest.UnEscapeURL(name);
+                                    gameObject = gameObject.transform.Find(decodedName)?.gameObject;
+                                    if (gameObject == null)
+                                        break;
+                                }
+                            }
+                        }
+                        targetObject = gameObject;
+                    }
                     if (targetObject is T)
                         objectCache = (T)targetObject;
                 }
@@ -98,7 +118,24 @@ namespace YagihataItems.RadialInventorySystemV4
                     }
                     if (targetObject == null)
                     {
-                        targetObject = parentObject.transform.Find(ObjectPath)?.gameObject;
+                        var names = ObjectPath.Split('/');
+                        GameObject gameObject = null;
+                        if (names.Length > 0)
+                        {
+                            gameObject = parentObject;
+                            if (gameObject != null)
+                            {
+                                for (int i = 0; i < names.Length; i++)
+                                {
+                                    var name = names[i];
+                                    var decodedName = UnityWebRequest.UnEscapeURL(name);
+                                    gameObject = gameObject.transform.Find(decodedName)?.gameObject;
+                                    if (gameObject == null)
+                                        break;
+                                }
+                            }
+                            targetObject = gameObject;
+                        }
                     }
                     if (!(targetObject is T))
                     {
@@ -108,7 +145,26 @@ namespace YagihataItems.RadialInventorySystemV4
                         else if (targetObject is MonoBehaviour)
                             gameObj = (targetObject as MonoBehaviour).gameObject;
                         if (gameObj != null && gameObj.IsChildOf(parentObject))
-                            targetObject = parentObject.transform.Find(ObjectPath)?.gameObject;
+                        {
+                            var names = ObjectPath.Split('/');
+                            GameObject gameObject = null;
+                            if (names.Length > 0)
+                            {
+                                gameObject = parentObject;
+                                if (gameObject != null)
+                                {
+                                    for (int i = 0; i < names.Length; i++)
+                                    {
+                                        var name = names[i];
+                                        var decodedName = UnityWebRequest.UnEscapeURL(name);
+                                        gameObject = gameObject.transform.Find(decodedName)?.gameObject;
+                                        if (gameObject == null)
+                                            break;
+                                    }
+                                }
+                                targetObject = gameObject;
+                            }
+                        }
                     }
                     if (targetObject is T)
                         objectCache = (T)targetObject;
@@ -129,19 +185,54 @@ namespace YagihataItems.RadialInventorySystemV4
             }
             else if (ObjectPathState == ObjectPathStateType.Scene)
             {
-                Object targetObject = GameObject.Find(ObjectPath);
+                var names = ObjectPath.Split('/');
+                GameObject gameObject = null;
+                if (names.Length > 0)
+                {
+                    gameObject = GameObject.Find(UnityWebRequest.UnEscapeURL(names[0]));
+                    if (gameObject != null)
+                    {
+                        for (int i = 1; i < names.Length; i++)
+                        {
+                            var name = names[i];
+                            var decodedName = UnityWebRequest.UnEscapeURL(name);
+                            gameObject = gameObject.transform.Find(decodedName)?.gameObject;
+                            if (gameObject == null)
+                                break;
+                        }
+                    }
+                }
+                Object targetObject = gameObject;
                 if (targetObject is T)
                     objectCache = (T)targetObject;
             }
             else if (ObjectPathState == ObjectPathStateType.RelativeFromObject)
             {
-                Object targetObject = parentObject.transform.Find(ObjectPath)?.gameObject;
+                Object targetObject = parentObject.transform.Find(ObjectPath)?.gameObject; 
+                var names = ObjectPath.Split('/');
+                GameObject gameObject = null;
+                if (names.Length > 0)
+                {
+                    gameObject = parentObject;
+                    if (gameObject != null)
+                    {
+                        for (int i = 0; i < names.Length; i++)
+                        {
+                            var name = names[i];
+                            var decodedName = UnityWebRequest.UnEscapeURL(name);
+                            gameObject = gameObject.transform.Find(decodedName)?.gameObject;
+                            if (gameObject == null)
+                                break;
+                        }
+                    }
+                    targetObject = gameObject;
+                }
                 if (targetObject == null)
                 {
                     var foundObjects = GameObject.FindObjectsOfType<T>();
                     GameObject foundObjectFixed = null;
                     GameObject foundObjectLoose = null;
-                    var pathLooseName = ObjectPath.Split('/').Last();
+                    var pathLooseName = UnityWebRequest.UnEscapeURL(ObjectPath.Split('/').Last());
                     foreach (var obj in foundObjects)
                     {
                         GameObject gameObj = null;
@@ -181,7 +272,26 @@ namespace YagihataItems.RadialInventorySystemV4
                     else if (targetObject is MonoBehaviour)
                         gameObj = (targetObject as MonoBehaviour).gameObject;
                     if (gameObj != null && gameObj.IsChildOf(parentObject))
-                        targetObject = parentObject.transform.Find(ObjectPath)?.gameObject;
+                    {
+                        names = ObjectPath.Split('/');
+                        gameObject = null;
+                        if (names.Length > 0)
+                        {
+                            gameObject = parentObject;
+                            if (gameObject != null)
+                            {
+                                for (int i = 0; i < names.Length; i++)
+                                {
+                                    var name = names[i];
+                                    var decodedName = UnityWebRequest.UnEscapeURL(name);
+                                    gameObject = gameObject.transform.Find(decodedName)?.gameObject;
+                                    if (gameObject == null)
+                                        break;
+                                }
+                            }
+                            targetObject = gameObject;
+                        }
+                    }
                 }
                 if (targetObject is T)
                     objectCache = (T)targetObject;
@@ -239,7 +349,6 @@ namespace YagihataItems.RadialInventorySystemV4
             {
                 return true;
             }
-
             // どちらか片方でも null なら false
             if (((object)a == null) || ((object)valueB == null))
             {
