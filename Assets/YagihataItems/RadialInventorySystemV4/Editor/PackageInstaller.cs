@@ -60,7 +60,7 @@ namespace YagihataItems.RadialInventorySystemV4
                     Debug.Log("Installed: " + addRequest.Result.packageId);
                     ScriptingDefineSymbolsUtil.Add("RISV4_JSON");
                 }
-                else if (addRequest.Status >= StatusCode.Failure)
+                else if (addRequest != null && addRequest.Status >= StatusCode.Failure)
                     Debug.Log(addRequest.Error.message);
 
                 EditorApplication.update -= AddPackage;
@@ -75,8 +75,8 @@ namespace YagihataItems.RadialInventorySystemV4
                     Debug.Log("Removed: " + removeRequest.PackageIdOrName);
                     CheckPackages();
                 }
-                else if (addRequest.Status >= StatusCode.Failure)
-                    Debug.Log(addRequest.Error.message);
+                else if (removeRequest != null && removeRequest.Status >= StatusCode.Failure)
+                    Debug.Log(removeRequest.Error.message);
 
                 EditorApplication.update -= RemovePackage;
             }
