@@ -883,14 +883,14 @@ namespace YagihataItems.RadialInventorySystemV4
 
                 var driver = onState.AddStateMachineBehaviour<VRCAvatarParameterDriver>();
                 var driverParameters = driver.parameters;
-                driver.parameters =
+                driverParameters =
                     Enumerable.Range(0, group.Props.Count).Select(num => new VRC_AvatarParameterDriver.Parameter()
                     {
                         name = $"{RIS.Prefix}-G{groupIndex}P{num}",
                         type = VRC_AvatarParameterDriver.ChangeType.Set,
                         value = group.Props[num].IsDefaultEnabled ? 1 : 0
                     }).ToList();
-                driver.parameters.Add(new VRC_AvatarParameterDriver.Parameter()
+                driverParameters.Add(new VRC_AvatarParameterDriver.Parameter()
                 {
                     name = $"{RIS.Prefix}-G{groupIndex}RESET",
                     type = VRC_AvatarParameterDriver.ChangeType.Set,
