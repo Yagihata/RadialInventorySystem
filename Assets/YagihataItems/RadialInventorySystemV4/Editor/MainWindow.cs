@@ -57,7 +57,14 @@ namespace YagihataItems.RadialInventorySystemV4
                     try
                     {
                         var avatar = Avatar.LoadFromJson(jsonPath);
-                        avatars.Add(avatar);
+                        if (avatar.AvatarRoot != null && avatar.AvatarRoot.GetObject() != null)
+                        {
+                            if (!avatars.Any(v => v.AvatarRoot == avatar.AvatarRoot) || !avatars.Any(v => v.LastWriteDate < avatar.LastWriteDate))
+                                avatars.Add(avatar);
+                            else
+                                Debug.LogWarning($"Multiple duplicate data were found. Use lastest data. => {avatar.UniqueID}");
+
+                        }
 
                     }
                     catch(Exception ex)

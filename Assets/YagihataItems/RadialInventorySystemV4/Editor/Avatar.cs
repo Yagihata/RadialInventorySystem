@@ -4,6 +4,7 @@ using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using UnityEditor;
 using UnityEngine;
@@ -15,7 +16,8 @@ namespace YagihataItems.RadialInventorySystemV4
     [JsonObject]
     public class Avatar
     {
-        [JsonProperty] public string UniqueID { get;  private set; }
+        [JsonProperty] public string Version { get; private set; }
+        [JsonProperty] public string UniqueID { get; private set; }
         [JsonProperty] public GUIDPathPair<VRCAvatarDescriptor> AvatarRoot { get; set; }
         [JsonProperty] public bool UseWriteDefaults { get; set; } = false;
         [JsonProperty] public bool OptimizeParameters { get; set; } = true;
@@ -27,10 +29,13 @@ namespace YagihataItems.RadialInventorySystemV4
         public GUIDPathPair<AnimationClip>[] ExclusiveDisableClips { get { return _exclusiveDisableClips; } set { _exclusiveDisableClips = value; } }
 
         [JsonConverter(typeof(StringEnumConverter))] [JsonProperty] public RIS.MenuModeType MenuMode = RIS.MenuModeType.Simple;
+        public DateTime LastWriteDate;
         public Avatar()
         {
             AvatarRoot = new GUIDPathPair<VRCAvatarDescriptor>(ObjectPathStateType.Scene);
             UniqueID = Guid.NewGuid().ToString();
+            LastWriteDate = DateTime.UtcNow;
+            Version = RIS.CurrentVersion;
         }
         public VRCAvatarDescriptor GetAvatarRoot()
         {
@@ -87,6 +92,7 @@ namespace YagihataItems.RadialInventorySystemV4
             if (!AssetDatabase.IsValidFolder(folderPath))
                 UnityUtils.CreateFolderRecursively(folderPath);
 
+            Version = RIS.CurrentVersion;
             var jsonData = JsonConvert.SerializeObject(this, Formatting.Indented);
             using (var sw = new StreamWriter(jsonPath, false, Encoding.UTF8))
             {
@@ -101,6 +107,7 @@ namespace YagihataItems.RadialInventorySystemV4
             if (!Directory.Exists(dirPath))
                 Directory.CreateDirectory(dirPath);
 
+            Version = RIS.CurrentVersion;
             var jsonData = JsonConvert.SerializeObject(this, Formatting.Indented);
             using (var sw = new StreamWriter(jsonPath, false, Encoding.UTF8))
             {
@@ -119,6 +126,21 @@ namespace YagihataItems.RadialInventorySystemV4
                 var jsonData = sr.ReadToEnd();
                 avatar = JsonConvert.DeserializeObject<Avatar>(jsonData);
             }
+            if (string.IsNullOrEmpty(avatar.Version))
+            {
+                Debug.LogWarning($"THIS AVATAR DATA IS BUILD FOR OLD VERSION! => {avatar.UniqueID}");
+                //過去バージョンのバグ修正処理
+                var oldPath = avatar.AvatarRoot.ObjectPath;
+                var lastChar = oldPath.Last();
+                while (lastChar >= '0' && lastChar <= '9')
+                {
+                    oldPath = oldPath.Remove(oldPath.Length - 1, 1);
+                    lastChar = oldPath.Last();
+                }
+                avatar.AvatarRoot.ObjectPath = oldPath;
+                avatar.LastWriteDate = File.GetLastWriteTimeUtc(path);
+            }
+            avatar.ForceReload();
             return avatar;
         }
         public void ForceReload()

@@ -1,6 +1,7 @@
 ﻿#if RISV4_JSON
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -10,7 +11,7 @@ using YagihataItems.YagiUtils;
 namespace YagihataItems.RadialInventorySystemV4
 {
     [JsonObject]
-    public class GUIDPathPair<T> where T : Object
+    public class GUIDPathPair<T> : System.IEquatable<GUIDPathPair<T>> where T : Object
     {
         [JsonProperty] public string ObjectGUID { get; set; }
         [JsonProperty] public string ObjectPath { get; set; }
@@ -35,6 +36,7 @@ namespace YagihataItems.RadialInventorySystemV4
             _objectPathState = ObjectPathStateType.Asset;
             SetObject(initializeObject, parentObject);
         }
+
         private void SetObjectPath(T targetObject, GameObject parentObject = null)
         {
             if(targetObject != null)
@@ -70,14 +72,14 @@ namespace YagihataItems.RadialInventorySystemV4
                     if (targetObject == null)
                         targetObject = AssetDatabase.LoadAssetAtPath(ObjectPath, typeof(T));
                     if (targetObject is T)
-                        objectCache = (T)targetObject;
+                        objectCache = targetObject as T;
                 }
                 else if (ObjectPathState == ObjectPathStateType.Scene)
                 {
                     var instanceID = 0;
                     int.TryParse(ObjectGUID, out instanceID);
                     var targetObject = EditorUtility.InstanceIDToObject(instanceID);
-                    if (targetObject != null && targetObject is GameObject && typeof(T) == typeof(MonoBehaviour))
+                    if (targetObject != null && targetObject is GameObject && typeof(MonoBehaviour).IsAssignableFrom(typeof(T)))
                     {
                         var gameObj = (targetObject as GameObject);
                         targetObject = gameObj.GetComponent<T>();
@@ -104,14 +106,20 @@ namespace YagihataItems.RadialInventorySystemV4
                         targetObject = gameObject;
                     }
                     if (targetObject is T)
-                        objectCache = (T)targetObject;
+                        objectCache = targetObject as T;
+                    else if(targetObject != null && targetObject is GameObject && typeof(MonoBehaviour).IsAssignableFrom(typeof(T)))
+                    {
+                        var gameObj = (targetObject as GameObject);
+                        targetObject = gameObj.GetComponent<T>();
+                        objectCache = targetObject as T;
+                    }
                 }
                 else if (ObjectPathState == ObjectPathStateType.RelativeFromObject)
                 {
                     var instanceID = 0;
                     int.TryParse(ObjectGUID, out instanceID);
                     var targetObject = EditorUtility.InstanceIDToObject(instanceID);
-                    if (targetObject != null && targetObject is GameObject && typeof(T) == typeof(MonoBehaviour))
+                    if (targetObject != null && targetObject is GameObject && typeof(MonoBehaviour).IsAssignableFrom(typeof(T)))
                     {
                         var gameObj = (targetObject as GameObject);
                         targetObject = gameObj.GetComponent<T>();
@@ -167,11 +175,18 @@ namespace YagihataItems.RadialInventorySystemV4
                         }
                     }
                     if (targetObject is T)
-                        objectCache = (T)targetObject;
+                        objectCache = targetObject as T;
+                    else if (targetObject != null && targetObject is GameObject && typeof(MonoBehaviour).IsAssignableFrom(typeof(T)))
+                    {
+                        var gameObj = (targetObject as GameObject);
+                        targetObject = gameObj.GetComponent<T>();
+                        objectCache = targetObject as T;
+                    }
                 }
             }
             SetObjectPath(objectCache, parentObject);
             return objectCache;
+
         }
         public T ForceReload(GameObject parentObject = null)
         {
@@ -181,7 +196,7 @@ namespace YagihataItems.RadialInventorySystemV4
             {
                 var targetObject = AssetDatabase.LoadAssetAtPath(ObjectPath, typeof(T));
                 if (targetObject is T)
-                    objectCache = (T)targetObject;
+                    objectCache = targetObject as T;
             }
             else if (ObjectPathState == ObjectPathStateType.Scene)
             {
@@ -204,7 +219,13 @@ namespace YagihataItems.RadialInventorySystemV4
                 }
                 Object targetObject = gameObject;
                 if (targetObject is T)
-                    objectCache = (T)targetObject;
+                    objectCache = targetObject as T;
+                else if (targetObject != null && targetObject is GameObject && typeof(MonoBehaviour).IsAssignableFrom(typeof(T)))
+                {
+                    var gameObj = (targetObject as GameObject);
+                    targetObject = gameObj.GetComponent<T>();
+                    objectCache = targetObject as T;
+                }
             }
             else if (ObjectPathState == ObjectPathStateType.RelativeFromObject)
             {
@@ -294,7 +315,13 @@ namespace YagihataItems.RadialInventorySystemV4
                     }
                 }
                 if (targetObject is T)
-                    objectCache = (T)targetObject;
+                    objectCache = targetObject as T;
+                else if (targetObject != null && targetObject is GameObject && typeof(MonoBehaviour).IsAssignableFrom(typeof(T)))
+                {
+                    var gameObj = (targetObject as GameObject);
+                    targetObject = gameObj.GetComponent<T>();
+                    objectCache = targetObject as T;
+                }
             }
             SetObjectPath(objectCache, parentObject);
             return objectCache;
@@ -342,6 +369,27 @@ namespace YagihataItems.RadialInventorySystemV4
             }
             objectCache = targetObject;
         }
+
+        public override bool Equals(object obj)
+        {
+            return this == obj;
+
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = -1314013034;
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(ObjectGUID);
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(ObjectPath);
+            hashCode = hashCode * -1521134295 + ObjectPathState.GetHashCode();
+            return hashCode;
+        }
+
+        public bool Equals(GUIDPathPair<T> other)
+        {
+            return this == other;
+        }
+
         public static bool operator ==(GUIDPathPair<T> a, object valueB)
         {
             // 同一のインスタンスを参照している場合は true
