@@ -730,6 +730,12 @@ namespace YagihataItems.RadialInventorySystemV4
             List<IndexPair>[] exclusiveoGroupIndexes = exclusiveGroups.Select(n => new List<IndexPair>()).ToArray();
             var fallbackClip = new AnimationClip();
             var fallbackParamName = $"{RIS.Prefix}-Initialize";
+
+            var noneClip = new AnimationClip();
+            var noneClipName = "RIS_None";
+            AssetDatabase.CreateAsset(noneClip, animationsFolder + $"{noneClipName}.anim");
+            EditorUtility.SetDirty(noneClip);
+
             foreach (var groupIndex in Enumerable.Range(0, risAvatar.Groups.Count))
             {
                 var group = risAvatar.Groups[groupIndex];
@@ -741,12 +747,12 @@ namespace YagihataItems.RadialInventorySystemV4
 
                     foreach (var targetObject in prop.TargetObjects)
                     {
-                        var gameObject = targetObject.GetObject(avatar.gameObject);
+                        var gameObject = targetObject?.GetObject(avatar.gameObject);
                         if (gameObject != null)
                         {
                             if (risAvatar.ApplyEnableDefault)
                                 gameObject.SetActive(prop.IsDefaultEnabled);
-                            var relativePath = gameObject.GetRelativePath(avatar.gameObject);
+                            var relativePath = gameObject.GetRelativePath(avatar.gameObject, false);
                             var curve = new AnimationCurve();
                             var frameValue = prop.IsDefaultEnabled ? 1 : 0;
                             curve.AddKey(0f, frameValue);
@@ -828,10 +834,13 @@ namespace YagihataItems.RadialInventorySystemV4
 
                 var waitState = timerStateMachine.AddState("WaitTimer", new Vector3(300, 100, 0));
                 waitState.writeDefaultValues = risAvatar.UseWriteDefaults;
+                waitState.motion = noneClip;
                 var countdownState = timerStateMachine.AddState("Countdown", new Vector3(300, 200, 0));
                 countdownState.writeDefaultValues = risAvatar.UseWriteDefaults;
+                countdownState.motion = noneClip;
                 var stopState = timerStateMachine.AddState("StopTimer", new Vector3(600, 200, 0));
                 stopState.writeDefaultValues = risAvatar.UseWriteDefaults;
+                stopState.motion = noneClip;
 
                 var transition = countdownState.MakeTransition(stopState);
                 transition.exitTime = prop.ResetSecond;
@@ -871,8 +880,10 @@ namespace YagihataItems.RadialInventorySystemV4
 
                 var onState = stateMachine.AddState("Reset", new Vector3(300, 100, 0));
                 onState.writeDefaultValues = risAvatar.UseWriteDefaults;
+                onState.motion = noneClip;
                 var offState = stateMachine.AddState("Wait", new Vector3(300, 200, 0));
                 offState.writeDefaultValues = risAvatar.UseWriteDefaults;
+                offState.motion = noneClip;
 
                 var transition = stateMachine.MakeAnyStateTransition(onState);
                 transition.CreateSingleCondition(AnimatorConditionMode.If, paramName, 1f, false, false);
@@ -919,6 +930,7 @@ namespace YagihataItems.RadialInventorySystemV4
                 var stateName = "DEFAULT";
                 var defaultState = stateMachine.AddState(stateName, new Vector3(300, 150, 0));
                 defaultState.writeDefaultValues = risAvatar.UseWriteDefaults;
+                defaultState.motion = noneClip;
                 var defaultTransition = stateMachine.MakeAnyStateTransition(defaultState);
                 stateMachine.defaultState = defaultState;
 
@@ -935,6 +947,7 @@ namespace YagihataItems.RadialInventorySystemV4
                     stateName = $"G{pair.GroupIndex}P{pair.PropIndex}ON";
                     var state = stateMachine.AddState(stateName, new Vector3(300, 200 + (pairIndex * 50), 0));
                     state.writeDefaultValues = risAvatar.UseWriteDefaults;
+                    state.motion = noneClip;
                     var driver = state.AddStateMachineBehaviour<VRCAvatarParameterDriver>();
                     var transition = stateMachine.MakeAnyStateTransition(state);
                     transition.CreateSingleCondition(AnimatorConditionMode.If, paramName, 1f, false, true);
@@ -999,7 +1012,7 @@ namespace YagihataItems.RadialInventorySystemV4
                     var targetObject = gameObject?.GetObject(avatar.gameObject);
                     if (targetObject != null)
                     {
-                        var relativePath = targetObject.GetRelativePath(avatar.gameObject);
+                        var relativePath = targetObject.GetRelativePath(avatar.gameObject, false);
                         var curve = new AnimationCurve();
                         curve.AddKey(0f, 1);
                         curve.AddKey(1f / clipON.frameRate, 1);
@@ -1068,7 +1081,7 @@ namespace YagihataItems.RadialInventorySystemV4
                         var targetObject = gameObject?.GetObject(avatar.gameObject);
                         if (targetObject != null)
                         {
-                            defaultClip.SetCurve(targetObject.GetRelativePath(avatar.gameObject), typeof(GameObject), "m_IsActive", defaultCurve);
+                            defaultClip.SetCurve(targetObject.GetRelativePath(avatar.gameObject, false), typeof(GameObject), "m_IsActive", defaultCurve);
                         }
                     }
                     CheckParam(avatar, fxLayer, paramName, false);
@@ -1102,7 +1115,7 @@ namespace YagihataItems.RadialInventorySystemV4
                             {
                                 curve.AddKey(0f, frameValue);
                                 curve.AddKey(1f / clip.frameRate, frameValue);
-                                clip.SetCurve(targetObject.GetRelativePath(avatar.gameObject), typeof(GameObject), "m_IsActive", curve);
+                                clip.SetCurve(targetObject.GetRelativePath(avatar.gameObject, false), typeof(GameObject), "m_IsActive", curve);
                             }
                         }
                     }
@@ -1142,7 +1155,7 @@ namespace YagihataItems.RadialInventorySystemV4
                 var materialOverride = materialDatas.ToList()[v];
                 var gameObject = materialOverride.Key;
                 var materials = materialOverride.Value;
-                var path = gameObject.GetRelativePath(avatar.gameObject);
+                var path = gameObject.GetRelativePath(avatar.gameObject, false);
                 var renderType = typeof(Renderer);
                 if (gameObject.GetComponent<MeshRenderer>() != null)
                     renderType = typeof(MeshRenderer);
@@ -1396,7 +1409,10 @@ namespace YagihataItems.RadialInventorySystemV4
 
                 onState.motion = prop.EnableAnimation.GetObject();
                 offState.motion = prop.DisableAnimation.GetObject();
-
+                if (onState.motion == null)
+                    onState.motion = noneClip;
+                if (offState.motion == null)
+                    offState.motion = noneClip;
                 EditorUtility.SetDirty(animLayer.stateMachine);
             }
             //Layer 5: Animations Toggle(LegacyExclusive)
@@ -1441,6 +1457,8 @@ namespace YagihataItems.RadialInventorySystemV4
                 }
 
                 defaultState.motion = risAvatar.GetExclusiveDisableClip(enumValue);
+                if (defaultState.motion == null)
+                    defaultState.motion = noneClip;
 
                 foreach (var pairIndex in Enumerable.Range(0, indexPairs.Count))
                 {
@@ -1456,6 +1474,8 @@ namespace YagihataItems.RadialInventorySystemV4
                     transition.CreateSingleCondition(AnimatorConditionMode.If, paramName, 1f, prop.IsLocalOnly && !prop.IsDefaultEnabled, true);
 
                     state.motion = prop.EnableAnimation?.GetObject();
+                    if (state.motion == null)
+                        state.motion = noneClip;
                 }
                 EditorUtility.SetDirty(animLayer.stateMachine);
             }

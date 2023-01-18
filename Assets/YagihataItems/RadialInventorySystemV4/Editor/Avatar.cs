@@ -130,14 +130,14 @@ namespace YagihataItems.RadialInventorySystemV4
             {
                 Debug.LogWarning($"THIS AVATAR DATA IS BUILD FOR OLD VERSION! => {avatar.UniqueID}");
                 //過去バージョンのバグ修正処理
-                var oldPath = avatar.AvatarRoot.ObjectPath;
+                var oldPath = avatar.AvatarRoot.GetFormattedPath();
                 var lastChar = oldPath.Last();
                 while (lastChar >= '0' && lastChar <= '9')
                 {
                     oldPath = oldPath.Remove(oldPath.Length - 1, 1);
                     lastChar = oldPath.Last();
                 }
-                avatar.AvatarRoot.ObjectPath = oldPath;
+                avatar.AvatarRoot.SetFormattedPath(oldPath);
                 avatar.LastWriteDate = File.GetLastWriteTimeUtc(path);
             }
             avatar.ForceReload();

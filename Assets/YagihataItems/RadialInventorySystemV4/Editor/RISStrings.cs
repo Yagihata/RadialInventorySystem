@@ -18,9 +18,9 @@ namespace YagihataItems.RadialInventorySystemV4
     {
         static Dictionary<string, string> texts = new Dictionary<string, string>();
         static Dictionary<string, int[]> labelWidth = new Dictionary<string, int[]>();
-        static int[] defaultWidth = new int[] { 200, 110, 100, 100, 80, 90 };
+        static int[] defaultWidth = new int[] { 200, 160, 100, 120, 80, 120 };
         [InitializeOnLoadMethod]
-        [MenuItem("Radial Inventory/Reload Languages")]
+        [MenuItem("Radial Inventory/RISV4 Reload Languages")]
         public static void EditorInitialize()
         {
             try
@@ -58,6 +58,9 @@ namespace YagihataItems.RadialInventorySystemV4
                 return 0;
 
             var cultureName = CultureInfo.CurrentCulture.Name;
+            if (labelWidth.ContainsKey(cultureName) && index < labelWidth[cultureName].Length)
+                return labelWidth[cultureName][index];
+            cultureName = "default";
             if (labelWidth.ContainsKey(cultureName) && index < labelWidth[cultureName].Length)
                 return labelWidth[cultureName][index];
             return defaultWidth[index];

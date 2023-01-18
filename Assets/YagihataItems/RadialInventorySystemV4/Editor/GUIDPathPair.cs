@@ -14,7 +14,7 @@ namespace YagihataItems.RadialInventorySystemV4
     public class GUIDPathPair<T> : System.IEquatable<GUIDPathPair<T>> where T : Object
     {
         [JsonProperty] public string ObjectGUID { get; set; }
-        [JsonProperty] public string ObjectPath { get; set; }
+        [JsonProperty] private string ObjectPath { get; set; }
         private ObjectPathStateType _objectPathState;
         [JsonConverter(typeof(StringEnumConverter))] [JsonProperty] public ObjectPathStateType ObjectPathState { get { return _objectPathState; } private set { _objectPathState = value; } }
         private T objectCache = null;
@@ -36,7 +36,19 @@ namespace YagihataItems.RadialInventorySystemV4
             _objectPathState = ObjectPathStateType.Asset;
             SetObject(initializeObject, parentObject);
         }
-
+        public string GetFormattedPath()
+        {
+            return UnityWebRequest.UnEscapeURL(ObjectPath);
+        }
+        public void SetFormattedPath(string path)
+        {
+            if (ObjectPathState == ObjectPathStateType.Asset)
+                ObjectPath = path;
+            else if (ObjectPathState == ObjectPathStateType.Scene)
+                UnityWebRequest.EscapeURL(path);
+            else if (ObjectPathState == ObjectPathStateType.RelativeFromObject)
+                UnityWebRequest.EscapeURL(path);
+        }
         private void SetObjectPath(T targetObject, GameObject parentObject = null)
         {
             if(targetObject != null)
@@ -53,9 +65,9 @@ namespace YagihataItems.RadialInventorySystemV4
                 else if (ObjectPathState == ObjectPathStateType.RelativeFromObject)
                 {
                     if (targetObject is GameObject)
-                        ObjectPath = (targetObject as GameObject).GetRelativePath(parentObject);
+                        ObjectPath = (targetObject as GameObject).GetRelativePath(parentObject, true);
                     else if (targetObject is MonoBehaviour)
-                        ObjectPath = (targetObject as MonoBehaviour).gameObject.GetRelativePath(parentObject);
+                        ObjectPath = (targetObject as MonoBehaviour).gameObject.GetRelativePath(parentObject, true);
                 }
             }
         }
@@ -263,7 +275,7 @@ namespace YagihataItems.RadialInventorySystemV4
                             gameObj = (obj as MonoBehaviour).gameObject;
                         if (gameObj != null && parentObject != null && gameObj.IsChildOf(parentObject))
                         {
-                            var path = gameObj.GetRelativePath(parentObject);
+                            var path = gameObj.GetRelativePath(parentObject, true);
                             var pathArr = path.Split('/');
                             if (pathArr.Length > 0 && pathArr.Last() == ObjectPath)
                             {
@@ -359,7 +371,7 @@ namespace YagihataItems.RadialInventorySystemV4
                 {
                     gameObject = (targetObject as MonoBehaviour).gameObject;
                 }
-                ObjectPath = gameObject.GetRelativePath(parentObject);
+                ObjectPath = gameObject.GetRelativePath(parentObject, true);
                 ObjectGUID = gameObject.GetInstanceID().ToString();
             }
             else

@@ -500,6 +500,12 @@ namespace YagihataItems.RadialInventorySystemV4
             fxLayer.parameters = parameters;
             var fallbackClip = new AnimationClip();
             var fallbackParamName = $"{RIS.Prefix}-Initialize";
+
+            var noneClip = new AnimationClip();
+            var noneClipName = "RIS_None";
+            AssetDatabase.CreateAsset(noneClip, animationsFolder + $"{noneClipName}.anim");
+            EditorUtility.SetDirty(noneClip);
+
             foreach (var groupIndex in Enumerable.Range(0, risAvatar.Groups.Count))
             {
                 var group = risAvatar.Groups[groupIndex];
@@ -511,7 +517,7 @@ namespace YagihataItems.RadialInventorySystemV4
                     {
                         if (risAvatar.ApplyEnableDefault)
                             targetObject.SetActive(prop.IsDefaultEnabled);
-                        var relativePath = targetObject.GetRelativePath(avatar.gameObject);
+                        var relativePath = targetObject.GetRelativePath(avatar.gameObject, false);
                         var curve = new AnimationCurve();
                         var frameValue = prop.IsDefaultEnabled ? 1 : 0;
                         curve.AddKey(0f, frameValue);
@@ -548,7 +554,7 @@ namespace YagihataItems.RadialInventorySystemV4
                     else
                     {
                         var clipName = "G" + groupIndex.ToString() + "P" + propIndex.ToString();
-                        var relativePath = targetObject.GetRelativePath(avatar.gameObject);
+                        var relativePath = targetObject.GetRelativePath(avatar.gameObject, false);
 
                         stateMachine.defaultState = prop.IsDefaultEnabled ? onState : offState;
 
@@ -597,8 +603,10 @@ namespace YagihataItems.RadialInventorySystemV4
 
                     var onState = stateMachine.AddState("Reset", new Vector3(300, 100, 0));
                     onState.writeDefaultValues = risAvatar.UseWriteDefaults;
+                    onState.motion = noneClip;
                     var offState = stateMachine.AddState("Wait", new Vector3(300, 200, 0));
                     offState.writeDefaultValues = risAvatar.UseWriteDefaults;
+                    offState.motion = noneClip;
 
                     var transition = stateMachine.MakeAnyStateTransition(onState);
                     transition.CreateSingleCondition(AnimatorConditionMode.If, paramName, 1f, false, false);
@@ -676,7 +684,7 @@ namespace YagihataItems.RadialInventorySystemV4
                             frameValue = 1;
                         curve.AddKey(0f, frameValue);
                         curve.AddKey(1f / clip.frameRate, frameValue);
-                        clip.SetCurve(prop.GetFirstTargetObject(risAvatar)?.GetRelativePath(avatar.gameObject), typeof(GameObject), "m_IsActive", curve);
+                        clip.SetCurve(prop.GetFirstTargetObject(risAvatar)?.GetRelativePath(avatar.gameObject, false), typeof(GameObject), "m_IsActive", curve);
 
                         if (activeIndex == -1)
                         {

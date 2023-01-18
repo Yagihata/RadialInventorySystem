@@ -15,7 +15,7 @@ namespace YagihataItems.RadialInventorySystemV4
         static RemoveRequest removeRequest;
         static ListRequest listRequest;
 
-        [MenuItem("Radial Inventory/Reload Packages")]
+        [MenuItem("Radial Inventory/RISV4 Reload Packages")]
         public static void ReloadPackages()
         {
             ScriptingDefineSymbolsUtil.Remove("RISV4_JSON");
@@ -27,7 +27,7 @@ namespace YagihataItems.RadialInventorySystemV4
         {
             Debug.Log("Check Package: Newtonsoft.Json");
 
-            Type type = GetTypeByClassName("Newtonsoft.Json.JsonConverter");
+            Type type = GetTypeByClassName("Newtonsoft.Json.JsonPropertyAttribute");
             if (type == null)
             {
                 listRequest = Client.List();

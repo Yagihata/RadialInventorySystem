@@ -63,7 +63,6 @@ namespace YagihataItems.RadialInventorySystemV4
                                 avatars.Add(avatar);
                             else
                                 Debug.LogWarning($"Multiple duplicate data were found. Use lastest data. => {avatar.UniqueID}");
-
                         }
 
                     }
@@ -111,7 +110,7 @@ namespace YagihataItems.RadialInventorySystemV4
                     var newVersion = newerVersion;
                     if (!newerVersion.StartsWith("ris_"))
                         newVersion = RIS.CurrentVersion;
-                    EditorGUILayoutExtra.HeaderWithVersionInfo(headerTexture, width == beforeWidth ? width: beforeWidth, height, newVersion, $"VERSION-{RIS.CurrentVersion}", "ris", "新しいバージョンがあります", RIS.DownloadUrl);
+                    EditorGUILayoutExtra.HeaderWithVersionInfo(headerTexture, width == beforeWidth ? width: beforeWidth, height, $"VERSION-{newVersion}", $"VERSION-{RIS.CurrentVersion}", "ris", "新しいバージョンがあります", RIS.DownloadUrl);
                     
                     EditorGUILayoutExtra.Space();
 
