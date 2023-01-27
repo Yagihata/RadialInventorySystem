@@ -1,0 +1,19 @@
+{
+  "name": "yagihata.radialinventorysystem.v4",
+  "displayName": "Radial Inventory System V4",
+  "version": "4.4.1",
+  "description": "This is an add-on for VRC-Avatars that assists in adding a menu to show/hide props.",
+  "gitDependencies": {},
+  "vpmDependencies": {
+    "com.vrchat.avatars": "3.1.10"
+  },
+  "author": {
+    "name": "Yagihata"
+  },
+  "legacyFolders": {},
+  "legacyFiles": {},
+  "type": "tool",
+  "legacyFolders": {
+    "Assets\\YagihataItems\\RadialInventorySystemV4": ""
+  }
+}
