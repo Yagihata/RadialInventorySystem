@@ -79,7 +79,7 @@ namespace YagihataItems.RadialInventorySystemV4
                 }
                 else if (name == "OptimizeParams")
                 {
-                    avatar.OptimizeParameters = (bool)value;
+                    //avatar.OptimizeParameters = (bool)value;
                 }
                 else if (name == "FolderID")
                 {
@@ -98,7 +98,7 @@ namespace YagihataItems.RadialInventorySystemV4
                 }
                 else if (name == "ApplyEnabled")
                 {
-                    avatar.ApplyEnableDefault = (bool)value;
+                    EditorSettings.ApplyEnableDefault = (bool)value;
                 }
                 else if (name == "AdvancedGroupMode")
                 {

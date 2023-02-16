@@ -19,8 +19,8 @@ namespace YagihataItems.RadialInventorySystemV4
         [JsonProperty] public string UniqueID { get; private set; }
         [JsonProperty] public GUIDPathPair<VRCAvatarDescriptor> AvatarRoot { get; set; }
         [JsonProperty] public bool UseWriteDefaults { get; set; } = false;
-        [JsonProperty] public bool OptimizeParameters { get; set; } = true;
-        [JsonProperty] public bool ApplyEnableDefault { get; set; } = true;
+        [JsonProperty] private bool OptimizeParameters { get; set; } = true;
+        [JsonProperty] private bool ApplyEnableDefault { get; set; } = true;
         [JsonProperty] public List<Group> Groups { get; set; } = new List<Group>();
         private RIS.ExclusiveModeType[] _exclusiveModes;
         [JsonProperty("changeTypes", ItemConverterType = typeof(StringEnumConverter))] public RIS.ExclusiveModeType[] ExclusiveModes { get { return _exclusiveModes; } set { _exclusiveModes = value; } }
