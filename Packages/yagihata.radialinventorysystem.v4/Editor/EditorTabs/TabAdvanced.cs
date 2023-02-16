@@ -1000,7 +1000,9 @@ namespace YagihataItems.RadialInventorySystemV4
                 var offState = stateMachine.AddState("PropOFF", new Vector3(300, 200, 0));
                 offState.writeDefaultValues = risAvatar.UseWriteDefaults;
 
-                CheckParam(avatar, fxLayer, paramName, false);
+                CheckParam(avatar, fxLayer, paramName, prop.IsDefaultEnabled);
+                if (prop.IsLocalOnly)
+                    CheckParam(avatar, fxLayer, "IsLocal", false);
 
                 var transition = stateMachine.MakeAnyStateTransition(onState);
                 transition.CreateSingleCondition(AnimatorConditionMode.If, paramName, 1f, prop.IsLocalOnly && !prop.IsDefaultEnabled, true);
@@ -1089,7 +1091,7 @@ namespace YagihataItems.RadialInventorySystemV4
                             defaultClip.SetCurve(targetObject.GetRelativePath(avatar.gameObject, false), typeof(GameObject), "m_IsActive", defaultCurve);
                         }
                     }
-                    CheckParam(avatar, fxLayer, paramName, false);
+                    CheckParam(avatar, fxLayer, paramName, prop.IsDefaultEnabled);
                     defaultTransition.AddCondition(AnimatorConditionMode.IfNot, paramName, 1f, false, true);
                 }
 
@@ -1125,9 +1127,11 @@ namespace YagihataItems.RadialInventorySystemV4
                         }
                     }
                     var paramName = $"{RIS.Prefix}-G{mainPair.GroupIndex}P{mainPair.PropIndex}";
-                    CheckParam(avatar, fxLayer, paramName, false);
                     transition = stateMachine.MakeAnyStateTransition(state);
                     var prop = risAvatar.Groups[mainPair.GroupIndex].Props[mainPair.PropIndex];
+                    CheckParam(avatar, fxLayer, paramName, prop.IsDefaultEnabled);
+                    if (prop.IsLocalOnly)
+                        CheckParam(avatar, fxLayer, "IsLocal", false);
                     transition.CreateSingleCondition(AnimatorConditionMode.If, paramName, 1f, prop.IsLocalOnly && !prop.IsDefaultEnabled, true);
 
                     clipName = $"PAIR{(int)enumValue}-{stateName}";
@@ -1377,6 +1381,8 @@ namespace YagihataItems.RadialInventorySystemV4
                         foreach (var material in materials)
                         {
                             var prop = risAvatar.Groups[material.index.GroupIndex].Props[material.index.PropIndex];
+                            if (prop.IsLocalOnly)
+                                CheckParam(avatar, fxLayer, "IsLocal", false);
                             offTransition.AddCondition(AnimatorConditionMode.IfNot, $"{RIS.Prefix}-G{material.index.GroupIndex}P{material.index.PropIndex}", 0f, prop.IsLocalOnly && !prop.IsDefaultEnabled, true);
                         }
                         EditorUtility.SetDirty(clipOFF);
@@ -1393,6 +1399,8 @@ namespace YagihataItems.RadialInventorySystemV4
                 var prop = pair.Value;
                 var paramName = $"{RIS.Prefix}-G{groupIndex}P{propIndex}";
 
+                CheckParam(avatar, fxLayer, paramName, prop.IsDefaultEnabled);
+
                 var layerName = $"{RIS.Prefix}-ANIM-G{groupIndex}P{propIndex}";
                 var animLayer = fxLayer.FindAnimatorControllerLayer(layerName);
                 if (animLayer == null)
@@ -1404,6 +1412,9 @@ namespace YagihataItems.RadialInventorySystemV4
                 onState.writeDefaultValues = risAvatar.UseWriteDefaults;
                 var offState = stateMachine.AddState("PropOFF", new Vector3(300, 200, 0));
                 offState.writeDefaultValues = risAvatar.UseWriteDefaults;
+
+                if (prop.IsLocalOnly)
+                    CheckParam(avatar, fxLayer, "IsLocal", false);
 
                 var transition = stateMachine.MakeAnyStateTransition(onState);
                 transition.CreateSingleCondition(AnimatorConditionMode.If, paramName, 1f, prop.IsLocalOnly && !prop.IsDefaultEnabled, true);
@@ -1457,7 +1468,7 @@ namespace YagihataItems.RadialInventorySystemV4
                     var prop = group.Props[propIndex];
                     var paramName = $"{RIS.Prefix}-G{groupIndex}P{propIndex}";
 
-                    CheckParam(avatar, fxLayer, paramName, false);
+                    CheckParam(avatar, fxLayer, paramName, prop.IsDefaultEnabled);
                     defaultTransition.AddCondition(AnimatorConditionMode.IfNot, paramName, 1f, false, true);
                 }
 
@@ -1473,9 +1484,11 @@ namespace YagihataItems.RadialInventorySystemV4
                     state.writeDefaultValues = risAvatar.UseWriteDefaults;
                     AnimatorStateTransition transition = null;
                     var paramName = $"{RIS.Prefix}-G{mainPair.GroupIndex}P{mainPair.PropIndex}";
-                    CheckParam(avatar, fxLayer, paramName, false);
+                    CheckParam(avatar, fxLayer, paramName, prop.IsDefaultEnabled);
                     transition = stateMachine.MakeAnyStateTransition(state);
                     var prop = risAvatar.Groups[mainPair.GroupIndex].Props[mainPair.PropIndex];
+                    if (prop.IsLocalOnly)
+                        CheckParam(avatar, fxLayer, "IsLocal", false);
                     transition.CreateSingleCondition(AnimatorConditionMode.If, paramName, 1f, prop.IsLocalOnly && !prop.IsDefaultEnabled, true);
 
                     state.motion = prop.EnableAnimation?.GetObject();

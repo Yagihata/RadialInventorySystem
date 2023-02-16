@@ -46,7 +46,6 @@ namespace YagihataItems.RadialInventorySystemV4
 
             if (avatar == null)
                 return;
-
             var expParams = avatar.expressionParameters;
             if (EditorSettings.OptimizeParameters)
             {
