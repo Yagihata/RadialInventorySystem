@@ -750,14 +750,19 @@ namespace YagihataItems.RadialInventorySystemV4
                         var gameObject = targetObject?.GetObject(avatar.gameObject);
                         if (gameObject != null)
                         {
-                            if (EditorSettings.ApplyEnableDefault)
-                                gameObject.SetActive(prop.IsDefaultEnabled);
-                            var relativePath = gameObject.GetRelativePath(avatar.gameObject, false);
-                            var curve = new AnimationCurve();
-                            var frameValue = prop.IsDefaultEnabled ? 1 : 0;
-                            curve.AddKey(0f, frameValue);
-                            curve.AddKey(1f / fallbackClip.frameRate, frameValue);
-                            fallbackClip.SetCurve(relativePath, typeof(GameObject), "m_IsActive", curve);
+                            if(!prop.MaterialOverrides.Any(item => item != null && item.GetObject() != null))
+                            {
+                                if (EditorSettings.ApplyEnableDefault)
+                                    gameObject.SetActive(prop.IsDefaultEnabled);
+
+
+                                var relativePath = gameObject.GetRelativePath(avatar.gameObject, false);
+                                var curve = new AnimationCurve();
+                                var frameValue = prop.IsDefaultEnabled ? 1 : 0;
+                                curve.AddKey(0f, frameValue);
+                                curve.AddKey(1f / fallbackClip.frameRate, frameValue);
+                                fallbackClip.SetCurve(relativePath, typeof(GameObject), "m_IsActive", curve);
+                            }
                         }
                     }
 
