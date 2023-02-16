@@ -1484,9 +1484,9 @@ namespace YagihataItems.RadialInventorySystemV4
                     state.writeDefaultValues = risAvatar.UseWriteDefaults;
                     AnimatorStateTransition transition = null;
                     var paramName = $"{RIS.Prefix}-G{mainPair.GroupIndex}P{mainPair.PropIndex}";
-                    CheckParam(avatar, fxLayer, paramName, prop.IsDefaultEnabled);
                     transition = stateMachine.MakeAnyStateTransition(state);
                     var prop = risAvatar.Groups[mainPair.GroupIndex].Props[mainPair.PropIndex];
+                    CheckParam(avatar, fxLayer, paramName, prop.IsDefaultEnabled);
                     if (prop.IsLocalOnly)
                         CheckParam(avatar, fxLayer, "IsLocal", false);
                     transition.CreateSingleCondition(AnimatorConditionMode.If, paramName, 1f, prop.IsLocalOnly && !prop.IsDefaultEnabled, true);
