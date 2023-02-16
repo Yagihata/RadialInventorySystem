@@ -14,7 +14,7 @@ namespace YagihataItems.RadialInventorySystemV4
         static RemoveRequest removeRequest;
         static ListRequest listRequest;
 
-        [MenuItem("Radial Inventory/RISV4 Reload Packages")]
+        [MenuItem("Radial Inventory/RISV4 Reload Packages", priority = 32)]
         public static void ReloadPackages()
         {
             CheckPackages();

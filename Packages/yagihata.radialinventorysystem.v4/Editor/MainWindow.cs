@@ -31,7 +31,7 @@ namespace YagihataItems.RadialInventorySystemV4
         private VRCAvatarDescriptor avatarRoot = null;
         private Avatar risAvatar = null;
         private int beforeY = 0;
-        [MenuItem("Radial Inventory/RISV4 Editor")]
+        [MenuItem("Radial Inventory/RISV4 Editor", priority = 1)]
         private static void Create()
         {
             RISStrings.EditorInitialize();

@@ -21,7 +21,7 @@ namespace YagihataItems.RadialInventorySystemV4
         static Dictionary<string, int[]> labelWidth = new Dictionary<string, int[]>();
         static int[] defaultWidth = new int[] { 200, 160, 100, 120, 80, 120 };
         [InitializeOnLoadMethod]
-        [MenuItem("Radial Inventory/RISV4 Reload Languages")]
+        [MenuItem("Radial Inventory/RISV4 Reload Languages", priority = 31)]
         public static void EditorInitialize()
         {
             try

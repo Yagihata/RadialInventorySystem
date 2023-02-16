@@ -356,14 +356,14 @@ namespace YagihataItems.RadialInventorySystemV4
 #endif
 		}
 #if RISV4_V3
-		[MenuItem("Radial Inventory/RISV4 Disable V3")]
+		[MenuItem("Radial Inventory/RISV4 Disable V3", priority = 30)]
 		public static void DisableV3Update()
 		{
 			ScriptingDefineSymbolsUtil.Remove("RISV4_V3");
             ScriptingDefineSymbolsUtil.Add("RISV4_SALVAGED");
 		}
 #endif
-		public static Type GetTypeByClassName(string className)
+        public static Type GetTypeByClassName(string className)
 		{
 			foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
 			{

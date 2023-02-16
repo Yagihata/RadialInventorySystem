@@ -619,8 +619,8 @@ PlayerSettings:
   webGLThreadsSupport: 0
   webGLWasmStreaming: 0
   scriptingDefineSymbols:
-    1: RISV4_JSON;VRC_SDK_VRCSDK3;RISV4_V3
-    7: RISV4_JSON;VRC_SDK_VRCSDK3;RISV4_V3
+    1: RISV4_JSON;VRC_SDK_VRCSDK3
+    7: RISV4_JSON;VRC_SDK_VRCSDK3
   platformArchitecture: {}
   scriptingBackend: {}
   il2cppCompilerConfiguration: {}
