@@ -1,4 +1,5 @@
 ﻿#if RISV4_JSON
+using BestHTTP.JSON;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -38,12 +39,18 @@ namespace YagihataItems.RadialInventorySystemV4
             try
             {
                 var culture = CultureInfo.CurrentCulture.Name;
-                if (guids.ContainsKey(culture)) 
+                if (guids.ContainsKey(culture))
                 {
                     var path = AssetDatabase.GUIDToAssetPath(guids[culture]);
                     TextAsset json = AssetDatabase.LoadAssetAtPath<TextAsset>(path);
                     if (json == null && guids.ContainsKey("default"))
                         json = AssetDatabase.LoadAssetAtPath<TextAsset>(AssetDatabase.GUIDToAssetPath(guids["default"]));
+                    if (json != null)
+                        texts = JsonConvert.DeserializeObject<Dictionary<string, string>>(json.text);
+                }
+                else if (guids.ContainsKey("default"))
+                {
+                    var json = AssetDatabase.LoadAssetAtPath<TextAsset>(AssetDatabase.GUIDToAssetPath(guids["default"]));
                     if (json != null)
                         texts = JsonConvert.DeserializeObject<Dictionary<string, string>>(json.text);
                 }
