@@ -1,7 +1,7 @@
 {
   "name": "yagihata.radialinventorysystem.v4",
   "displayName": "Radial Inventory System V4",
-  "version": "4.4.1",
+  "version": "4.5.0",
   "description": "This is an add-on for VRC-Avatars that assists in adding a menu to show/hide props.",
   "gitDependencies": {},
   "vpmDependencies": {

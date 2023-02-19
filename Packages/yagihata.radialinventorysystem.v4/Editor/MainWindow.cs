@@ -32,11 +32,33 @@ namespace YagihataItems.RadialInventorySystemV4
         private VRCAvatarDescriptor avatarRoot = null;
         private Avatar risAvatar = null;
         private int beforeY = 0;
+        private bool isShowingJSONSelector = false;
         [MenuItem("Radial Inventory/RISV4 Editor", priority = 1)]
         private static void Create()
         {
             RISStrings.EditorInitialize();
             GetWindow<MainWindow>("RISV4 Editor");
+        }
+        private void ShowJSONSelector()
+        {
+            var window = CreateInstance<SelectJSONWindow>();
+            var avatarDescriptors = FindObjectsOfType(typeof(VRCAvatarDescriptor));
+            avatarRoot = avatarDescriptors[indexedList.index] as VRCAvatarDescriptor;
+            var loadedAvatar = avatars.Where(n => n.AvatarRoot == avatarRoot);
+
+            foreach (var conflictedAvatar in loadedAvatar)
+            {
+                window.AddItem(conflictedAvatar.UniqueID, conflictedAvatar.LastWriteDate);
+            }
+            window.title = "RISV4 JSONSelector";
+            window.ShowModal();
+            Debug.LogWarning($"Multiple duplicate data were found. Use selected data. => {window.selectedUniqueID}");
+
+            LoadAvatars();
+            risAvatar = loadedAvatar.First(item => item.UniqueID == window.selectedUniqueID);
+            foreach (var v in tabItems.Values)
+                v.InitializeTab(ref risAvatar);
+            isShowingJSONSelector = false;
         }
         private void LoadAvatars()
         {
@@ -57,12 +79,7 @@ namespace YagihataItems.RadialInventorySystemV4
                     {
                         var avatar = Avatar.LoadFromJson(jsonPath);
                         if (avatar.AvatarRoot != null && avatar.AvatarRoot.GetObject() != null)
-                        {
-                            if (!avatars.Any(v => v.AvatarRoot == avatar.AvatarRoot) || !avatars.Any(v => v.LastWriteDate < avatar.LastWriteDate))
-                                avatars.Add(avatar);
-                            else
-                                Debug.LogWarning($"Multiple duplicate data were found. Use lastest data. => {avatar.UniqueID}");
-                        }
+                            avatars.Add(avatar);
 
                     }
                     catch(Exception ex)
@@ -131,19 +148,39 @@ namespace YagihataItems.RadialInventorySystemV4
                     indexedList.list = avatarDescriptors.Select(n => n.name).ToArray();
                     indexedList.index = EditorGUILayoutExtra.IndexedStringList(RISStrings.GetString("target_avatar"), indexedList, RISStrings.GetString("unselected"));
 
-                    if (EditorGUI.EndChangeCheck() || (avatarRoot == null && indexedList.index != -1))
+                    if (!isShowingJSONSelector && (EditorGUI.EndChangeCheck() || (avatarRoot == null && indexedList.index != -1)))
                     {
                         LoadAvatars();
                         if (avatarDescriptors.Count() > 0 && indexedList.index >= 0 && indexedList.index < avatarDescriptors.Length)
                         {
                             avatarRoot = avatarDescriptors[indexedList.index] as VRCAvatarDescriptor;
-                            var loadedAvatar = avatars.FirstOrDefault(n => n.AvatarRoot == avatarRoot);
-                            if (loadedAvatar != null)
-                                risAvatar = loadedAvatar;
-                            else
-                                risAvatar = new Avatar();
-                            foreach (var v in tabItems.Values)
-                                v.InitializeTab(ref risAvatar);
+                            var loadedAvatar = avatars.Where(n => n.AvatarRoot == avatarRoot);
+                            if(loadedAvatar != null)
+                            {
+                                var count = loadedAvatar.Count();
+                                if (count > 1)
+                                {
+                                    //重複データがある場合
+                                    risAvatar = null;
+                                    avatarRoot = null;
+                                    isShowingJSONSelector = true;
+                                    EditorApplication.delayCall += () => ShowJSONSelector();
+
+                                }
+                                else if(count == 1)
+                                {
+                                    risAvatar = loadedAvatar.First();
+                                }
+                                else
+                                {
+                                    risAvatar = new Avatar();
+                                }
+                            }
+                            if (avatarRoot != null)
+                            {
+                                foreach (var v in tabItems.Values)
+                                    v.InitializeTab(ref risAvatar);
+                            }
                         }
                         else
                         {
