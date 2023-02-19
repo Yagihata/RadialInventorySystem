@@ -78,5 +78,15 @@
   "seconds" : "秒数",
   "material_list" : "マテリアル一覧:{0}",
   "pr_ads" : "広告募集中！",
-  "click_open" : "クリックで開く"
+  "click_open" : "クリックで開く",
+  "param_ris" : "RISのパラメータ",
+  "param_custom" : "カスタムパラメータ",
+  "param_title" : "パラメータ操作",
+  "param_type" : "タイプ",
+  "param_target" : "対象",
+  "param_value" : "値",
+  "prop" : "プロップ",
+  "param_timing" : "タイミング",
+  "param_turnon" : "ONになった時",
+  "param_turnoff" : "OFFになった時"
 }

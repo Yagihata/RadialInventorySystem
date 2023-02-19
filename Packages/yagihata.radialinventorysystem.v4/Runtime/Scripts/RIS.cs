@@ -68,11 +68,16 @@ namespace YagihataItems.RadialInventorySystemV4
             Exclusive,
             LegacyExclusive
         }
-        public enum MaterialAnimation
+        public enum MaterialAnimationType
         {
             MaterialOnly = 0,
             Difference = 1,
             All = 2
+        }
+        public enum ParameterTriggerType
+        {
+            TurnON = 0,
+            TurnOFF = 1
         }
     }
 }

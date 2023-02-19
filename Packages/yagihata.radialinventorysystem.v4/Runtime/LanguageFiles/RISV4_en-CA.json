@@ -78,5 +78,15 @@
   "seconds" : "seconds",
   "material_list" : "Material List:{0}",
   "pr_ads" : "Recruiting ads!",
-  "click_open" : "Click to open"
+  "click_open" : "Click to open",
+  "param_ris" : "RIS Parameters",
+  "param_custom" : "Custom Parameters",
+  "param_title" : "Parameter Operation",
+  "param_type" : "Type",
+  "param_target" : "Target",
+  "param_value" : "Value",
+  "prop" : "Prop",
+  "param_timing" : "Trigger",
+  "param_turnon" : "Turned ON",
+  "param_turnoff" : "Turned OFF"
 }

@@ -23,7 +23,10 @@ namespace YagihataItems.RadialInventorySystemV4
         [JsonProperty] private bool ApplyEnableDefault { get; set; } = true;
         [JsonProperty] public List<Group> Groups { get; set; } = new List<Group>();
         private RIS.ExclusiveModeType[] _exclusiveModes;
-        [JsonProperty("changeTypes", ItemConverterType = typeof(StringEnumConverter))] public RIS.ExclusiveModeType[] ExclusiveModes { get { return _exclusiveModes; } set { _exclusiveModes = value; } }
+        [JsonProperty(ItemConverterType = typeof(StringEnumConverter))] public RIS.ExclusiveModeType[] ExclusiveModes { get { return _exclusiveModes; } set { _exclusiveModes = value; } }
+        //ExclusiveModesプロパティのシリアライズ時に名前がchangeTypesになっていたため、それを修正するためのやつ。
+        //privateでデリシアイズだけ行うchangeTypesプロパティを用意して、正しいフィールドへ横流しする。
+        [JsonProperty("changeTypes", ItemConverterType = typeof(StringEnumConverter))] private RIS.ExclusiveModeType[] changeTypes { get { return _exclusiveModes; } set { _exclusiveModes = value; } }
         private GUIDPathPair<AnimationClip>[] _exclusiveDisableClips;
         public GUIDPathPair<AnimationClip>[] ExclusiveDisableClips { get { return _exclusiveDisableClips; } set { _exclusiveDisableClips = value; } }
 
@@ -35,6 +38,11 @@ namespace YagihataItems.RadialInventorySystemV4
             UniqueID = Guid.NewGuid().ToString();
             LastWriteDate = DateTime.UtcNow;
             Version = RIS.CurrentVersion;
+        }
+        //changeTypesをシリアライズしないためのやつ。
+        public bool ShouldSerializechangeTypes()
+        {
+            return false;
         }
         public VRCAvatarDescriptor GetAvatarRoot()
         {

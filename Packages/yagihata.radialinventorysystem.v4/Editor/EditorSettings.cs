@@ -23,7 +23,7 @@ namespace YagihataItems.RadialInventorySystemV4
         public static bool ApplyEnableDefault { get; set; } = true;
         public static bool AutoSetupMenu { get; set; } = true;
         public static bool DefaultStatusLimitter { get; set; } = true;
-        public static MaterialAnimation MaterialAnimationType { get; set; } = MaterialAnimation.Difference;
+        public static MaterialAnimationType MaterialAnimationType { get; set; } = MaterialAnimationType.Difference;
         public static void SaveSettings()
         {
             var settings = new Dictionary<string, dynamic>
@@ -77,7 +77,7 @@ namespace YagihataItems.RadialInventorySystemV4
 
                             key = nameof(MaterialAnimationType);
                             if (settings.ContainsKey(key))
-                                MaterialAnimationType = Enum.Parse(typeof(MaterialAnimation), settings[key]);
+                                MaterialAnimationType = Enum.Parse(typeof(MaterialAnimationType), settings[key]);
                         }
                     }
                 }

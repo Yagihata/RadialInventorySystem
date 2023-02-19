@@ -13,6 +13,8 @@ using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using VRC.SDKBase;
+using UnityEditor.Presets;
+using System.Text.RegularExpressions;
 
 namespace YagihataItems.RadialInventorySystemV4
 {
@@ -22,8 +24,20 @@ namespace YagihataItems.RadialInventorySystemV4
         private ReorderableList propsReorderableList;
         private ReorderableList gameObjectsReorderableList = null;
         private ReorderableList materialsReorderableList = null;
+        private ReorderableList parametersReorderableList = null;
         private Group selectedGroup = null;
         private Prop selectedProp = null;
+        private GUIStyle singleLinedLabelStyle = new GUIStyle(GUI.skin.label) { fixedHeight = EditorGUIUtility.singleLineHeight };
+        private string[] parameterTypes =
+        {
+            RISStrings.GetString("param_ris"),
+            RISStrings.GetString("param_custom")
+        };
+        private string[] triggerTypes =
+        {
+            RISStrings.GetString("param_turnon"),
+            RISStrings.GetString("param_turnoff")
+        };
         public override void InitializeTab(ref Avatar risAvatar)
         {
             InitializeGroupList(risAvatar);
@@ -210,8 +224,14 @@ namespace YagihataItems.RadialInventorySystemV4
                             selectedProp.ResetSecond = Mathf.Min(60, Mathf.Max(0, EditorGUILayout.FloatField("┗" + RISStrings.GetString("seconds"), selectedProp.ResetSecond)));
                         GUILayout.Space(5);
 
+                        if (parametersReorderableList == null || selectedPropIsChanged)
+                            InitializeParametersList(risAvatar, selectedProp);
                         EditorGUI.BeginChangeCheck();
-
+                        parametersReorderableList.DoLayoutList();
+                        if (EditorGUI.EndChangeCheck())
+                            selectedProp.Parameters = (List<Parameter>)parametersReorderableList.list;
+                        
+                        GUILayout.Space(5);
                         if (materialsReorderableList == null || selectedPropIsChanged)
                             InitializeMaterialsList(risAvatar, selectedProp);
                         EditorGUI.BeginChangeCheck();
@@ -534,6 +554,242 @@ namespace YagihataItems.RadialInventorySystemV4
             };
             gameObjectsReorderableList = list;
         }
+        private void InitializeParametersList(Avatar risAvatar, Prop prop = null)
+        {
+            List<Parameter> parameters = null;
+            var propFlag = prop != null && prop.Parameters != null;
+            if (propFlag)
+                parameters = prop.Parameters;
+            else
+                parameters = new List<Parameter>();
+            var list = new ReorderableList(parameters, typeof(Parameter));
+
+            list.drawHeaderCallback = rect =>
+            {
+                EditorGUI.LabelField(rect, string.Format(RISStrings.GetString("param_title"), parameters.Count));
+                var position =
+                    new Rect(
+                        rect.x + rect.width - 20f,
+                        rect.y,
+                        20f,
+                        13f
+                    );
+                if (GUI.Button(position, ReorderableListStyle.AddContent, ReorderableListStyle.AddStyle) && propFlag)
+                {
+                    prop.Parameters.Add(new Parameter());
+                }
+            };
+            list.drawElementCallback = (rect, index, isActive, isFocused) =>
+            {
+                if (parameters.Count <= index)
+                    return;
+                rect.width -= 25;
+                if (risAvatar.AvatarRoot?.GetObject() == null)
+                    return;
+                rect.y += 5;
+                rect.height -= 10;
+                using (new GUI.GroupScope(rect, GUI.skin.box))
+                {
+                    var width = 60;
+                    var parameter = parameters[index];
+                    var subRect = new Rect(rect);
+                    subRect.x = subRect.y = 0;
+                    subRect.height = EditorGUIUtility.singleLineHeight;
+                    subRect.width = width;
+                    GUI.Label(subRect, RISStrings.GetString("param_type"), singleLinedLabelStyle);
+                    subRect.x += subRect.width;
+                    subRect.width = rect.width - subRect.width;
+                    EditorGUI.BeginChangeCheck();
+                    var paramType = parameter.IsRISParam ? 0 : 1;
+                    paramType = EditorGUI.Popup(subRect, paramType, parameterTypes);
+                    var isRISParam = paramType == 0;
+                    if (EditorGUI.EndChangeCheck())
+                        parameter.IsRISParam = isRISParam;
+
+                    subRect.x = 0;
+                    subRect.y = EditorGUIUtility.singleLineHeight;
+                    subRect.height = EditorGUIUtility.singleLineHeight;
+                    subRect.width = width;
+                    GUI.Label(subRect, RISStrings.GetString("param_timing"), singleLinedLabelStyle);
+                    subRect.x += subRect.width;
+                    subRect.width = rect.width - subRect.width;
+                    EditorGUI.BeginChangeCheck();
+                    var triggerType = (int)parameter.ParameterTriggerType;
+                    parameter.ParameterTriggerType = (RIS.ParameterTriggerType)EditorGUI.Popup(subRect, triggerType, triggerTypes);
+
+                    if (isRISParam)
+                    {
+                        var groupsCount = risAvatar?.Groups.Count ?? 0;
+                        var groupNames = new string[groupsCount];
+                        var selectedGroupIndex = 0;
+                        var selectedPropIndex = 0;
+                        var reg = new Regex("RISV4-G([0-9])P([0-9])");
+                        var match = reg.Match(parameter.Name);
+                        if (match.Success)
+                        {
+                            selectedGroupIndex = int.Parse(match.Groups[1].Value);
+                            selectedPropIndex = int.Parse(match.Groups[2].Value);
+                        }
+                        foreach (var v in Enumerable.Range(0, groupsCount))
+                        {
+                            var group = risAvatar.Groups[v];
+                            groupNames[v] = $"{v}:{group.Name}";
+                        }
+
+                        subRect.x = 0;
+                        subRect.y = EditorGUIUtility.singleLineHeight * 2;
+                        subRect.height = EditorGUIUtility.singleLineHeight;
+                        subRect.width = width;
+                        GUI.Label(subRect, RISStrings.GetString("group"), singleLinedLabelStyle);
+                        subRect.x += subRect.width;
+                        subRect.width = rect.width - subRect.width;
+                        EditorGUI.BeginChangeCheck();
+                        selectedGroupIndex = EditorGUI.Popup(subRect, selectedGroupIndex, groupNames);
+                        if (EditorGUI.EndChangeCheck() && groupNames != null && selectedGroupIndex < groupsCount)
+                        {
+                            selectedPropIndex = 0;
+                            parameter.Name = $"RISV4-G{selectedGroupIndex}P{selectedPropIndex}";
+                        }
+
+                        var propsCount = 0;
+                        if (selectedGroupIndex < groupsCount)
+                            propsCount = risAvatar?.Groups[selectedGroupIndex]?.Props.Count ?? 0;
+                        var propNames = new string[propsCount];
+                        foreach (var v in Enumerable.Range(0, propsCount))
+                        {
+                            var item = risAvatar.Groups[selectedGroupIndex].Props[v];
+                            propNames[v] = $"{v}:{item.Name}";
+                        }
+                        subRect.x = 0;
+                        subRect.y = EditorGUIUtility.singleLineHeight * 3;
+                        subRect.height = EditorGUIUtility.singleLineHeight;
+                        subRect.width = width;
+                        GUI.Label(subRect, RISStrings.GetString("prop"), singleLinedLabelStyle);
+                        subRect.x += subRect.width;
+                        subRect.width = rect.width - subRect.width;
+                        EditorGUI.BeginChangeCheck();
+                        selectedPropIndex = EditorGUI.Popup(subRect, selectedPropIndex, propNames);
+                        if (EditorGUI.EndChangeCheck() && propNames != null && selectedPropIndex < propsCount)
+                        {
+                            parameter.Name = $"RISV4-G{selectedGroupIndex}P{selectedPropIndex}";
+                        }
+
+                        subRect.x = 0;
+                        subRect.y = EditorGUIUtility.singleLineHeight * 4;
+                        subRect.height = EditorGUIUtility.singleLineHeight;
+                        subRect.width = width;
+                        GUI.Label(subRect, RISStrings.GetString("param_value"), singleLinedLabelStyle);
+                        subRect.x += subRect.width;
+                        subRect.width = rect.width - subRect.width;
+                        EditorGUI.BeginChangeCheck();
+                        var value = parameter.Value == 1;
+                        value = EditorGUI.Toggle(subRect, value);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            parameter.Value = value ? 1 : 0;
+                        }
+                    }
+                    else
+                    {
+                        var expParams = risAvatar.GetAvatarRoot()?.GetExpressionParameters("", false)?.parameters;
+                        var paramCount = expParams?.Length ?? 0;
+                        var paramNames = new string[paramCount];
+                        var selectedParam = 0;
+                        foreach (var v in Enumerable.Range(0, paramCount))
+                        {
+                            var param = expParams[v];
+                            paramNames[v] = $"{param.name}[{param.valueType}]";
+                            if (param.name == parameter.Name && param.valueType == parameter.ValueType)
+                                selectedParam = v;
+                        }
+
+                        subRect.x = 0;
+                        subRect.y = EditorGUIUtility.singleLineHeight * 2;
+                        subRect.height = EditorGUIUtility.singleLineHeight;
+                        subRect.width = width;
+                        GUI.Label(subRect, RISStrings.GetString("param_target"), singleLinedLabelStyle);
+                        subRect.x += subRect.width;
+                        subRect.width = rect.width - subRect.width;
+                        EditorGUI.BeginChangeCheck();
+                        selectedParam = EditorGUI.Popup(subRect, selectedParam, paramNames);
+                        if (EditorGUI.EndChangeCheck() && expParams != null && selectedParam < paramCount)
+                        {
+                            parameter.Name = expParams[selectedParam].name;
+                            parameter.ValueType = expParams[selectedParam].valueType;
+                        }
+
+                        subRect.x = 0;
+                        subRect.y = EditorGUIUtility.singleLineHeight * 3;
+                        subRect.height = EditorGUIUtility.singleLineHeight;
+                        subRect.width = width;
+                        GUI.Label(subRect, RISStrings.GetString("param_value"), singleLinedLabelStyle);
+                        subRect.x += subRect.width;
+                        subRect.width = rect.width - subRect.width;
+                        if (parameter.ValueType == VRCExpressionParameters.ValueType.Int)
+                        {
+                            EditorGUI.BeginChangeCheck();
+                            var value = (int)parameter.Value;
+                            value = EditorGUI.IntField(subRect, value);
+                            if (EditorGUI.EndChangeCheck())
+                            {
+                                parameter.Value = value;
+                            }
+                        }
+                        else if(parameter.ValueType == VRCExpressionParameters.ValueType.Bool)
+                        {
+                            EditorGUI.BeginChangeCheck();
+                            var value = parameter.Value == 1;
+                            value = EditorGUI.Toggle(subRect, value);
+                            if (EditorGUI.EndChangeCheck())
+                            {
+                                parameter.Value = value ? 1 : 0;
+                            }
+                        }
+                        else
+                        {
+                            EditorGUI.BeginChangeCheck();
+                            var value = parameter.Value;
+                            value = EditorGUI.FloatField(subRect, value);
+                            if (EditorGUI.EndChangeCheck())
+                            {
+                                parameter.Value = value;
+                            }
+                        }
+                    }
+                    /*if (EditorGUI.EndChangeCheck())
+                        parameter.PropIndex = selectedProp;*/
+
+
+
+                }
+                rect.x = rect.x + rect.width + 5;
+                rect.width = 20f;
+                if (GUI.Button(rect, ReorderableListStyle.SubContent, ReorderableListStyle.SubStyle))
+                {
+                    parameters.RemoveAt(index);
+                    if (index >= parameters.Count)
+                        index = list.index = -1;
+                }
+            };
+            list.drawElementBackgroundCallback = (rect, index, isActive, isFocused) =>
+            {
+                if (isFocused)
+                {
+                    GUI.DrawTexture(rect, TexAssets.BlueTexture);
+                }
+            };
+            list.drawFooterCallback = rect => { };
+            list.footerHeight = 0f;
+            list.elementHeightCallback = index =>
+            {
+                if (parameters.Count <= index)
+                    return 0;
+                var parameter = parameters[index];
+                var isRISParam = parameter.IsRISParam;
+                return EditorGUIUtility.singleLineHeight * (isRISParam ? 5 : 4) + 10;
+            };
+            parametersReorderableList = list;
+        }
 
         public override string[] CheckErrors(ref Avatar risAvatar)
         {
@@ -569,7 +825,10 @@ namespace YagihataItems.RadialInventorySystemV4
                     if (risAvatar.GetAvatarRoot() != null)
                     {
                         var parentGameObject = risAvatar.GetAvatarRoot()?.gameObject;
-                        if (!prop.TargetObjects.Any(n => n?.GetObject(parentGameObject) != null) && prop.DisableAnimation?.GetObject() == null && prop.EnableAnimation?.GetObject() == null)
+                        if (!prop.TargetObjects.Any(n => n?.GetObject(parentGameObject) != null) && 
+                            prop.DisableAnimation?.GetObject() == null &&
+                            prop.EnableAnimation?.GetObject() == null &&
+                            !prop.Parameters.Any(item => item != null))
                             errors.Add(string.Format(RISStrings.GetString("err_nullobjectandanim"), groupName, propName));
                     }
                 }
@@ -611,7 +870,7 @@ namespace YagihataItems.RadialInventorySystemV4
             AssetDatabase.SaveAssets();
         }
 
-        protected override void BuildExpressionsMenu(ref Avatar risAvatar, string autoGeneratedFolder)
+        public override void BuildExpressionsMenu(ref Avatar risAvatar, string autoGeneratedFolder)
         {
             var avatar = risAvatar.AvatarRoot?.GetObject();
 
@@ -710,24 +969,17 @@ namespace YagihataItems.RadialInventorySystemV4
                 fxLayer.TryRemoveParameter(name);
             parameters = fxLayer.parameters;
 
-            //Layer 0: Off Timer
-            //Layer 1: Prop Toggles
-            //Layer 2: Props Toggle(LegacyExclusive)
-            //Layer 3: Material Toggles
-            //Layer 4: Animation Toggles
-            //Layer 5: Animations Toggle(LegacyExclusive)
-
             List<int> resetButtonGroups = new List<int>();
-            Dictionary<IndexPair, Prop> propLayer0 = new Dictionary<IndexPair, Prop>();
-            Dictionary<IndexPair, Prop> propLayer1 = new Dictionary<IndexPair, Prop>();
-            Dictionary<IndexPair, Prop> propLayer2 = new Dictionary<IndexPair, Prop>();
-            Dictionary<IndexPair, Prop> propLayer3 = new Dictionary<IndexPair, Prop>();
-            Dictionary<IndexPair, Prop> propLayer4 = new Dictionary<IndexPair, Prop>();
-            Dictionary<IndexPair, Prop> propLayer5 = new Dictionary<IndexPair, Prop>();
+            Dictionary<IndexPair, Prop> propLayer_OffTimer = new Dictionary<IndexPair, Prop>();
+            Dictionary<IndexPair, Prop> propLayer_PropToggles = new Dictionary<IndexPair, Prop>();
+            Dictionary<IndexPair, Prop> propLayer_PropTogglesLE = new Dictionary<IndexPair, Prop>();
+            Dictionary<IndexPair, Prop> propLayer_MaterialToggles = new Dictionary<IndexPair, Prop>();
+            Dictionary<IndexPair, Prop> propLayer_AnimationToggles = new Dictionary<IndexPair, Prop>();
+            Dictionary<IndexPair, Prop> propLayer_AnimationTogglesLE = new Dictionary<IndexPair, Prop>();
 
             var exclusiveGroups = Enum.GetNames(typeof(RIS.ExclusiveGroupType)).ToList();
             exclusiveGroups.Remove(RIS.ExclusiveGroupType.None.ToString());
-            List<IndexPair>[] exclusiveoGroupIndexes = exclusiveGroups.Select(n => new List<IndexPair>()).ToArray();
+            List<IndexPair>[] exclusiveGroupIndexes = exclusiveGroups.Select(n => new List<IndexPair>()).ToArray();
             var fallbackClip = new AnimationClip();
             var fallbackParamName = $"{RIS.Prefix}-Initialize";
 
@@ -770,7 +1022,7 @@ namespace YagihataItems.RadialInventorySystemV4
                     var pair = new IndexPair() { GroupIndex = groupIndex, PropIndex = propIndex };
 
                     if (prop.UseResetTimer)
-                        propLayer0.Add(pair, prop);
+                        propLayer_OffTimer.Add(pair, prop);
 
                     var exclusiveMode = risAvatar.GetExclusiveMode(prop.ExclusiveGroup);
                     if(prop.ExclusiveGroup != RIS.ExclusiveGroupType.None && exclusiveMode == RIS.ExclusiveModeType.None)
@@ -778,40 +1030,44 @@ namespace YagihataItems.RadialInventorySystemV4
                         exclusiveMode = RIS.ExclusiveModeType.Exclusive;
                         risAvatar.SetExclusiveMode(prop.ExclusiveGroup, exclusiveMode);
                     }
+                    var paramOperate = prop.Parameters.Any(item => item != null);
+                    var containGameObject = prop.TargetObjects.Any(v => v?.GetObject(avatar.gameObject) != null);
+                    var containAnimation = prop.EnableAnimation?.GetObject() != null || prop.DisableAnimation?.GetObject() != null;
+                    var containMaterialOverride = prop.MaterialOverrides.Any(v => v?.GetObject() != null);
                     if (exclusiveMode == RIS.ExclusiveModeType.LegacyExclusive)
                     {
-                        if (prop.TargetObjects.Any(v => v?.GetObject(avatar.gameObject) != null))
+                        if (containGameObject || paramOperate)
                         {
-                            if (prop.MaterialOverrides.Any(v => v?.GetObject() != null))
-                                propLayer3.Add(pair, prop);
-                            else
-                                propLayer2.Add(pair, prop);
-                            if (prop.ExclusiveGroup != RIS.ExclusiveGroupType.None && !exclusiveoGroupIndexes[(int)prop.ExclusiveGroup].Any(v => v.GroupIndex == pair.GroupIndex && v.PropIndex == pair.PropIndex))
-                                exclusiveoGroupIndexes[(int)prop.ExclusiveGroup].Add(pair);
+                            if (containMaterialOverride)
+                                propLayer_MaterialToggles.Add(pair, prop);
+                            if(!containMaterialOverride || (containMaterialOverride && paramOperate))
+                                propLayer_PropTogglesLE.Add(pair, prop);
+                            if (prop.ExclusiveGroup != RIS.ExclusiveGroupType.None && !exclusiveGroupIndexes[(int)prop.ExclusiveGroup].Any(v => v.GroupIndex == pair.GroupIndex && v.PropIndex == pair.PropIndex))
+                                exclusiveGroupIndexes[(int)prop.ExclusiveGroup].Add(pair);
                         }
-                        if (prop.EnableAnimation?.GetObject() != null || prop.DisableAnimation?.GetObject() != null)
+                        if (containAnimation)
                         {
-                            propLayer5.Add(pair, prop);
-                            if (prop.ExclusiveGroup != RIS.ExclusiveGroupType.None && !exclusiveoGroupIndexes[(int)prop.ExclusiveGroup].Any(v => v.GroupIndex == pair.GroupIndex && v.PropIndex == pair.PropIndex))
-                                exclusiveoGroupIndexes[(int)prop.ExclusiveGroup].Add(pair);
+                            propLayer_AnimationTogglesLE.Add(pair, prop);
+                            if (prop.ExclusiveGroup != RIS.ExclusiveGroupType.None && !exclusiveGroupIndexes[(int)prop.ExclusiveGroup].Any(v => v.GroupIndex == pair.GroupIndex && v.PropIndex == pair.PropIndex))
+                                exclusiveGroupIndexes[(int)prop.ExclusiveGroup].Add(pair);
                         }
                     }
                     else
                     {
-                        if (prop.TargetObjects.Any(v => v?.GetObject(avatar.gameObject) != null))
+                        if (containGameObject || paramOperate)
                         {
-                            if (prop.MaterialOverrides.Any(v => v?.GetObject() != null))
-                                propLayer3.Add(pair, prop);
-                            else
-                                propLayer1.Add(pair, prop);
-                            if (prop.ExclusiveGroup != RIS.ExclusiveGroupType.None && !exclusiveoGroupIndexes[(int)prop.ExclusiveGroup].Any(v => v.GroupIndex == pair.GroupIndex && v.PropIndex == pair.PropIndex))
-                                exclusiveoGroupIndexes[(int)prop.ExclusiveGroup].Add(pair);
+                            if (containMaterialOverride)
+                                propLayer_MaterialToggles.Add(pair, prop);
+                            if (!containMaterialOverride || (containMaterialOverride && paramOperate))
+                                propLayer_PropToggles.Add(pair, prop);
+                            if (prop.ExclusiveGroup != RIS.ExclusiveGroupType.None && !exclusiveGroupIndexes[(int)prop.ExclusiveGroup].Any(v => v.GroupIndex == pair.GroupIndex && v.PropIndex == pair.PropIndex))
+                                exclusiveGroupIndexes[(int)prop.ExclusiveGroup].Add(pair);
                         }
-                        if (prop.EnableAnimation?.GetObject() != null || prop.DisableAnimation?.GetObject() != null)
+                        if (containAnimation)
                         {
-                            propLayer4.Add(pair, prop);
-                            if (prop.ExclusiveGroup != RIS.ExclusiveGroupType.None && !exclusiveoGroupIndexes[(int)prop.ExclusiveGroup].Any(v => v.GroupIndex == pair.GroupIndex && v.PropIndex == pair.PropIndex))
-                                exclusiveoGroupIndexes[(int)prop.ExclusiveGroup].Add(pair);
+                            propLayer_AnimationToggles.Add(pair, prop);
+                            if (prop.ExclusiveGroup != RIS.ExclusiveGroupType.None && !exclusiveGroupIndexes[(int)prop.ExclusiveGroup].Any(v => v.GroupIndex == pair.GroupIndex && v.PropIndex == pair.PropIndex))
+                                exclusiveGroupIndexes[(int)prop.ExclusiveGroup].Add(pair);
                         }
                     }
 
@@ -822,8 +1078,8 @@ namespace YagihataItems.RadialInventorySystemV4
             CheckParam(avatar, fxLayer, fallbackParamName, false);
             EditorUtility.SetDirty(fallbackClip);
 
-            //Layer 0: Off Timer
-            foreach (var pair in propLayer0)
+            //Off Timer
+            foreach (var pair in propLayer_OffTimer)
             {
                 var groupIndex = pair.Key.GroupIndex;
                 var propIndex = pair.Key.PropIndex;
@@ -859,6 +1115,7 @@ namespace YagihataItems.RadialInventorySystemV4
 
                 var driver = stopState.AddStateMachineBehaviour<VRCAvatarParameterDriver>();
                 var driverParameters = driver.parameters;
+                CheckParam(avatar, fxLayer, $"{RIS.Prefix}-G{groupIndex}P{propIndex}", prop.IsDefaultEnabled);
                 driverParameters.Add(new VRC_AvatarParameterDriver.Parameter()
                 {
                     name = $"{RIS.Prefix}-G{groupIndex}P{propIndex}",
@@ -899,13 +1156,18 @@ namespace YagihataItems.RadialInventorySystemV4
 
                 var driver = onState.AddStateMachineBehaviour<VRCAvatarParameterDriver>();
                 var driverParameters = driver.parameters;
-                driverParameters =
-                    Enumerable.Range(0, group.Props.Count).Select(num => new VRC_AvatarParameterDriver.Parameter()
+                foreach(var num in Enumerable.Range(0, group.Props.Count))
+                {
+                    var subParamName = $"{RIS.Prefix}-G{groupIndex}P{num}";
+                    CheckParam(avatar, fxLayer, subParamName, group.Props[num].IsDefaultEnabled);
+                    driverParameters.Add(new VRC_AvatarParameterDriver.Parameter()
                     {
-                        name = $"{RIS.Prefix}-G{groupIndex}P{num}",
+                        name = subParamName,
                         type = VRC_AvatarParameterDriver.ChangeType.Set,
                         value = group.Props[num].IsDefaultEnabled ? 1 : 0
-                    }).ToList();
+                    });
+                }
+                CheckParam(avatar, fxLayer, $"{RIS.Prefix}-G{groupIndex}RESET", false);
                 driverParameters.Add(new VRC_AvatarParameterDriver.Parameter()
                 {
                     name = $"{RIS.Prefix}-G{groupIndex}RESET",
@@ -917,10 +1179,10 @@ namespace YagihataItems.RadialInventorySystemV4
 
             }
             //ExclusiveToggles
-            foreach(var exclusiveGroupIndex in Enumerable.Range(0, exclusiveoGroupIndexes.Length))
+            foreach (var exclusiveGroupIndex in Enumerable.Range(0, exclusiveGroupIndexes.Length))
             {
                 var exclusiveGroup = (RIS.ExclusiveGroupType)exclusiveGroupIndex;
-                var indexes = exclusiveoGroupIndexes[exclusiveGroupIndex];
+                var indexes = exclusiveGroupIndexes[exclusiveGroupIndex];
 
                 if (!indexes.Any())
                     continue;
@@ -964,9 +1226,11 @@ namespace YagihataItems.RadialInventorySystemV4
                         if (groupIndex != subGroupIndex || propIndex != subPropIndex)
                         {
                             var driverParameters = driver.parameters;
+                            var subParamName = $"{RIS.Prefix}-G{subGroupIndex}P{subPropIndex}";
+                            CheckParam(avatar, fxLayer, subParamName, false);
                             driverParameters.Add(new VRC_AvatarParameterDriver.Parameter()
                             {
-                                name = $"{RIS.Prefix}-G{subGroupIndex}P{subPropIndex}",
+                                name = subParamName,
                                 type = VRC_AvatarParameterDriver.ChangeType.Set,
                                 value = 0
                             });
@@ -979,8 +1243,8 @@ namespace YagihataItems.RadialInventorySystemV4
                 EditorUtility.SetDirty(animLayer.stateMachine);
             }
 
-            //Layer 1: Prop Toggles(Exclusive=None)
-            foreach (var pair in propLayer1)
+            //Prop Toggles(Exclusive=None)
+            foreach (var pair in propLayer_PropToggles)
             {
                 var groupIndex = pair.Key.GroupIndex;
                 var propIndex = pair.Key.PropIndex;
@@ -1010,43 +1274,89 @@ namespace YagihataItems.RadialInventorySystemV4
                 transition.CreateSingleCondition(AnimatorConditionMode.IfNot, paramName, 1f, prop.IsLocalOnly && prop.IsDefaultEnabled, true);
 
                 stateMachine.defaultState = prop.IsDefaultEnabled ? onState : offState;
-                var clipON = new AnimationClip();
-                var clipOFF = new AnimationClip();
 
-                var clipName = "G" + groupIndex.ToString() + "P" + propIndex.ToString();
-                foreach (var gameObject in prop.TargetObjects)
+                var containGameObject = prop.TargetObjects.Any(v => v?.GetObject(avatar.gameObject) != null);
+                var containMaterialOverride = prop.MaterialOverrides.Any(v => v?.GetObject() != null);
+                if (containGameObject && !containMaterialOverride)
                 {
-                    var targetObject = gameObject?.GetObject(avatar.gameObject);
-                    if (targetObject != null)
+                    var clipON = new AnimationClip();
+                    var clipOFF = new AnimationClip();
+
+                    var clipName = "G" + groupIndex.ToString() + "P" + propIndex.ToString();
+                    foreach (var gameObject in prop.TargetObjects)
                     {
-                        var relativePath = targetObject.GetRelativePath(avatar.gameObject, false);
-                        var curve = new AnimationCurve();
-                        curve.AddKey(0f, 1);
-                        curve.AddKey(1f / clipON.frameRate, 1);
-                        clipON.SetCurve(relativePath, typeof(GameObject), "m_IsActive", curve);
+                        var targetObject = gameObject?.GetObject(avatar.gameObject);
+                        if (targetObject != null)
+                        {
+                            var relativePath = targetObject.GetRelativePath(avatar.gameObject, false);
+                            var curve = new AnimationCurve();
+                            curve.AddKey(0f, 1);
+                            curve.AddKey(1f / clipON.frameRate, 1);
+                            clipON.SetCurve(relativePath, typeof(GameObject), "m_IsActive", curve);
 
-                        curve = new AnimationCurve();
-                        curve.AddKey(0f, 0);
-                        curve.AddKey(1f / clipOFF.frameRate, 0);
-                        clipOFF.SetCurve(relativePath, typeof(GameObject), "m_IsActive", curve);
+                            curve = new AnimationCurve();
+                            curve.AddKey(0f, 0);
+                            curve.AddKey(1f / clipOFF.frameRate, 0);
+                            clipOFF.SetCurve(relativePath, typeof(GameObject), "m_IsActive", curve);
+                        }
                     }
+                    AssetDatabase.CreateAsset(clipON, animationsFolder + $"{clipName}ON" + ".anim");
+                    onState.motion = clipON;
+                    EditorUtility.SetDirty(clipON);
+
+                    AssetDatabase.CreateAsset(clipOFF, animationsFolder + $"{clipName}OFF" + ".anim");
+                    offState.motion = clipOFF;
+                    EditorUtility.SetDirty(clipOFF);
                 }
-                AssetDatabase.CreateAsset(clipON, animationsFolder + $"{clipName}ON" + ".anim");
-                onState.motion = clipON;
-                EditorUtility.SetDirty(clipON);
-
-                AssetDatabase.CreateAsset(clipOFF, animationsFolder + $"{clipName}OFF" + ".anim");
-                offState.motion = clipOFF;
-                EditorUtility.SetDirty(clipOFF);
-
+                else
+                {
+                    onState.motion = noneClip;
+                    offState.motion = noneClip;
+                }
+                var onParameter = prop.Parameters.Where(item => item != null && item.ParameterTriggerType == RIS.ParameterTriggerType.TurnON);
+                if (onParameter.Any())
+                {
+                    var stateDriver = onState.AddStateMachineBehaviour<VRCAvatarParameterDriver>();
+                    var stateDriverParameters = stateDriver.parameters;
+                    foreach (var parameter in onParameter)
+                    {
+                        CheckParam(avatar, fxLayer, parameter);
+                        stateDriverParameters.Add(new VRC_AvatarParameterDriver.Parameter()
+                        {
+                            name = parameter.Name,
+                            type = VRC_AvatarParameterDriver.ChangeType.Set,
+                            value = parameter.Value
+                        });
+                    }
+                    stateDriver.parameters = stateDriverParameters;
+                    EditorUtility.SetDirty(stateDriver);
+                }
+                var offParameter = prop.Parameters.Where(item => item != null && item.ParameterTriggerType == RIS.ParameterTriggerType.TurnOFF);
+                if (offParameter.Any())
+                {
+                    var stateDriver = offState.AddStateMachineBehaviour<VRCAvatarParameterDriver>();
+                    var stateDriverParameters = stateDriver.parameters;
+                    foreach (var parameter in offParameter)
+                    {
+                        CheckParam(avatar, fxLayer, parameter);
+                        stateDriverParameters.Add(new VRC_AvatarParameterDriver.Parameter()
+                        {
+                            name = parameter.Name,
+                            type = VRC_AvatarParameterDriver.ChangeType.Set,
+                            value = parameter.Value
+                        });
+                    }
+                    stateDriver.parameters = stateDriverParameters;
+                    EditorUtility.SetDirty(stateDriver);
+                }
                 EditorUtility.SetDirty(animLayer.stateMachine);
             }
-            //Layer 2: Props Toggle(LegacyExclusive)
+            //Props Toggle(LegacyExclusive)
             var exclusiveGroupTypes = Enum.GetValues(typeof(RIS.ExclusiveGroupType));
             Dictionary <RIS.ExclusiveGroupType, List<IndexPair>> exclusiveIndexPairs = new Dictionary<RIS.ExclusiveGroupType, List<IndexPair>>();
             foreach (RIS.ExclusiveGroupType enumValue in exclusiveGroupTypes)
                 exclusiveIndexPairs.Add(enumValue, new List<IndexPair>());
-            foreach (var pair in propLayer2)
+            foreach (var pair in propLayer_PropTogglesLE)
                 exclusiveIndexPairs[pair.Value.ExclusiveGroup].Add(pair.Key);
 
 
@@ -1071,28 +1381,69 @@ namespace YagihataItems.RadialInventorySystemV4
                 var defaultTransition = stateMachine.MakeAnyStateTransition(defaultState);
                 stateMachine.defaultState = defaultState;
                 var defaultClip = new AnimationClip();
-
-                foreach (var pair in indexPairs)
+                var indexPairCounts = Enumerable.Range(0, indexPairs.Count);
+                var risAvatar1 = risAvatar;
+                var operateParams = indexPairs.Any(item =>
                 {
+                    var prop = risAvatar1.Groups[item.GroupIndex].Props[item.PropIndex];
+                    return prop.Parameters.Any(subItem => subItem != null);
+                });
+
+                VRCAvatarParameterDriver stateDriver = null;
+                List<VRCAvatarParameterDriver.Parameter> stateDriverParameters = null;
+                if (operateParams)
+                {
+                    stateDriver = defaultState.AddStateMachineBehaviour<VRCAvatarParameterDriver>();
+                    stateDriverParameters = stateDriver.parameters;
+                }
+                foreach (var pairIndex in indexPairCounts)
+                {
+                    var pair = indexPairs[pairIndex];
                     var groupIndex = pair.GroupIndex;
                     var propIndex = pair.PropIndex;
                     var group = risAvatar.Groups[groupIndex];
                     var prop = group.Props[propIndex];
                     var paramName = $"{RIS.Prefix}-G{groupIndex}P{propIndex}";
-                    var defaultCurve = new AnimationCurve();
-                    var defaultFrameValue = prop.IsDefaultEnabled ? 1 : 0;
-                    defaultCurve.AddKey(0f, defaultFrameValue);
-                    defaultCurve.AddKey(1f / defaultClip.frameRate, defaultFrameValue);
-                    foreach (var gameObject in prop.TargetObjects)
+
+                    var containMaterialOverride = prop.MaterialOverrides.Any(v => v?.GetObject() != null);
+                    if (!containMaterialOverride)
                     {
-                        var targetObject = gameObject?.GetObject(avatar.gameObject);
-                        if (targetObject != null)
+                        var defaultCurve = new AnimationCurve();
+                        var defaultFrameValue = prop.IsDefaultEnabled ? 1 : 0;
+                        defaultCurve.AddKey(0f, defaultFrameValue);
+                        defaultCurve.AddKey(1f / defaultClip.frameRate, defaultFrameValue);
+                        foreach (var gameObject in prop.TargetObjects)
                         {
-                            defaultClip.SetCurve(targetObject.GetRelativePath(avatar.gameObject, false), typeof(GameObject), "m_IsActive", defaultCurve);
+                            var targetObject = gameObject?.GetObject(avatar.gameObject);
+                            if (targetObject != null)
+                            {
+                                defaultClip.SetCurve(targetObject.GetRelativePath(avatar.gameObject, false), typeof(GameObject), "m_IsActive", defaultCurve);
+                            }
+                        }
+                    }
+                    if (operateParams && prop.Parameters.Any(item => item != null))
+                    {
+                        foreach (var parameter in prop.Parameters)
+                        {
+                            if (prop.IsDefaultEnabled == (parameter.ParameterTriggerType == RIS.ParameterTriggerType.TurnON))
+                            {
+                                CheckParam(avatar, fxLayer, parameter);
+                                stateDriverParameters.Add(new VRC_AvatarParameterDriver.Parameter()
+                                {
+                                    name = parameter.Name,
+                                    type = VRC_AvatarParameterDriver.ChangeType.Set,
+                                    value = parameter.Value
+                                });
+                            }
                         }
                     }
                     CheckParam(avatar, fxLayer, paramName, prop.IsDefaultEnabled);
                     defaultTransition.AddCondition(AnimatorConditionMode.IfNot, paramName, 1f, false, true);
+                }
+                if (operateParams)
+                {
+                    stateDriver.parameters = stateDriverParameters;
+                    EditorUtility.SetDirty(stateDriver);
                 }
 
                 var clipName = $"PAIR{(int)enumValue}-{stateName}";
@@ -1100,7 +1451,7 @@ namespace YagihataItems.RadialInventorySystemV4
                 EditorUtility.SetDirty(defaultClip);
                 defaultState.motion = defaultClip;
 
-                foreach (var pairIndex in Enumerable.Range(0, indexPairs.Count))
+                foreach (var pairIndex in indexPairCounts)
                 {
                     var mainPair = indexPairs[pairIndex];
                     stateName = $"G{mainPair.GroupIndex}P{mainPair.PropIndex}ON";
@@ -1108,21 +1459,58 @@ namespace YagihataItems.RadialInventorySystemV4
                     state.writeDefaultValues = risAvatar.UseWriteDefaults;
                     var clip = new AnimationClip();
                     AnimatorStateTransition transition = null;
+                    stateDriver = null;
+                    stateDriverParameters = null;
+                    if (operateParams)
+                    {
+                        stateDriver = state.AddStateMachineBehaviour<VRCAvatarParameterDriver>();
+                        stateDriverParameters = stateDriver.parameters;
+                    }
                     foreach (var subPairIndex in Enumerable.Range(0, indexPairs.Count))
                     {
                         var pair = indexPairs[subPairIndex];
                         var groupIndex = pair.GroupIndex;
                         var propIndex = pair.PropIndex;
-                        var curve = new AnimationCurve();
-                        var frameValue = pairIndex == subPairIndex ? 1 : 0;
-                        foreach (var gameObject in risAvatar.Groups[groupIndex].Props[propIndex].TargetObjects)
+                        var subProp = risAvatar.Groups[groupIndex].Props[propIndex];
+
+                        var containMaterialOverride = subProp.MaterialOverrides.Any(v => v?.GetObject() != null);
+                        if (!containMaterialOverride)
                         {
-                            var targetObject = gameObject?.GetObject(avatar.gameObject);
-                            if (targetObject != null)
+                            var curve = new AnimationCurve();
+                            var frameValue = pairIndex == subPairIndex ? 1 : 0;
+                            foreach (var gameObject in subProp.TargetObjects)
                             {
-                                curve.AddKey(0f, frameValue);
-                                curve.AddKey(1f / clip.frameRate, frameValue);
-                                clip.SetCurve(targetObject.GetRelativePath(avatar.gameObject, false), typeof(GameObject), "m_IsActive", curve);
+                                var targetObject = gameObject?.GetObject(avatar.gameObject);
+                                if (targetObject != null)
+                                {
+                                    curve.AddKey(0f, frameValue);
+                                    curve.AddKey(1f / clip.frameRate, frameValue);
+                                    clip.SetCurve(targetObject.GetRelativePath(avatar.gameObject, false), typeof(GameObject), "m_IsActive", curve);
+                                }
+                            }
+                        }
+
+                        if (operateParams && subProp.Parameters.Any(item => item != null))
+                        {
+                            foreach (var parameter in subProp.Parameters)
+                            {
+                                //default : isTurnOn
+                                //false : on -> off>on (nocall>call)
+                                //false : off -> off>on (call>nocall)
+                                //true : on -> on>off (call>nocall)
+                                //true : off -> on>off (nocall>call)
+                                var correct = subProp.IsDefaultEnabled == (parameter.ParameterTriggerType == RIS.ParameterTriggerType.TurnON);
+                                var flag = correct == (pairIndex == subPairIndex);
+                                if (flag)
+                                {
+                                    CheckParam(avatar, fxLayer, parameter);
+                                    stateDriverParameters.Add(new VRC_AvatarParameterDriver.Parameter()
+                                    {
+                                        name = parameter.Name,
+                                        type = VRC_AvatarParameterDriver.ChangeType.Set,
+                                        value = parameter.Value
+                                    });
+                                }
                             }
                         }
                     }
@@ -1134,6 +1522,12 @@ namespace YagihataItems.RadialInventorySystemV4
                         CheckParam(avatar, fxLayer, "IsLocal", false);
                     transition.CreateSingleCondition(AnimatorConditionMode.If, paramName, 1f, prop.IsLocalOnly && !prop.IsDefaultEnabled, true);
 
+                    if (operateParams)
+                    {
+                        stateDriver.parameters = stateDriverParameters;
+                        EditorUtility.SetDirty(stateDriver);
+                    }
+
                     clipName = $"PAIR{(int)enumValue}-{stateName}";
                     AssetDatabase.CreateAsset(clip, animationsFolder + clipName + ".anim");
                     EditorUtility.SetDirty(clip);
@@ -1141,9 +1535,9 @@ namespace YagihataItems.RadialInventorySystemV4
                 }
                 EditorUtility.SetDirty(animLayer.stateMachine);
             }
-            //Layer 3: Material Toggles
-            var materialDatas = new Dictionary<GameObject, List<MaterialOverrideData>>();
-            foreach (var pair in propLayer3)
+            //Material Toggles
+            var materialDatas = new Dictionary<int, List<MaterialOverrideData>>();
+            foreach (var pair in propLayer_MaterialToggles)
             {
                 var groupIndex = pair.Key.GroupIndex;
                 var propIndex = pair.Key.PropIndex;
@@ -1153,17 +1547,20 @@ namespace YagihataItems.RadialInventorySystemV4
                     var targetObject = gameObject?.GetObject(avatar.gameObject);
                     if (targetObject != null)
                     {
-                        if (!materialDatas.ContainsKey(targetObject))
-                            materialDatas.Add(targetObject, new List<MaterialOverrideData>());
-                        materialDatas[targetObject].Add(new MaterialOverrideData() { materials = prop.MaterialOverrides.Select(v => v?.GetObject()).ToList(), index = new IndexPair() { GroupIndex = groupIndex, PropIndex = propIndex } });
+                        var instanceID = targetObject.GetInstanceID();
+                        if (!materialDatas.ContainsKey(instanceID))
+                            materialDatas.Add(instanceID, new List<MaterialOverrideData>());
+                        materialDatas[instanceID].Add(new MaterialOverrideData() { materials = prop.MaterialOverrides.Select(v => v?.GetObject()).ToList(), index = new IndexPair() { GroupIndex = groupIndex, PropIndex = propIndex } });
                     }
                 }
             }
             foreach (var v in Enumerable.Range(0, materialDatas.Count))
             {
+                
                 var materialOverride = materialDatas.ToList()[v];
-                var gameObject = materialOverride.Key;
                 var materials = materialOverride.Value;
+                var instanceID = materialOverride.Key;
+                var gameObject = EditorUtility.InstanceIDToObject(instanceID) as GameObject;
                 var path = gameObject.GetRelativePath(avatar.gameObject, false);
                 var renderType = typeof(Renderer);
                 if (gameObject.GetComponent<MeshRenderer>() != null)
@@ -1256,6 +1653,7 @@ namespace YagihataItems.RadialInventorySystemV4
                             var driver = onState.AddStateMachineBehaviour<VRCAvatarParameterDriver>();
                             foreach (var driverItem in dict)
                             {
+                                CheckParam(avatar, fxLayer, driverItem.Key, driverItem.Value);
                                 driver.parameters.Add(new VRC_AvatarParameterDriver.Parameter()
                                 {
                                     name = driverItem.Key,
@@ -1273,49 +1671,61 @@ namespace YagihataItems.RadialInventorySystemV4
                                 keyFramesOn[0] = new ObjectReferenceKeyframe() { time = 0f, value = material };
                                 keyFramesOn[1] = new ObjectReferenceKeyframe() { time = 1f / clipON.frameRate, value = material };
                                 AnimationUtility.SetObjectReferenceCurve(clipON, curveBindingOn, keyFramesOn);
-                                foreach (var property in addMaterialProperties.Where(addMat => baseMaterialProperties.Any(baseMat => baseMat.name == addMat.name)))
+                                if (EditorSettings.MaterialAnimationType != RIS.MaterialAnimationType.MaterialOnly)
                                 {
-                                    var baseMatProperty = baseMaterialProperties.First(n => n.name == property.name);
-                                    properties.Add(property.name);
-                                    if (property.type == MaterialProperty.PropType.Color)
+                                    var useAllProperty = EditorSettings.MaterialAnimationType == RIS.MaterialAnimationType.All;
+                                    foreach (var property in addMaterialProperties)
                                     {
-                                        if (baseMatProperty.colorValue.r != property.colorValue.r || baseMatProperty.colorValue.g != property.colorValue.g ||
-                                            baseMatProperty.colorValue.g != property.colorValue.b || baseMatProperty.colorValue.g != property.colorValue.a)
+                                        var addMaterialPropertyName = property.name;
+                                        var containFlag = baseMaterialProperties.Any(item => item.name == addMaterialPropertyName);
+                                        if (useAllProperty || containFlag)
                                         {
-                                            curveBindingOn = EditorCurveBinding.FloatCurve(path, renderType, $"material.{property.name}.r");
-                                            var curve = new AnimationCurve();
-                                            curve.AddKey(0f, property.colorValue.r);
-                                            curve.AddKey(1f / clipON.frameRate, property.colorValue.r);
-                                            AnimationUtility.SetEditorCurve(clipON, curveBindingOn, curve);
+                                            properties.Add(addMaterialPropertyName);
+                                            MaterialProperty baseMatProperty = null;
+                                            if(containFlag)
+                                                baseMatProperty = baseMaterialProperties.First(n => n.name == addMaterialPropertyName);
 
-                                            curveBindingOn = EditorCurveBinding.FloatCurve(path, renderType, $"material.{property.name}.g");
-                                            curve = new AnimationCurve();
-                                            curve.AddKey(0f, property.colorValue.g);
-                                            curve.AddKey(1f / clipON.frameRate, property.colorValue.g);
-                                            AnimationUtility.SetEditorCurve(clipON, curveBindingOn, curve);
+                                            if (property.type == MaterialProperty.PropType.Color)
+                                            {
+                                                if (useAllProperty || baseMatProperty.colorValue.r != property.colorValue.r || baseMatProperty.colorValue.g != property.colorValue.g ||
+                                                    baseMatProperty.colorValue.g != property.colorValue.b || baseMatProperty.colorValue.g != property.colorValue.a)
+                                                {
+                                                    curveBindingOn = EditorCurveBinding.FloatCurve(path, renderType, $"material.{addMaterialPropertyName}.r");
+                                                    var curve = new AnimationCurve();
+                                                    curve.AddKey(0f, property.colorValue.r);
+                                                    curve.AddKey(1f / clipON.frameRate, property.colorValue.r);
+                                                    AnimationUtility.SetEditorCurve(clipON, curveBindingOn, curve);
 
-                                            curveBindingOn = EditorCurveBinding.FloatCurve(path, renderType, $"material.{property.name}.b");
-                                            curve = new AnimationCurve();
-                                            curve.AddKey(0f, property.colorValue.b);
-                                            curve.AddKey(1f / clipON.frameRate, property.colorValue.b);
-                                            AnimationUtility.SetEditorCurve(clipON, curveBindingOn, curve);
+                                                    curveBindingOn = EditorCurveBinding.FloatCurve(path, renderType, $"material.{addMaterialPropertyName}.g");
+                                                    curve = new AnimationCurve();
+                                                    curve.AddKey(0f, property.colorValue.g);
+                                                    curve.AddKey(1f / clipON.frameRate, property.colorValue.g);
+                                                    AnimationUtility.SetEditorCurve(clipON, curveBindingOn, curve);
 
-                                            curveBindingOn = EditorCurveBinding.FloatCurve(path, renderType, $"material.{property.name}.a");
-                                            curve = new AnimationCurve();
-                                            curve.AddKey(0f, property.colorValue.a);
-                                            curve.AddKey(1f / clipON.frameRate, property.colorValue.a);
-                                            AnimationUtility.SetEditorCurve(clipON, curveBindingOn, curve);
-                                        }
-                                    }
-                                    if (property.type == MaterialProperty.PropType.Float)
-                                    {
-                                        if (baseMatProperty.floatValue != property.floatValue)
-                                        {
-                                            curveBindingOn = EditorCurveBinding.FloatCurve(path, renderType, $"material.{property.name}");
-                                            var curve = new AnimationCurve();
-                                            curve.AddKey(0f, property.floatValue);
-                                            curve.AddKey(1f / clipON.frameRate, property.floatValue);
-                                            AnimationUtility.SetEditorCurve(clipON, curveBindingOn, curve);
+                                                    curveBindingOn = EditorCurveBinding.FloatCurve(path, renderType, $"material.{addMaterialPropertyName}.b");
+                                                    curve = new AnimationCurve();
+                                                    curve.AddKey(0f, property.colorValue.b);
+                                                    curve.AddKey(1f / clipON.frameRate, property.colorValue.b);
+                                                    AnimationUtility.SetEditorCurve(clipON, curveBindingOn, curve);
+
+                                                    curveBindingOn = EditorCurveBinding.FloatCurve(path, renderType, $"material.{addMaterialPropertyName}.a");
+                                                    curve = new AnimationCurve();
+                                                    curve.AddKey(0f, property.colorValue.a);
+                                                    curve.AddKey(1f / clipON.frameRate, property.colorValue.a);
+                                                    AnimationUtility.SetEditorCurve(clipON, curveBindingOn, curve);
+                                                }
+                                            }
+                                            if (property.type == MaterialProperty.PropType.Float)
+                                            {
+                                                if (useAllProperty || baseMatProperty.floatValue != property.floatValue)
+                                                {
+                                                    curveBindingOn = EditorCurveBinding.FloatCurve(path, renderType, $"material.{addMaterialPropertyName}");
+                                                    var curve = new AnimationCurve();
+                                                    curve.AddKey(0f, property.floatValue);
+                                                    curve.AddKey(1f / clipON.frameRate, property.floatValue);
+                                                    AnimationUtility.SetEditorCurve(clipON, curveBindingOn, curve);
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -1336,41 +1746,45 @@ namespace YagihataItems.RadialInventorySystemV4
                         keyFramesOff[1] = new ObjectReferenceKeyframe() { time = 1f / clipOFF.frameRate, value = baseMaterial };
                         AnimationUtility.SetObjectReferenceCurve(clipOFF, curveBindingOff, keyFramesOff);
 
-                        foreach (var property in baseMaterialProperties.Where(baseMat => properties.Any(addMat => baseMat.name == addMat)))
+                        if (EditorSettings.MaterialAnimationType != RIS.MaterialAnimationType.MaterialOnly)
                         {
-                            if (property.type == MaterialProperty.PropType.Color)
+                            foreach (var property in baseMaterialProperties)
                             {
-                                curveBindingOff = EditorCurveBinding.FloatCurve(path, renderType, $"material.{property.name}.r");
-                                var curve = new AnimationCurve();
-                                curve.AddKey(0f, property.colorValue.r);
-                                curve.AddKey(1f / clipOFF.frameRate, property.colorValue.r);
-                                AnimationUtility.SetEditorCurve(clipOFF, curveBindingOff, curve);
+                                var baseMaterialPropertyName = property.name;
+                                if (property.type == MaterialProperty.PropType.Color)
+                                {
+                                    curveBindingOff = EditorCurveBinding.FloatCurve(path, renderType, $"material.{baseMaterialPropertyName}.r");
+                                    var curve = new AnimationCurve();
+                                    curve.AddKey(0f, property.colorValue.r);
+                                    curve.AddKey(1f / clipOFF.frameRate, property.colorValue.r);
+                                    AnimationUtility.SetEditorCurve(clipOFF, curveBindingOff, curve);
 
-                                curveBindingOff = EditorCurveBinding.FloatCurve(path, renderType, $"material.{property.name}.g");
-                                curve = new AnimationCurve();
-                                curve.AddKey(0f, property.colorValue.g);
-                                curve.AddKey(1f / clipOFF.frameRate, property.colorValue.g);
-                                AnimationUtility.SetEditorCurve(clipOFF, curveBindingOff, curve);
+                                    curveBindingOff = EditorCurveBinding.FloatCurve(path, renderType, $"material.{baseMaterialPropertyName}.g");
+                                    curve = new AnimationCurve();
+                                    curve.AddKey(0f, property.colorValue.g);
+                                    curve.AddKey(1f / clipOFF.frameRate, property.colorValue.g);
+                                    AnimationUtility.SetEditorCurve(clipOFF, curveBindingOff, curve);
 
-                                curveBindingOff = EditorCurveBinding.FloatCurve(path, renderType, $"material.{property.name}.b");
-                                curve = new AnimationCurve();
-                                curve.AddKey(0f, property.colorValue.b);
-                                curve.AddKey(1f / clipOFF.frameRate, property.colorValue.b);
-                                AnimationUtility.SetEditorCurve(clipOFF, curveBindingOff, curve);
+                                    curveBindingOff = EditorCurveBinding.FloatCurve(path, renderType, $"material.{baseMaterialPropertyName}.b");
+                                    curve = new AnimationCurve();
+                                    curve.AddKey(0f, property.colorValue.b);
+                                    curve.AddKey(1f / clipOFF.frameRate, property.colorValue.b);
+                                    AnimationUtility.SetEditorCurve(clipOFF, curveBindingOff, curve);
 
-                                curveBindingOff = EditorCurveBinding.FloatCurve(path, renderType, $"material.{property.name}.a");
-                                curve = new AnimationCurve();
-                                curve.AddKey(0f, property.colorValue.a);
-                                curve.AddKey(1f / clipOFF.frameRate, property.colorValue.a);
-                                AnimationUtility.SetEditorCurve(clipOFF, curveBindingOff, curve);
-                            }
-                            if (property.type == MaterialProperty.PropType.Float)
-                            {
-                                curveBindingOff = EditorCurveBinding.FloatCurve(path, renderType, $"material.{property.name}");
-                                var curve = new AnimationCurve();
-                                curve.AddKey(0f, property.floatValue);
-                                curve.AddKey(1f / clipOFF.frameRate, property.floatValue);
-                                AnimationUtility.SetEditorCurve(clipOFF, curveBindingOff, curve);
+                                    curveBindingOff = EditorCurveBinding.FloatCurve(path, renderType, $"material.{baseMaterialPropertyName}.a");
+                                    curve = new AnimationCurve();
+                                    curve.AddKey(0f, property.colorValue.a);
+                                    curve.AddKey(1f / clipOFF.frameRate, property.colorValue.a);
+                                    AnimationUtility.SetEditorCurve(clipOFF, curveBindingOff, curve);
+                                }
+                                if (property.type == MaterialProperty.PropType.Float)
+                                {
+                                    curveBindingOff = EditorCurveBinding.FloatCurve(path, renderType, $"material.{baseMaterialPropertyName}");
+                                    var curve = new AnimationCurve();
+                                    curve.AddKey(0f, property.floatValue);
+                                    curve.AddKey(1f / clipOFF.frameRate, property.floatValue);
+                                    AnimationUtility.SetEditorCurve(clipOFF, curveBindingOff, curve);
+                                }
                             }
                         }
                         var clipOFFName = $"MAT-G{v}DEFAULT";
@@ -1391,8 +1805,8 @@ namespace YagihataItems.RadialInventorySystemV4
                     }
                 }
             }
-            //Layer 4: Animation Toggles
-            foreach (var pair in propLayer4)
+            //Animation Toggles
+            foreach (var pair in propLayer_AnimationToggles)
             {
                 var groupIndex = pair.Key.GroupIndex;
                 var propIndex = pair.Key.PropIndex;
@@ -1431,11 +1845,11 @@ namespace YagihataItems.RadialInventorySystemV4
                     offState.motion = noneClip;
                 EditorUtility.SetDirty(animLayer.stateMachine);
             }
-            //Layer 5: Animations Toggle(LegacyExclusive)
+            //Animations Toggle(LegacyExclusive)
             exclusiveIndexPairs = new Dictionary<RIS.ExclusiveGroupType, List<IndexPair>>();
             foreach (RIS.ExclusiveGroupType enumValue in exclusiveGroupTypes)
                 exclusiveIndexPairs.Add(enumValue, new List<IndexPair>());
-            foreach (var pair in propLayer5)
+            foreach (var pair in propLayer_AnimationTogglesLE)
                 exclusiveIndexPairs[pair.Value.ExclusiveGroup].Add(pair.Key);
 
 

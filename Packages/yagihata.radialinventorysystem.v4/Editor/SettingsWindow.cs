@@ -87,7 +87,7 @@ namespace YagihataItems.RadialInventorySystemV4
                     GUILayout.Space(20);
                     EditorGUILayout.LabelField("マテリアル変更アニメーションに全てのプロパティを含める", GUILayout.Width(300));
                     GUILayout.FlexibleSpace();
-                    EditorSettings.MaterialAnimationType = (MaterialAnimation)EditorGUILayout.EnumPopup(EditorSettings.MaterialAnimationType, GUILayout.Width(100));
+                    EditorSettings.MaterialAnimationType = (MaterialAnimationType)EditorGUILayout.EnumPopup(EditorSettings.MaterialAnimationType, GUILayout.Width(100));
                     GUILayout.Space(15);
                 }
 

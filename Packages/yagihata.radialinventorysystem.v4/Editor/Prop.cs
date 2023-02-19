@@ -25,6 +25,7 @@ namespace YagihataItems.RadialInventorySystemV4
         [JsonProperty] public bool UseSaveParameter { get; set; } = true;
         [JsonConverter(typeof(StringEnumConverter))] [JsonProperty] public RIS.BoneType AttachedBone { get; set; } = RIS.BoneType.None;
         [JsonProperty] public List<IndexPair> PropSets { get; set; } = new List<IndexPair>();
+        [JsonProperty] public List<Parameter> Parameters { get; set; } = new List<Parameter>();
         public string GetPropName(Avatar avatar)
         {
             if (!string.IsNullOrEmpty(Name))
