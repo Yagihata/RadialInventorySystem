@@ -1,6 +1,7 @@
 ﻿#if RISV4_JSON
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -725,18 +726,24 @@ namespace YagihataItems.RadialInventorySystemV4
                     foreach (var propIndex in Enumerable.Range(0, group.Props.Count))
                     {
                         var prop = group.Props[propIndex];
-                        var targetObject = prop?.GetFirstTargetObject(risAvatar);
                         var relativePath = "";
-                        if (targetObject != null)
+                        var avatarRoot = risAvatar.GetAvatarRoot();
+                        if (avatarRoot != null && prop != null)
                         {
-                            if (EditorSettings.ApplyEnableDefault)
-                                targetObject.SetActive(prop.IsDefaultEnabled);
-                            relativePath = targetObject.GetRelativePath(avatar.gameObject, false);
-                            var curve = new AnimationCurve();
-                            var frameValue = prop.IsDefaultEnabled ? 1 : 0;
-                            curve.AddKey(0f, frameValue);
-                            curve.AddKey(1f / fallbackClip.frameRate, frameValue);
-                            fallbackClip.SetCurve(relativePath, typeof(GameObject), "m_IsActive", curve);
+                            foreach (var targetObject in prop.TargetObjects)
+                            {
+                                var targetGameObj = targetObject.GetObject(avatarRoot.gameObject);
+                                if (targetGameObj == null)
+                                    continue;
+                                if (EditorSettings.ApplyEnableDefault)
+                                    targetGameObj.SetActive(prop.IsDefaultEnabled);
+                                relativePath = targetGameObj.GetRelativePath(avatar.gameObject, false);
+                                var curve = new AnimationCurve();
+                                var frameValue = prop.IsDefaultEnabled ? 1 : 0;
+                                curve.AddKey(0f, frameValue);
+                                curve.AddKey(1f / fallbackClip.frameRate, frameValue);
+                                fallbackClip.SetCurve(relativePath, typeof(GameObject), "m_IsActive", curve);
+                            }
                         }
                         var layerName = $"{RIS.Prefix}-MAIN-G{groupIndex}P{propIndex}";
 
@@ -762,12 +769,40 @@ namespace YagihataItems.RadialInventorySystemV4
                         transition.CreateSingleCondition(AnimatorConditionMode.IfNot, paramName, 1f, prop.IsLocalOnly && prop.IsDefaultEnabled, true);
 
                         var clipName = "G" + groupIndex.ToString() + "P" + propIndex.ToString();
-                        relativePath = targetObject.GetRelativePath(avatar.gameObject, false);
-
                         stateMachine.defaultState = prop.IsDefaultEnabled ? onState : offState;
 
-                        onState.motion = UnityUtils.CreateAnimationClip(relativePath, 1, typeof(GameObject), "m_IsActive", $"{clipName}ON", animationsFolder);
-                        offState.motion = UnityUtils.CreateAnimationClip(relativePath, 0, typeof(GameObject), "m_IsActive", $"{clipName}OFF", animationsFolder);
+                        var onClip = new AnimationClip();
+                        var offClip = new AnimationClip();
+                        if (avatarRoot != null && prop != null)
+                        {
+                            foreach (var targetObject in prop.TargetObjects)
+                            {
+                                var targetGameObj = targetObject.GetObject(avatarRoot.gameObject);
+                                if (targetGameObj == null)
+                                    continue;
+                                if (EditorSettings.ApplyEnableDefault)
+                                    targetGameObj.SetActive(prop.IsDefaultEnabled);
+                                relativePath = targetGameObj.GetRelativePath(avatar.gameObject, false);
+
+                                var onCurve = new AnimationCurve();
+                                var frameValue = 1;
+                                onCurve.AddKey(0f, frameValue);
+                                onCurve.AddKey(1f / onClip.frameRate, frameValue);
+                                onClip.SetCurve(relativePath, typeof(GameObject), "m_IsActive", onCurve);
+
+                                var offCurve = new AnimationCurve();
+                                frameValue = 0;
+                                offCurve.AddKey(0f, frameValue);
+                                offCurve.AddKey(1f / offClip.frameRate, frameValue);
+                                offClip.SetCurve(relativePath, typeof(GameObject), "m_IsActive", offCurve);
+                            }
+                        }
+                        AssetDatabase.CreateAsset(onClip, animationsFolder + $"{clipName}ON" + ".anim");
+                        AssetDatabase.CreateAsset(offClip, animationsFolder + $"{clipName}OFF" + ".anim");
+                        onState.motion = onClip;
+                        offState.motion = offClip;
+
+
                         if (stateMachine.states.Length <= 0)
                         {
                             fxLayer.TryRemoveLayer(layerName);
