@@ -13,6 +13,7 @@ namespace YagihataItems.RadialInventorySystemV4
 {
     public class SettingsWindow : EditorWindow
     {
+        Vector2 windowSizeMin = new Vector2(480, 320);
         [InitializeOnLoadMethod]
         private static void Initialize()
         {
@@ -45,6 +46,7 @@ namespace YagihataItems.RadialInventorySystemV4
         GUIStyle titleStyle = null;
         private void OnGUI()
         {
+
             if (!initialized)
                 InitializeWindow();
 
@@ -56,7 +58,8 @@ namespace YagihataItems.RadialInventorySystemV4
                 titleStyle.fixedHeight = 34;
                 titleStyle.alignment = TextAnchor.MiddleLeft;
             }
-
+            Debug.Log($"現在のサイズ : {position.size}");
+            minSize = this.windowSizeMin;
             GUILayout.Space(10);
             EditorGUILayout.LabelField(RISStrings.GetString("settings_title"), titleStyle, GUILayout.ExpandWidth(true), GUILayout.Height(34));
             GUILayout.Space(10);
