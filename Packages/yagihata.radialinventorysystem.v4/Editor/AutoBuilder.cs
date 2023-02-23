@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿#if RISV4_JSON
+using System.IO;
 using System;
 using UnityEditor;
 using UnityEngine;
@@ -82,3 +83,4 @@ namespace YagihataItems.RadialInventorySystemV4
         }
     }
 }
+#endif
