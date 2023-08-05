@@ -106,6 +106,7 @@
   "settings_materialanimtype" : "Material override animation type",
   "settings_othersettings" : "Other Settings",
   "settings_autosetupmenu" : "Automatic re-create of missing menus",
+  "settings_autosetupparams" : "Automatic re-create of missing parameters",
   "settings_hideuninstallmenu" : "Disable [Uninstall RISV4(Legacy)] ",
   "settings_defaultstatuslimitter" : "Limit to the initial number of default objects"
 }

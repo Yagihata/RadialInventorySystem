@@ -28,7 +28,10 @@ namespace YagihataItems.RadialInventorySystemV4
         private static void UpdateToolbar()
         {
             if (EditorSettings.HideRISV4Uninstaller)
+            {
                 MenuItemUtils.RemoveMenuItem("Radial Inventory/Uninstall RISV4(Legacy)");
+                MenuItemUtils.RemoveMenuItem("Radial Inventory/Uninstall Legacy RISV4");
+            }
             MenuItemUtils.Update();
         }
         [MenuItem("Radial Inventory/RISV4 Settings", priority = 50)]
@@ -58,7 +61,6 @@ namespace YagihataItems.RadialInventorySystemV4
                 titleStyle.fixedHeight = 34;
                 titleStyle.alignment = TextAnchor.MiddleLeft;
             }
-            Debug.Log($"現在のサイズ : {position.size}");
             minSize = this.windowSizeMin;
             GUILayout.Space(10);
             EditorGUILayout.LabelField(RISStrings.GetString("settings_title"), titleStyle, GUILayout.ExpandWidth(true), GUILayout.Height(34));
@@ -103,6 +105,15 @@ namespace YagihataItems.RadialInventorySystemV4
                     GUILayout.FlexibleSpace();
                     GUILayout.Space(90);
                     EditorSettings.AutoSetupMenu = EditorGUILayout.Toggle(EditorSettings.AutoSetupMenu, GUILayout.Width(10));
+                    GUILayout.Space(20);
+                }
+                using (new EditorGUILayout.HorizontalScope(GUI.skin.box))
+                {
+                    GUILayout.Space(20);
+                    EditorGUILayout.LabelField(RISStrings.GetString("settings_autosetupparams"), GUILayout.Width(300));
+                    GUILayout.FlexibleSpace();
+                    GUILayout.Space(90);
+                    EditorSettings.AutoSetupParams = EditorGUILayout.Toggle(EditorSettings.AutoSetupParams, GUILayout.Width(10));
                     GUILayout.Space(20);
                 }
                 using (new EditorGUILayout.HorizontalScope(GUI.skin.box))

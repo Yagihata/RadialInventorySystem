@@ -16,7 +16,7 @@ namespace YagihataItems.RadialInventorySystemV4
 
         public bool OnBuildRequested(VRCSDKRequestedBuildType requestedBuildType)
         {
-            if(!EditorSettings.AutoSetupMenu)
+            if(!EditorSettings.AutoSetupMenu && !EditorSettings.AutoSetupParams)
                 return true;
 
             if(requestedBuildType == VRCSDKRequestedBuildType.Avatar)
@@ -64,23 +64,36 @@ namespace YagihataItems.RadialInventorySystemV4
         }
         public void CheckExpressionMenu(Avatar avatar)
         {
-            var menu = avatar.AvatarRoot.GetObject()?.expressionsMenu;
-            var control = menu != null ? menu.controls.FirstOrDefault(item => item.name == "Radial Inventory") : null;
-            var reCreateFlag =
-                menu == null ||
-                control == null ||
-                control.subMenu == null ||
-                control.subMenu.controls.Count <= 0 ||
-                control.subMenu.controls.Any(item => item.type == VRC.SDK3.Avatars.ScriptableObjects.VRCExpressionsMenu.Control.ControlType.SubMenu && item.subMenu.controls.Count <= 0);
-            if(!reCreateFlag)
+            var avatarRoot = avatar.AvatarRoot.GetObject();
+            if (avatarRoot == null)
                 return;
-            for(int i = 0; i < 5 ; i++)
-            {
-                //5回は試行する
-                if (!reCreateFlag)
-                    return;
-                avatar.ReCreateExpressionMenu();
 
+            if (EditorSettings.AutoSetupMenu)
+            {
+                var menu = avatarRoot?.expressionsMenu;
+                var control = menu != null ? menu.controls.FirstOrDefault(item => item.name == "Radial Inventory") : null;
+                var reCreateFlag =
+                    menu == null ||
+                    control == null ||
+                    control.subMenu == null ||
+                    control.subMenu.controls.Count <= 0 ||
+                    control.subMenu.controls.Any(item => item.type == VRC.SDK3.Avatars.ScriptableObjects.VRCExpressionsMenu.Control.ControlType.SubMenu && item.subMenu.controls.Count <= 0);
+                if (reCreateFlag)
+                    for (int i = 0; i < 5; i++)
+                    {
+                        //5回は試行する
+                        if (!reCreateFlag)
+                            break;
+                        avatar.ReCreateExpressionMenu();
+                    }
+            }
+            if (EditorSettings.AutoSetupParams)
+            {
+                var param = avatarRoot?.expressionParameters;
+                if (param == null)
+                {
+                    avatar.ReCreateExpressionParams();
+                }
             }
         }
     }

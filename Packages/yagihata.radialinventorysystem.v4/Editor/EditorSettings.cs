@@ -22,6 +22,7 @@ namespace YagihataItems.RadialInventorySystemV4
         public static bool OptimizeParameters { get; set; } = true;
         public static bool ApplyEnableDefault { get; set; } = true;
         public static bool AutoSetupMenu { get; set; } = true;
+        public static bool AutoSetupParams { get; set; } = false;
         public static bool DefaultStatusLimitter { get; set; } = true;
         public static MaterialAnimationType MaterialAnimationType { get; set; } = MaterialAnimationType.Difference;
         public static void SaveSettings()
@@ -32,6 +33,7 @@ namespace YagihataItems.RadialInventorySystemV4
                 { nameof(OptimizeParameters), OptimizeParameters },
                 { nameof(ApplyEnableDefault), ApplyEnableDefault },
                 { nameof(AutoSetupMenu), AutoSetupMenu },
+                { nameof(AutoSetupParams), AutoSetupParams },
                 { nameof(DefaultStatusLimitter), DefaultStatusLimitter },
                 { nameof(MaterialAnimationType), MaterialAnimationType.ToString() }
             };
@@ -70,6 +72,10 @@ namespace YagihataItems.RadialInventorySystemV4
                             key = nameof(AutoSetupMenu);
                             if (settings.ContainsKey(key))
                                 AutoSetupMenu = settings[key];
+
+                            key = nameof(AutoSetupParams);
+                            if (settings.ContainsKey(key))
+                                AutoSetupParams = settings[key];
 
                             key = nameof(DefaultStatusLimitter);
                             if (settings.ContainsKey(key))

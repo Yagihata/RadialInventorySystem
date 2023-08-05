@@ -106,6 +106,7 @@
   "settings_materialanimtype" : "マテリアル変更アニメーションのタイプ",
   "settings_othersettings" : "その他の設定",
   "settings_autosetupmenu" : "メニューが消えている場合に自動で再生成する",
+  "settings_autosetupparams" : "パラメーターが消えている場合に自動で再生成する",
   "settings_hideuninstallmenu" : "[Uninstall RISV4(Legacy)] を非表示にする",
   "settings_defaultstatuslimitter" : "排他グループ内の初期有効オブジェクト数に制限を設ける"
 }
