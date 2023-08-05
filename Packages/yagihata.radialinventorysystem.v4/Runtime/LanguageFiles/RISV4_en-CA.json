@@ -5,7 +5,8 @@
   "donators_title" : "Donators!",
   "author_twitter" : "Twitter : @Yagihata4x",
   "manual_title" : "Radial Inventory System V4 Manual",
-  "main_helpbox" : "Thank you for downloading the Radial Inventory System!\nIf you don't know how to use it, please read the manual from the link below and try using it.\nIf there is a bug If you have any requests or requests for additional functions, please let us know in the BOOTH message.",
+  "discord_title" : "Raven's Nest - Official Discord Server(JP)",
+  "main_helpbox" : "Thank you for downloading the Radial Inventory System!\nIf you don't know how to use it, please read the manual from the link below and try using it.\nPlease use the official Discord (as described in the instructions) to get support.",
   "detach" : "Detach",
   "attach" : "Apply",
   "warn_paramspace" : "Parameter optimization is disabled. If you want to automatically remove empty or duplicate parameters, please perform parameter optimization\n.",
@@ -106,6 +107,7 @@
   "settings_materialanimtype" : "Material override animation type",
   "settings_othersettings" : "Other Settings",
   "settings_autosetupmenu" : "Automatic re-create of missing menus",
+  "settings_autosetupparams" : "Automatic re-create of missing parameters",
   "settings_hideuninstallmenu" : "Disable [Uninstall RISV4(Legacy)] ",
   "settings_defaultstatuslimitter" : "Limit to the initial number of default objects"
 }

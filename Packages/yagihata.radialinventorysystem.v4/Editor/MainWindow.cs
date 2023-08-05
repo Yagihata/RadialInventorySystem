@@ -354,6 +354,11 @@ namespace YagihataItems.RadialInventorySystemV4
                             EditorGUILayoutExtra.LinkLabel(RISStrings.GetString("author_twitter"), Color.blue, new Vector2(), 0, RIS.TwitterUrl);
                             GUILayout.FlexibleSpace();
                         }
+                        using (new EditorGUILayout.HorizontalScope())
+                        {
+                            EditorGUILayoutExtra.LinkLabel(RISStrings.GetString("discord_title"), Color.blue, new Vector2(), 0, RIS.DiscordURL);
+                            GUILayout.FlexibleSpace();
+                        }
                     }
                     var donators = DonatorListUpdater.GetDonators();
                     if(!string.IsNullOrWhiteSpace(donators))

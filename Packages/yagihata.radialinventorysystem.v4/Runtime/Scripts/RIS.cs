@@ -30,8 +30,9 @@ namespace YagihataItems.RadialInventorySystemV4
         public const string Prefix = "RISV4";
         public const string VersionUrl = "https://www.negura-karasu.net/radialinventory/vercheck/";
         public const string DonatorListUrl = "https://www.negura-karasu.net/radialinventory/donators/";
-        public const string ManualUrl = "https://negura-karasu.net/archives/1630";
+        public const string ManualUrl = "https://negura-karasu.net/archives/1691";
         public const string TwitterUrl = "https://twitter.com/Yagihata4x";
+        public const string DiscordURL = "https://discord.com/invite/HpsycV2zt7";
         public const string DownloadUrl = "https://yagihata.booth.pm/items/2278448";
         public const string AdsUrl = "https://negura-karasu.net/radialinventory/ads/";
         public const string PRUrl = "https://yagihata.fanbox.cc/posts/4256456";
