@@ -201,6 +201,7 @@ namespace YagihataItems.RadialInventorySystemV4
                             }
                         }
                         selectedProp.IsLocalOnly = EditorGUILayout.Toggle(RISStrings.GetString("local_mode"), selectedProp.IsLocalOnly);
+                        selectedProp.UseSaveParameter = EditorGUILayout.Toggle(RISStrings.GetString("save_status"), selectedProp.UseSaveParameter);
                         GUILayout.Space(5);
                         EditorGUILayout.LabelField(RISStrings.GetString("additional_animation"));
                         EditorGUI.BeginChangeCheck();
