@@ -9,50 +9,23 @@ namespace YagihataItems.RadialInventorySystemV4
 {
     static class ScriptingDefineSymbolsUtil
     {
-        private static IEnumerable<string> currentSymbols;
-
         private static readonly BuildTargetGroup[] buildTargetGroup = new[]
         {
             BuildTargetGroup.Android,
-            BuildTargetGroup.Standalone, 
+            BuildTargetGroup.Standalone,
         };
-        public static string CurrentSymbols
-        {
-            get { return String.Join(";", currentSymbols.ToArray()); }
-        }
-        static ScriptingDefineSymbolsUtil()
-        {
-            currentSymbols = PlayerSettings.GetScriptingDefineSymbolsForGroup(BuildTargetGroup.Standalone).Split(';');
-        }
 
-        private static void SaveSymbol()
+        public static void Add(params string[] symbols) => EditSymbols(x => x.Concat(symbols).Distinct());
+
+        public static void Remove(params string[] symbols) => EditSymbols(x => x.Except(symbols));
+
+        private static void EditSymbols(Func<string[], IEnumerable<string>> editor)
         {
-            var symbols = CurrentSymbols;
             foreach (var target in buildTargetGroup)
             {
-                PlayerSettings.SetScriptingDefineSymbolsForGroup(target, symbols);
+                var symbols = PlayerSettings.GetScriptingDefineSymbolsForGroup(target).Split(';');
+                PlayerSettings.SetScriptingDefineSymbolsForGroup(target, string.Join(";", editor(symbols)));
             }
-
         }
-
-        public static void Add(params string[] symbols)
-        {
-            currentSymbols = currentSymbols.Concat(symbols).Distinct().ToArray();
-            SaveSymbol();
-        }
-
-        public static void Remove(params string[] symbols)
-        {
-            currentSymbols = currentSymbols.Except(symbols).ToArray();
-
-            SaveSymbol();
-        }
-
-        public static void Set(params string[] symbols)
-        {
-            currentSymbols = symbols;
-            SaveSymbol();
-        }
-
     }
 }

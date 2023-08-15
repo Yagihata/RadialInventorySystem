@@ -1,15 +1,22 @@
 {
-  "name": "yagihata.radialinventorysystem.v4",
-  "references": [
-    "VRC.SDK3A",
-    "VRC.SDKBase"
-  ],
-  "includePlatforms": [],
-  "excludePlatforms": [],
-  "allowUnsafeCode": false,
-  "autoReferenced": true,
-  "overrideReferences": false,
-  "precompiledReferences": [],
-  "defineConstraints": [],
-  "optionalUnityReferences": []
+    "name": "yagihata.radialinventorysystem.v4",
+    "references": [
+        "VRC.SDK3A",
+        "VRC.SDKBase"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.nuget.newtonsoft-json",
+            "expression": "",
+            "define": "RISV4_JSON"
+        }
+    ],
+    "noEngineReferences": false
 }

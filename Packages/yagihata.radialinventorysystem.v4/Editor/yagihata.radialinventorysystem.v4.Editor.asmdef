@@ -1,20 +1,27 @@
 {
-  "name": "yagihata.radialinventorysystem.v4.Editor",
-  "references": [
-    "VRC.SDK3A",
-    "VRC.SDK3A.Editor",
-    "VRC.SDKBase",
-    "VRC.SDKBase.Editor",
-    "yagihata.radialinventorysystem.v4"
-  ],
-  "includePlatforms": [],
-  "excludePlatforms": [],
-  "allowUnsafeCode": false,
-  "autoReferenced": true,
-  "overrideReferences": false,
-  "precompiledReferences": [],
-  "defineConstraints": [
-        "UNITY_EDITOR"
+    "name": "yagihata.radialinventorysystem.v4.Editor",
+    "references": [
+        "VRC.SDK3A",
+        "VRC.SDK3A.Editor",
+        "VRC.SDKBase",
+        "VRC.SDKBase.Editor",
+        "yagihata.radialinventorysystem.v4"
     ],
-  "optionalUnityReferences": []
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "yagihata.radialinventorysystem.v4",
+            "expression": "",
+            "define": "RISV4_JSON"
+        }
+    ],
+    "noEngineReferences": false
 }
