@@ -16,6 +16,12 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "yagihata.radialinventorysystem.v4",
+            "expression": "",
+            "define": "RISV4_JSON"
+        }
+    ],
     "noEngineReferences": false
 }
