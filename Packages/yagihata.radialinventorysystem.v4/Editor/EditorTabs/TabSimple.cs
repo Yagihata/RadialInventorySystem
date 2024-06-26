@@ -821,12 +821,14 @@ namespace YagihataItems.RadialInventorySystemV4
             AssetDatabase.CreateAsset(fallbackClip, animationsFolder + "fallback.anim");
             AddFallbackDriver(ref fxLayer, ref risAvatar, fallbackClip);
 
+            var genericFlag = avatar.IsGenericAvatar();
+            var layerCount = genericFlag ? 3 : 5;
             if (avatar.baseAnimationLayers == null)
-                avatar.baseAnimationLayers = new VRCAvatarDescriptor.CustomAnimLayer[5];
-            if (avatar.baseAnimationLayers.Count() != 5)
-                Array.Resize(ref avatar.baseAnimationLayers, 5);
-            avatar.baseAnimationLayers[4].animatorController = fxLayer;
-            EditorUtility.SetDirty(avatar.baseAnimationLayers[4].animatorController);
+                avatar.baseAnimationLayers = new VRCAvatarDescriptor.CustomAnimLayer[layerCount];
+            if (avatar.baseAnimationLayers.Count() != layerCount)
+                Array.Resize(ref avatar.baseAnimationLayers, layerCount);
+            avatar.baseAnimationLayers[layerCount - 1].animatorController = fxLayer;
+            EditorUtility.SetDirty(avatar.baseAnimationLayers[layerCount - 1].animatorController);
             EditorUtility.SetDirty(avatar);
             AssetDatabase.SaveAssets();
         }

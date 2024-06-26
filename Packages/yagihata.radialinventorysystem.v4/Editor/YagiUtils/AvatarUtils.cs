@@ -15,6 +15,7 @@ namespace YagihataItems.RadialInventorySystemV4
 {
     public static class AvatarUtils
     {
+        private static Dictionary<VRCAvatarDescriptor, UnityEngine.Avatar> _avatarCache = new Dictionary<VRCAvatarDescriptor, UnityEngine.Avatar>();
         public static bool ValidateWriteDefaults(this VRCAvatarDescriptor avatar, bool writeDefaults)
         {
             if (avatar.baseAnimationLayers != null)
@@ -112,35 +113,90 @@ namespace YagihataItems.RadialInventorySystemV4
             }
             return newParams.Sum(n => VRCExpressionParameters.TypeCost(n.valueType));
         }
-        public static AnimatorController GetFXLayer(this VRCAvatarDescriptor avatar, string createFolderDest, bool createNew = true)
+        public static bool IsGenericAvatar(this VRCAvatarDescriptor avatar)
         {
-            AnimatorController controller = null;
-            if (avatar.baseAnimationLayers != null && avatar.baseAnimationLayers.Length >= 5 && avatar.baseAnimationLayers[4].animatorController != null)
-                controller = (AnimatorController)avatar.baseAnimationLayers[4].animatorController;
+            UnityEngine.Avatar currentAvatar = null;
+            if (_avatarCache.ContainsKey(avatar))
+                currentAvatar = _avatarCache[avatar];
             else
             {
-                if(createNew)
+                var animator = avatar.gameObject.GetComponent<Animator>();
+                var animatorAvatar = animator.avatar;
+                if (animatorAvatar != null)
                 {
-                    var path = createFolderDest + "GeneratedFXLayer.controller";
-                    YagiAPI.CreateFolderRecursively(createFolderDest);
-                    var asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path);
-                    if (asset != null)
-                        AssetDatabase.DeleteAsset(path);
+                    currentAvatar = animatorAvatar;
+                    _avatarCache[avatar] = animatorAvatar;
+                }
+            }
+            return currentAvatar == null || !currentAvatar.isHuman;
+        }
+        public static AnimatorController GetFXLayer(this VRCAvatarDescriptor avatar, string createFolderDest, bool createNew = true)
+        {
+            var genericFlag = IsGenericAvatar(avatar);
 
-                    controller = AnimatorController.CreateAnimatorControllerAtPath(path);
-                    if (avatar.baseAnimationLayers == null || avatar.baseAnimationLayers.Length < 5)
+            AnimatorController controller = null;
+            if (genericFlag)
+            {
+                if (avatar.baseAnimationLayers != null && avatar.baseAnimationLayers.Length >= 3 && avatar.baseAnimationLayers[2].animatorController != null)
+                    controller = (AnimatorController)avatar.baseAnimationLayers[2].animatorController;
+                else
+                {
+                    if (createNew)
                     {
-                        avatar.baseAnimationLayers = new CustomAnimLayer[]
+                        var path = createFolderDest + "GeneratedFXLayer.controller";
+                        YagiAPI.CreateFolderRecursively(createFolderDest);
+                        var asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path);
+                        if (asset != null)
+                            AssetDatabase.DeleteAsset(path);
+
+                        controller = AnimatorController.CreateAnimatorControllerAtPath(path);
+                        if (avatar.baseAnimationLayers == null || avatar.baseAnimationLayers.Length < 3)
                         {
-                            new CustomAnimLayer(),
-                            new CustomAnimLayer(),
-                            new CustomAnimLayer(),
-                            new CustomAnimLayer(){ isEnabled = true, animatorController = controller, type = AnimLayerType.FX }
-                        };
+                            avatar.baseAnimationLayers = new CustomAnimLayer[]
+                            {
+                                new CustomAnimLayer(){ isEnabled = false, animatorController = null, type = AnimLayerType.Base },
+                                new CustomAnimLayer(){ isEnabled = false, animatorController = null, type = AnimLayerType.Action },
+                                new CustomAnimLayer(){ isEnabled = true, animatorController = controller, type = AnimLayerType.FX }
+                            };
+                        }
+                        else
+                        {
+                            avatar.baseAnimationLayers[2] = new CustomAnimLayer() { isEnabled = true, animatorController = controller, type = AnimLayerType.FX };
+
+                        }
                     }
-                    else
+                }
+            }
+            else
+            {
+                if (avatar.baseAnimationLayers != null && avatar.baseAnimationLayers.Length >= 5 && avatar.baseAnimationLayers[4].animatorController != null)
+                    controller = (AnimatorController)avatar.baseAnimationLayers[4].animatorController;
+                else
+                {
+                    if (createNew)
                     {
-                        avatar.baseAnimationLayers[4] = new CustomAnimLayer() { isEnabled = true, animatorController = controller, type = AnimLayerType.FX };
+                        var path = createFolderDest + "GeneratedFXLayer.controller";
+                        YagiAPI.CreateFolderRecursively(createFolderDest);
+                        var asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path);
+                        if (asset != null)
+                            AssetDatabase.DeleteAsset(path);
+
+                        controller = AnimatorController.CreateAnimatorControllerAtPath(path);
+                        if (avatar.baseAnimationLayers == null || avatar.baseAnimationLayers.Length < 5)
+                        {
+                            avatar.baseAnimationLayers = new CustomAnimLayer[]
+                            {
+                                new CustomAnimLayer(),
+                                new CustomAnimLayer(),
+                                new CustomAnimLayer(),
+                                new CustomAnimLayer(),
+                                new CustomAnimLayer(){ isEnabled = true, animatorController = controller, type = AnimLayerType.FX }
+                            };
+                        }
+                        else
+                        {
+                            avatar.baseAnimationLayers[4] = new CustomAnimLayer() { isEnabled = true, animatorController = controller, type = AnimLayerType.FX };
+                        }
                     }
                 }
             }
