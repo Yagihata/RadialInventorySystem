@@ -75,7 +75,7 @@ namespace YagihataItems.RadialInventorySystemV4
                     (!prefixContain || additionalContain)))
                     newParams.Add(v);
             }
-            costNow = newParams.Sum(n => VRCExpressionParameters.TypeCost(n.valueType));
+            costNow = newParams.Sum(n => n.networkSynced ? VRCExpressionParameters.TypeCost(n.valueType) : 0);
             if (!compareOnly && additionalParams != null && additionalParams.Any())
             {
                 foreach (var v in additionalParams)
@@ -84,7 +84,7 @@ namespace YagihataItems.RadialInventorySystemV4
                         newParams.Add(v);
                 }
             }
-            costSum = newParams.Sum(n => VRCExpressionParameters.TypeCost(n.valueType));
+            costSum = newParams.Sum(n => n.networkSynced ? VRCExpressionParameters.TypeCost(n.valueType) : 0);
         }
         public static int CalculateMemoryCount(this VRCExpressionParameters expressionParameters, VRCExpressionParameters.Parameter[] additionalParams = null, bool optimize = false, string removablePrefix = "", bool compareOnly = false)
         {
