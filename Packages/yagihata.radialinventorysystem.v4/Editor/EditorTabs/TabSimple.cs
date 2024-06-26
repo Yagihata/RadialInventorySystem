@@ -24,10 +24,10 @@ namespace YagihataItems.RadialInventorySystemV4
         private GUIStyle buttonStyle = null;
         private Rect[] buttonRects = null;
         private short targetId = -1;
-        private string[] targetName = 
-        { 
-            RISStrings.GetString("item_head"), 
-            RISStrings.GetString("item_hand"), 
+        private string[] targetName =
+        {
+            RISStrings.GetString("item_head"),
+            RISStrings.GetString("item_hand"),
             RISStrings.GetString("item_foot"),
             RISStrings.GetString("item_chest"),
             RISStrings.GetString("item_hip"),
@@ -62,6 +62,7 @@ namespace YagihataItems.RadialInventorySystemV4
             targetProp = new Prop();
             InitializeGameObjectsList(risAvatar);
             InitializePropSetList(risAvatar);
+            propsReorderableList.index = -1;
         }
         private void DrawOutlinedLine(Vector2 dest, Vector2 mid, Vector2 src)
         {
@@ -169,9 +170,10 @@ namespace YagihataItems.RadialInventorySystemV4
                         20f,
                         13f
                     );
-                if (GUI.Button(position, ReorderableListStyle.AddContent, ReorderableListStyle.AddStyle) && propFlag)
+                if (GUI.Button(position, ReorderableListStyle.AddContent, ReorderableListStyle.AddStyle))
                 {
-                    prop.TargetObjects.Add(null);
+                    if (propFlag)
+                        prop.TargetObjects.Add(null);
                 }
             };
             list.drawElementCallback = (rect, index, isActive, isFocused) =>
@@ -309,7 +311,7 @@ namespace YagihataItems.RadialInventorySystemV4
                     var selectedProp = propSet.PropIndex;
                     EditorGUI.BeginChangeCheck();
                     selectedProp = EditorGUI.Popup(subRect2, selectedProp, propSetNames);
-                    if(EditorGUI.EndChangeCheck())
+                    if (EditorGUI.EndChangeCheck())
                         propSet.PropIndex = selectedProp;
                 }
                 rect.x = rect.x + rect.width + 5;
@@ -345,7 +347,7 @@ namespace YagihataItems.RadialInventorySystemV4
         }
         public override void DrawTab(ref Avatar risAvatar, Rect position, bool showingVerticalScroll)
         {
-            var cellWidth = position.width- 45f - bodyImageWidth * 2.5f;
+            var cellWidth = position.width - 45f - bodyImageWidth * 2.5f;
             if (propsReorderableList == null)
                 InitializePropList(null, risAvatar);
             if (gameObjectsReorderableList == null)
@@ -947,7 +949,7 @@ namespace YagihataItems.RadialInventorySystemV4
                     menuControls.Add(control);
                     EditorUtility.SetDirty(control.subMenu);
                 }
-                else if(group.Props.Count > 0)
+                else if (group.Props.Count > 0)
                 {
 
                     var groupName = targetName[groupIndex];
