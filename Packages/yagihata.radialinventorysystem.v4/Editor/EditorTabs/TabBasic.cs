@@ -329,6 +329,8 @@ namespace YagihataItems.RadialInventorySystemV4
                     {
                         var newProp = new Prop();
                         newProp.TargetObjects.Add(null);
+                        if (group.Props == null)
+                            group.Props = new List<Prop>();
                         group.Props.Add(newProp);
                     }
                 },
