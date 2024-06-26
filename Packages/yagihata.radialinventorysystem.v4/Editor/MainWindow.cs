@@ -128,7 +128,7 @@ namespace YagihataItems.RadialInventorySystemV4
                     var newVersion = newerVersion;
                     if (!newerVersion.StartsWith("ris_"))
                         newVersion = RIS.CurrentVersion;
-                    EditorGUILayoutExtra.HeaderWithVersionInfo(headerTexture, width == beforeWidth ? width: beforeWidth, height, $"VERSION-{newVersion}", $"VERSION-{RIS.CurrentVersion}", "ris", "新しいバージョンがあります", RIS.DownloadUrl);
+                    EditorGUILayoutExtra.HeaderWithVersionInfo(headerTexture, width == beforeWidth ? width: beforeWidth, height, newVersion, RIS.CurrentVersion, "ris", "新しいバージョンがあります", RIS.DownloadUrl);
                     
                     EditorGUILayoutExtra.Space();
 
