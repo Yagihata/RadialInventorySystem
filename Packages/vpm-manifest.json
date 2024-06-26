@@ -1,55 +1,58 @@
 {
   "dependencies": {
-    "yagihata.radialinventorysystem.v4": {
-      "version": "4.4.1"
-    },
-    "com.vrchat.core.vpm-resolver": {
-      "version": "0.1.28"
-    },
-    "com.vrchat.avatars": {
-      "version": "3.5.2"
-    },
-    "nadena.dev.modular-avatar": {
-      "version": "1.9.10"
-    },
     "jp.lilxyzw.liltoon": {
       "version": "1.7.3"
+    },
+    "yagihata.radialinventorysystem.v4": {
+      "version": "4.5.1"
+    },
+    "com.vrchat.base": {
+      "version": "3.6.1"
+    },
+    "com.vrchat.avatars": {
+      "version": "3.6.1"
+    },
+    "com.vrchat.core.vpm-resolver": {
+      "version": "0.1.29"
+    },
+    "nadena.dev.modular-avatar": {
+      "version": "1.9.13"
     }
   },
   "locked": {
+    "jp.lilxyzw.liltoon": {
+      "version": "1.7.3",
+      "dependencies": {}
+    },
     "yagihata.radialinventorysystem.v4": {
       "version": "4.5.1",
       "dependencies": {
         "com.vrchat.avatars": ">=3.0.0"
       }
     },
-    "com.vrchat.core.vpm-resolver": {
-      "version": "0.1.28",
+    "com.vrchat.base": {
+      "version": "3.6.1",
       "dependencies": {}
     },
     "com.vrchat.avatars": {
-      "version": "3.5.2",
+      "version": "3.6.1",
       "dependencies": {
-        "com.vrchat.base": "3.5.2"
+        "com.vrchat.base": "3.6.1"
       }
     },
-    "com.vrchat.base": {
-      "version": "3.5.2",
+    "com.vrchat.core.vpm-resolver": {
+      "version": "0.1.29",
       "dependencies": {}
     },
     "nadena.dev.modular-avatar": {
-      "version": "1.9.10",
+      "version": "1.9.13",
       "dependencies": {
         "com.vrchat.avatars": ">=3.4.0",
-        "nadena.dev.ndmf": ">=1.4.0 <2.0.0-a"
+        "nadena.dev.ndmf": ">=1.4.1 <2.0.0-a"
       }
     },
     "nadena.dev.ndmf": {
-      "version": "1.4.0",
-      "dependencies": {}
-    },
-    "jp.lilxyzw.liltoon": {
-      "version": "1.7.3",
+      "version": "1.4.1",
       "dependencies": {}
     }
   }
